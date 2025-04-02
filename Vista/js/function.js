@@ -72,6 +72,10 @@ function option(opc, filter) {
                                 if (opc === 'docente' && $('#tableDocente').length) {
                                     $('#tableDocente').DataTable({
                                         ...commonConfig,
+                                        language: {
+                                            url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
+                                            emptyTable: "No hay registros por el momento de Docentes para Mostrar"
+                                        },
                                         columnDefs: [
                                             {"searchable": true, "targets": [1]}, //Buscar por nombre del docente
                                             {"searchable": false, "targets": "_all"}
@@ -81,6 +85,10 @@ function option(opc, filter) {
                                 if (opc === 'career-manager' && $('#tableCareerManager').length) {
                                     $('#tableCareerManager').DataTable({
                                         ...commonConfig,
+                                        language: {
+                                            url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
+                                            emptyTable: "No hay registros por el momento de Jefe de Carrera para Mostrar"
+                                        },
                                         columnDefs: [
                                             {"searchable": true, "targets": [1]}, //Buscar por nombre de jefe
                                             {"searchable": false, "targets": "_all"}
