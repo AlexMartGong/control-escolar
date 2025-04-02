@@ -138,8 +138,9 @@ class PeriodoDAO
         }
 
         try {
-            $sp = $this->conector->prepare("CALL spAgregarPeriodo(:pperiodo, :pfechaInicio, :pfechaTermino, :pfechaInicioAjuste, :pfechaTerminoAjuste)");
+            $sp = $this->conector->prepare("CALL spAgregarPeriodo(:pidPeriodo, :pperiodo, :pfechaInicio, :pfechaTermino, :pfechaInicioAjuste, :pfechaTerminoAjuste)");
 
+            $sp->bindParam(':pidPeriodo', $datos->id, PDO::PARAM_INT);
             $sp->bindParam(':pperiodo', $datos->periodo, PDO::PARAM_STR);
             $sp->bindParam(':pfechaInicio', $datos->fechaInicio, PDO::PARAM_STR);
             $sp->bindParam(':pfechaTermino', $datos->fechaTermino, PDO::PARAM_STR);

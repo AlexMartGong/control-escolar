@@ -28,9 +28,9 @@ $siguienteID = $objPeDAO->obtenerSiguienteIDPeriodo();
                 <!-- ID Periodo -->
                 <div class="col-md-3">
                     <div class="form-floating mb-3 mb-md-0">
-                        <input type="text" class="form-control" id="txtId" placeholder="202401" required disabled>
+                        <input type="text" class="form-control" id="txtId" placeholder="202401" required disabled value="<?= $siguienteID ?>">
                         <label for="txtId">
-                            <?= $siguienteID ?>
+                            ID del Periodo
                         </label>
                         <div class="invalid-feedback">
                             Por favor ingrese un ID válido

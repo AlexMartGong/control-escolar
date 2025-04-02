@@ -1,45 +1,63 @@
-function loadFormJefeCarrera(id) {
-    let url = "";
-    
-    if (id === "none") {
-        url = "career-manager/frmJefeCarrera.php";
-    } else if (id === "mod") {
-        url = "career-manager/modJefeCarrera.php";
-    }
+// si se modifica algo de este archivo fabor de avisar a los front end
+//MALH//
 
-    let datas = { id: id };
+// Esta funcion que permite cargar los formularios de agregar y modificar jefe de carrera, no desde function.js
+function loadFormJefeCarrera(opc, id = "") {
+  let url = "";
 
-    let container = $('#frmArea'); // Aseguramos que el contenedor está bien referenciado
+  if (opc === "none") {
+    url = "career-manager/frmJefeCarrera.php";
+  } else if (opc === "mod") {
+    url = "career-manager/modJefeCarrera.php";
+  }
 
-    container.fadeOut(300, function () {
-        clearArea('frmArea'); // Limpiamos el área antes de cargar el nuevo contenido
+  let datas = { id: id };
 
-        $.post(url, JSON.stringify(datas), function (responseText, status) {
-            try {
-                if (status === "success") {
-                    container.html(responseText).hide().fadeIn(500).css("transform", "translateY(-10px)").animate({
-                        opacity: 1,
-                        transform: "translateY(0px)"
-                    }, 300);
-                }
-            } catch (e) {
-                mostrarErrorCaptura('Error al cargar el formulario: ' + e);
-            }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            mostrarErrorCaptura('Error de conexión: ' + textStatus + ' - ' + errorThrown);
-        });
+  let container = $("#frmArea");
+
+  container.fadeOut(300, function () {
+    clearArea("frmArea");
+
+    $.post(url, JSON.stringify(datas), function (responseText, status) {
+      try {
+        if (status === "success") {
+          container
+            .html(responseText)
+            .hide()
+            .fadeIn(500, function () {
+              // Si es edición, llamar a BuscarJefeCarrera automáticamente
+              if (opc === "mod" && id !== "") {
+                BuscarJefeCarrera(id);
+              }
+            })
+            .css("transform", "translateY(-10px)")
+            .animate(
+              {
+                opacity: 1,
+                transform: "translateY(0px)",
+              },
+              300
+            );
+        }
+      } catch (e) {
+        mostrarErrorCaptura("Error al cargar el formulario: " + e);
+      }
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+      mostrarErrorCaptura(
+        "Error de conexión: " + textStatus + " - " + errorThrown
+      );
     });
+  });
 }
 
-
 function changeStatusJefeCarrera(id, status, currentStatus) {
-    // Si no hay un estado seleccionado (opción por defecto), no hacer nada
-    if (!status || status === "Cambiar estado") {
-        return;
-    }
+  // Si no hay un estado seleccionado (opción por defecto), no hacer nada
+  if (!status || status === "Cambiar estado") {
+    return;
+  }
 
-    // Crear el contenido del modal de confirmación
-    let modalHTML = `
+  // Crear el contenido del modal de confirmación
+  let modalHTML = `
     <div class="modal fade" id="confirmStatusModal" tabindex="-1" aria-labelledby="confirmStatusModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -53,7 +71,9 @@ function changeStatusJefeCarrera(id, status, currentStatus) {
                     <div class="text-center mb-3">
                         <i class="fas fa-sync-alt text-warning fa-4x"></i>
                     </div>
-                    <p class="text-center">¿Está seguro de cambiar el estado del jefe de carrera <strong>${id}</strong> a <strong>${status === "1" ? "Activo" : "Inactivo"}</strong>?</p>
+                    <p class="text-center">¿Está seguro de cambiar el estado del jefe de carrera <strong>${id}</strong> a <strong>${
+    status === "1" ? "Activo" : "Inactivo"
+  }</strong>?</p>
                     <p class="text-center text-danger">Esta acción puede afectar a los procesos académicos en curso.</p>
                 </div>
                 <div class="modal-footer">
@@ -64,95 +84,112 @@ function changeStatusJefeCarrera(id, status, currentStatus) {
         </div>
     </div>`;
 
-    // Remover modal anterior si existe
-    let modalAnterior = document.getElementById('confirmStatusModal');
-    if (modalAnterior) {
-        modalAnterior.remove();
+  // Remover modal anterior si existe
+  let modalAnterior = document.getElementById("confirmStatusModal");
+  if (modalAnterior) {
+    modalAnterior.remove();
+  }
+
+  // Agregar el modal al documento
+  document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+  // Mostrar el modal
+  let modalElement = document.getElementById("confirmStatusModal");
+  let modal = new bootstrap.Modal(modalElement);
+  modal.show();
+
+  // Configurar acción para el botón cancelar
+  document.getElementById("btnCancelar").addEventListener("click", function () {
+    // Resetear el select al cancelar
+    const selectElement = document.querySelector(
+      `select[onchange="changeStatusJefeCarrera('${id}', this.value, '${currentStatus}')"]`
+    );
+    if (selectElement) {
+      selectElement.selectedIndex = 0;
     }
+  });
 
-    // Agregar el modal al documento
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
+  // También resetear al cerrar el modal con la X o haciendo clic fuera
+  modalElement.addEventListener("hidden.bs.modal", function () {
+    const selectElement = document.querySelector(
+      `select[onchange="changeStatusJefeCarrera('${id}', this.value, '${currentStatus}')"]`
+    );
+    if (selectElement) {
+      selectElement.selectedIndex = 0;
+    }
+    modalElement.remove();
+  });
 
-    // Mostrar el modal
-    let modalElement = document.getElementById('confirmStatusModal');
-    let modal = new bootstrap.Modal(modalElement);
-    modal.show();
+  // Configurar acción para el botón confirmar
+  document
+    .getElementById("btnConfirmar")
+    .addEventListener("click", function () {
+      // Cerrar el modal
+      modal.hide();
 
-    // Configurar acción para el botón cancelar
-    document.getElementById('btnCancelar').addEventListener('click', function () {
-        // Resetear el select al cancelar
-        const selectElement = document.querySelector(`select[onchange="changeStatusJefeCarrera('${id}', this.value, '${currentStatus}')"]`);
-        if (selectElement) {
-            selectElement.selectedIndex = 0;
-        }
-    });
+      // Preparar datos para enviar
+      let data = {
+        id: id,
+        status: status,
+      };
 
-    // También resetear al cerrar el modal con la X o haciendo clic fuera
-    modalElement.addEventListener('hidden.bs.modal', function () {
-        const selectElement = document.querySelector(`select[onchange="changeStatusJefeCarrera('${id}', this.value, '${currentStatus}')"]`);
-        if (selectElement) {
-            selectElement.selectedIndex = 0;
-        }
-        modalElement.remove();
-    });
+      // Convertir a JSON
+      let json = JSON.stringify(data);
 
-    // Configurar acción para el botón confirmar
-    document.getElementById('btnConfirmar').addEventListener('click', function () {
-        // Cerrar el modal
-        modal.hide();
+      console.log(
+        `Cambiando estado de jefe de carrera ${id} a ${
+          status === "1" ? "Activo" : "Inactivo"
+        }`
+      );
 
-        // Preparar datos para enviar
-        let data = {
-            id: id,
-            status: status
-        };
-
-        // Convertir a JSON
-        let json = JSON.stringify(data);
-
-        console.log(`Cambiando estado de jefe de carrera ${id} a ${status === "1" ? "Activo" : "Inactivo"}`);
-
-        // Realizar petición AJAX para cambiar el estado
-        $.ajax({
-            url: "career-manager/changeStatusJefeCarrera.php",
-            type: 'POST',
-            data: json,
-            contentType: 'application/json',
-            timeout: 10000, // 10 segundos de timeout
-            success: function (response) {
-                mostrarDatosGuardados(`El estado del jefe de carrera ${id} ha sido cambiado a "${status === "1" ? "Activo" : "Inactivo"}" correctamente.`, function () {
-                    // Recargar la tabla de jefes de carrera después de cambiar el estado
-                    loadFormJefeCarrera('none');
-                });
-                try {
-                    // Mostrar mensaje de éxito
-                } catch (e) {
-                    mostrarErrorCaptura('Error al procesar la respuesta: ' + e.message);
+      // Realizar petición AJAX para cambiar el estado
+      $.ajax({
+        url: "../../Controlador/Intermediarios/JefeCarrera/CambiarEstadoJC.php",
+        type: "POST",
+        data: json,
+        contentType: "application/json",
+        timeout: 10000, // 10 segundos de timeout
+        success: function (response) {
+          try {
+            if (response.estado === "OK") {
+              mostrarDatosGuardados(
+                `El estado del jefe de carrera ${id} ha sido cambiado a "${
+                  status === "1" ? "Activo" : "Inactivo"
+                }" correctamente.`,
+                function () {
+                  option("career-manager", "");
                 }
-            },
-            error: function (xhr, status, error) {
-                mostrarErrorCaptura(`Error al cambiar el estado: ${status} - ${error}`);
+              );
+            } else {
+              mostrarErrorCaptura(
+                response.mensaje || "Error al cambiar el estado."
+              );
             }
-        });
+          } catch (e) {
+            mostrarErrorCaptura("Error al procesar la respuesta: " + e.message);
+          }
+        },
+        error: function (xhr, status, error) {
+          mostrarErrorCaptura(
+            `Error al cambiar el estado: ${status} - ${error}`
+          );
+        },
+      });
     });
 }
 
 //Esta funcion permite evaluar los campos vacios del formulario frmManager y modJefe
 
-function validarCampos2(msj,opc) {
-    let nombreInput = document.getElementById('nombremod');//SE EXTRAE EL ID DEL CAMPO NOMBRE
-    let idImput = document.getElementById('idmanager');//EXTRAE EL ID DEL CAMPO ID JEFE CARRERA
-    let nombreRegistro = document.getElementById('nombreReagistro');//Extrae el ID de nombre en formulario de nuevo jefe de carrera
-   
-   
-   
-    let regex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/; // Solo letras y espacios
-    let regex2 = /^[0-9\s]+$/;// solo numeros y espacios 
+function validarCampos2(msj, opc) {
+  let nombreInput = document.getElementById("nombremod"); //SE EXTRAE EL ID DEL CAMPO NOMBRE
+  let idImput = document.getElementById("idmanager"); //EXTRAE EL ID DEL CAMPO ID JEFE CARRERA
+  let nombreRegistro = document.getElementById("nombreReagistro"); //Extrae el ID de nombre en formulario de nuevo jefe de carrera
 
-   
-   
-    switch (opc){
-     /*   case 'busqueda': case desabilitado por el momento
+  let regex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/; // Solo letras y espacios
+  let regex2 = /^[0-9\s]+$/; // solo numeros y espacios
+
+  switch (opc) {
+    /*   case 'busqueda': case desabilitado por el momento
             let nombre = nombreInput.value.trim(); // Eliminar espacios en blanco al inicio y final
             let identrada = idImput.value.trim();
 
@@ -187,95 +224,282 @@ function validarCampos2(msj,opc) {
          
         break;
        */
-      //permite modificar el jefe de carrera si todo esta bien
-        case 'modificar':
-            let nombrej = nombreInput.value.trim(); // Eliminar espacios en blanco al inicio y final
-            let identradJ = idImput.value.trim();
+    //permite modificar el jefe de carrera si todo esta bien
+    case "modificar":
+      let nombrej = nombreInput.value.trim(); // Eliminar espacios en blanco al inicio y final
+      let identradJ = idImput.value.trim();
 
-            if (nombrej === '' /*|| identradJ === '' Desabilitado por el momento*/ ) {
-                mostrarFaltaDatos(msj,''); //muestra el modal si hace falta valores
-                
-                 if(nombrej === ''){
-                    document.getElementById('nombremod').focus();
-                    nombreInput.classList.add("entrada-error"); // Agrega la clase si es inválido
-                 }
-                //se valida si antes de guardar hay caracteres especiales
-            } else if (!regex.test(nombrej)){
-                mostrarFaltaDatos("Solo se permiten letras y espacios.",'');
-                    document.getElementById('nombremod').focus();
-                    nombreInput.classList.add("entrada-error"); // Agrega la clase si es inválido
-                 
-                
-            }
-            else { 
-                //modal que se muestra que se aguardaron datos correctamente
-                mostrarDatosGuardados('Datos guardados correctamente', '')
-                nombreInput.classList.remove("entrada-error"); // Remueve la clase si es válido
-                idImput.classList.remove("entrada-error"); // se remueve la clase si es inválido
-                deshabilitar(true, "modbtnj")
-               
-            }
-               //se puede retornar un valor bool en caso de que todo este bien
-             break;
-       //Permite agregar un nuevo gefe de carrera si todo esta bien 
-             case 'guardar':
-                
-               let nombreR = nombreRegistro.value.trim();
+      if (nombrej === "" || identradJ === "") {
+        mostrarFaltaDatos(msj, ""); //muestra el modal si hace falta valores
+        deshabilitar(true, "modbtnj");
 
-                if(nombreR === ''){
-                    mostrarFaltaDatos(msj,''); //muestra el modal si hace falta valores
-                    nombreRegistro.classList.add("entrada-error"); // Agrega la clase si es inválido
-                   
-                }
-                else if (!regex.test(nombreR)){
-                    mostrarFaltaDatos("Solo se permiten letras y espacios.",'');
-                    nombreRegistro.classList.add("entrada-error"); // Agrega la clase si es inválido
-                   
+        if (nombrej === "") {
+          nombreInput.classList.add("entrada-error"); // Agrega la clase si es inválido
+        } else {
+          idImput.classList.add("entrada-error");
         }
-                else { 
-                    //modal que se muestra que se aguardaron datos correctamente
-                    mostrarDatosGuardados('Datos guardados correctamente', '')
-                    nombreRegistro.classList.remove("entrada-error"); // Remueve la clase si es válido
-                    deshabilitar(true, "btnGuardarJ")
-                }
-                //se puede retornar un valor bool en caso de que todo este bien
-                break;
-    }
+        //se valida si antes de guardar hay caracteres especiales
+      } else if (!regex.test(nombrej)) {
+        mostrarFaltaDatos("Solo se permiten letras y espacios.", "");
+        document.getElementById("nombremod").focus();
+        nombreInput.classList.add("entrada-error"); // Agrega la clase si es inválido
+        deshabilitar(true, "modbtnj");
+      } else {
+        ModificarJefeCarrera();
+
+        nombreInput.classList.remove("entrada-error"); // Remueve la clase si es válido
+        idImput.classList.remove("entrada-error"); // se remueve la clase si es inválido
+        deshabilitar(true, "modbtnj");
+      }
+      //se puede retornar un valor bool en caso de que todo este bien
+      break;
+
+    //Permite agregar un nuevo gefe de carrera si todo esta bien
+    case "guardar":
+      let nombreR = nombreRegistro.value.trim();
+      let idJefe = idImput.value.trim();
+
+      let regexId = /^[A-Za-z]{3}-\d{4}$/;
+      let regexNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]{1,50}$/;
+
+      if (!regexId.test(idJefe)) {
+        mostrarErrorCaptura(
+          "Formato de ID inválido. Debe contener 3 letras al inicio, guion y 4 números.",
+          ""
+        );
+        idImput.classList.add("entrada-error");
+        idImput.focus();
+        return;
+      } else if (!regexNombre.test(nombreR)) {
+        mostrarErrorCaptura(
+          "Nombre inválido. Solo se permiten letras y espacios (máx 50 caracteres).",
+          ""
+        );
+        nombreRegistro.classList.add("entrada-error");
+        nombreRegistro.focus();
+        deshabilitar(true, "btnGuardarJ");
+        return;
+      }
+
+      if (nombreR === "" || idJefe === "") {
+        mostrarFaltaDatos(msj, ""); //muestra el modal si hace falta valores
+        deshabilitar(true, "btnGuardarJ");
+
+        if (nombreR === "") {
+          nombreRegistro.classList.add("entrada-error"); // Agrega la clase si es inválido
+        } else {
+          idImput.classList.add("entrada-error");
+        }
+      } else if (!regex.test(nombreR)) {
+        mostrarFaltaDatos("Solo se permiten letras y espacios.", "");
+        nombreRegistro.classList.add("entrada-error"); // Agrega la clase si es inválido
+        deshabilitar(true, "btnGuardarJ");
+      } else {
+        //modal que se muestra que se aguardaron datos correctamente
+        nombreRegistro.classList.remove("entrada-error"); // Remueve la clase si es válido
+        idImput.classList.remove("entrada-error");
+        deshabilitar(true, "btnGuardarJ");
+        guardarNuevoJefe();
+      }
+      //se puede retornar un valor bool en caso de que todo este bien
+      break;
+  }
 }
 
 //funcion que permite ver si hay cambios en las entradas en modificar jefe de carrera
 function verificarInput(idetiqueta, idbtn) {
-    let input = document.getElementById(idetiqueta);
-    let estaVacio = input.value.trim() === "";
-    let nombreInput = document.getElementById('nombremod'); //extrae el id de campo nombre en modJefe
-    let idImput = document.getElementById('idmanager');//EXTRAE EL ID DEL CAMPO ID JEFE CARRERA
-  
-    nombreInput.classList.remove("entrada-error"); // Remueve la clase si se a modificado algo
-    idImput.classList.remove("entrada-error"); // se remueve la clase si se a modificado algo
-     
-     // Llamamos a la función para deshabilitar o habilitar el botón según el input
-    deshabilitar(estaVacio, idbtn);
+  let input = document.getElementById(idetiqueta);
+  let estaVacio = input.value.trim() === "";
+  let nombreInput = document.getElementById("nombremod"); //extrae el id de campo nombre en modJefe
+  let idImput = document.getElementById("idmanager"); //EXTRAE EL ID DEL CAMPO ID JEFE CARRERA tanto de modificar como agregar
 
+  nombreInput.classList.remove("entrada-error"); // Remueve la clase si se a modificado algo
+  idImput.classList.remove("entrada-error"); // se remueve la clase si se a modificado algo
+
+  // Llamamos a la función para deshabilitar o habilitar el botón según el input
+  deshabilitar(estaVacio, idbtn);
 }
+
 // funcion que permite verificar los cambios de las entradas en el formulario de agregar jefe carrera
 function verificarInputfrm(idetiqueta, idbtn) {
-    let input = document.getElementById(idetiqueta);
-    let estaVacio = input.value.trim() === "";
+  let input = document.getElementById(idetiqueta);
+  let estaVacio = input.value.trim() === "";
+  let idImput = document.getElementById("idmanager"); //EXTRAE EL ID DEL CAMPO ID JEFE CARRERA tanto de modificar como agregar
+  let nombreregistro = document.getElementById("nombreReagistro"); //EXTRAE EL ID DEL Nombre de formulario Agregar
 
-    input.classList.remove("entrada-error"); // Remueve la clase si se a modificado algo
-   
-     // Llamamos a la función para deshabilitar o habilitar el botón según el input
-    deshabilitar(estaVacio, idbtn);
+  idImput.classList.remove("entrada-error"); // Remueve la clase si se a modificado algo
+  nombreregistro.classList.remove("entrada-error"); // Remueve la clase si se a modificado algo
 
+  // Llamamos a la función para deshabilitar o habilitar el botón según el input
+  deshabilitar(estaVacio, idbtn);
 }
 
-//funcion para habilitar o desabilitar en timpo real 
-function deshabilitar(estado, botonId) { 
-    let boton = document.getElementById(botonId);
-    
-    if (boton) { 
-        boton.disabled = estado; // Deshabilita si `estado` es `true`, habilita si es `false`
-    } else {
-       console.error("Botón no encontrado con ID:", botonId);
-    }
+//funcion para habilitar o desabilitar en timpo real
+function deshabilitar(estado, botonId) {
+  let boton = document.getElementById(botonId);
+
+  if (boton) {
+    boton.disabled = estado; // Deshabilita si `estado` es `true`, habilita si es `false`
+  } else {
+    console.error("Botón no encontrado con ID:", botonId);
+  }
+}
+
+/**
+ * Funcion para guardar nuevo jefe de carrera, toma los datos y los envia al intermediario correspondiente
+ *
+ * @function
+ * @returns {boolean} Retorna `true` si los datos fueron enviados, o `false` si la validación falló.
+ */
+function guardarNuevoJefe() {
+  // Obtener y limpiar los valores de los campos del formulario
+  const id = document.getElementById("idmanager").value.trim();
+  const nombre = document.getElementById("nombreReagistro").value.trim();
+  // Validación: asegurar que ambos campos estén completos
+  if (!id || !nombre) {
+    mostrarFaltaDatos("Por favor, llena todos los campos obligatorios.");
+    return false;
+  }
+  // Construcción del objeto de datos a enviar
+  const datos = {
+    id: id,
+    nombre: nombre,
+  };
+  // Convertir el objeto a JSON para el envío
+  const json = JSON.stringify(datos);
+  const url =
+    "../../Controlador/Intermediarios/JefeCarrera/AgregarJefeCarrera.php";
+  // Envío AJAX al servidor
+  $.ajax({
+    url: url,
+    type: "POST",
+    data: json,
+    contentType: "application/json",
+    dataType: "json",
+    // Manejo de la respuesta exitosa
+    success: function (respuesta) {
+      try {
+        console.log("Respuesta:", respuesta);
+        if (!respuesta) throw new Error("Respuesta vacía");
+        if (respuesta.estado === "OK") {
+          // Mostrar modal de éxito y recargar formulario
+          mostrarDatosGuardados(respuesta.mensaje, function () {
+            option("career-manager", "");
+          });
+        } else if (
+          respuesta.estado === "ERROR" &&
+          respuesta.mensaje &&
+          respuesta.mensaje.toLowerCase().includes("id del jefe ya existe")
+        ) {
+          // ID duplicado: mensaje específico
+          mostrarErrorCaptura("El ID del Jefe ya existe. Por favor, usa otro.");
+        } else {
+          // Otro error del servidor
+          mostrarErrorCaptura(
+            respuesta.mensaje || "Error desconocido al guardar."
+          );
+        }
+      } catch (error) {
+        console.error("Fallo en el success:", error);
+        mostrarErrorCaptura("Error inesperado procesando la respuesta.");
+      }
+    },
+    // Manejo de errores de red o del servidor
+    error: function (xhr, status, error) {
+      console.error("AJAX Error:", status, error);
+      mostrarErrorCaptura(`Error de conexión: ${status} - ${error}`);
+    },
+  });
+  return true;
+}
+
+/*
+ * Función para buscar un Jefe de Carrera por ID o nombre.
+ * Si el registro existe, se llenan los campos del formulario con sus datos y se deshabilita el campo ID.
+ * En caso contrario, se muestra un mensaje de error al usuario.
+ */
+/*
+ * Función para buscar un Jefe de Carrera solo por ID pasado desde la tabla.
+ */
+function BuscarJefeCarrera(id) {
+  let url =
+    "../../Controlador/Intermediarios/JefeCarrera/ModificarJefeCarrera.php";
+
+  let datos = { id: id, Buscar: true };
+  let json = JSON.stringify(datos);
+
+  $.post(
+    url,
+    json,
+    function (response, status) {
+      console.log("Respuesta del servidor:", response);
+      console.log("Datos enviados:", json);
+
+      if (status === "success" && response.estado === "OK" && response.datos) {
+        console.log("Datos recibidos:", response.datos);
+
+        document.getElementById("idmanager").value =
+          response.datos.clave_de_jefe;
+        document.getElementById("nombremod").value =
+          response.datos.jefe_de_carrera;
+        document.getElementById("estado").value = response.datos.estado;
+
+        document.getElementById("idmanager").disabled = true;
+      } else {
+        sinres("Jefe de carrera no encontrado.");
+      }
+    },
+    "json"
+  ).fail(function (xhr, status, error) {
+    console.error("Error en la solicitud POST:", xhr.responseText);
+    mostrarErrorCaptura("Error al buscar el Jefe de Carrera.");
+  });
+}
+
+/*
+ * Función para modificar el Jefe de Carrera.
+ * Solo permite la modificación del nombre, manteniendo el ID inmutable.
+ */
+function ModificarJefeCarrera() {
+  const id = document.getElementById("idmanager").value.trim();
+  const nombre = document.getElementById("nombremod").value.trim();
+
+  if (!id || !nombre) {
+    mostrarFaltaDatos("Debe completar todos los campos obligatorios.");
+  }
+
+  let datos = new Object();
+  datos.idJefe = id;
+  datos.nombre = nombre;
+  datos.Modificar = true;
+
+  let json = JSON.stringify(datos);
+  let url =
+    "../../Controlador/Intermediarios/JefeCarrera/ModificarJefeCarrera.php";
+  console.log("Datos JSON enviados:", json);
+
+  $.post(
+    url,
+    json,
+    function (response, status) {
+      if (response.success) {
+        mostrarDatosGuardados(
+          "El Jefe de Carrera ha sido modificado correctamente.",
+          ""
+        );
+        option("career-manager", "");
+      } else {
+        mostrarErrorCaptura(
+          "No se pudo modificar el Jefe de Carrera. Verifique los datos e inténtelo nuevamente."
+        );
+      }
+    },
+    "json" // Indica que la respuesta esperada es JSON
+  ).fail(function (xhr, status, error) {
+    // Manejo de error
+    console.error("Error en la solicitud POST:", xhr.responseText);
+    mostrarErrorCaptura(
+      "No se pudo conectar con el servidor. Inténtelo más tarde."
+    );
+  });
 }

@@ -1,43 +1,45 @@
 function loadFormPeriodo(id) {
-    clearArea('frmArea');
+    let container = $('#frmArea');
+    let url = id === "none" ? "period/frmPeriod.php" : (id === "mod" ? "period/modPeriodo.php?id="  : "");
 
-    let url = "";
-    if (id === "none") {
-        url = "period/frmPeriod.php";
-    } else if (id === "mod") {
-        url = "period/modPeriodo.php";
-    }
+    if (!url) return;
 
-    let datos = {
-        id: id
-    };
+    container.fadeOut(300, function () {
+        clearArea('frmArea'); // Limpia el área antes de cargar contenido
 
+        fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: id })
+        })
+        .then(response => response.text())
+        .then(responseText => {
+            try {
+                container.html(responseText).hide().fadeIn(500).css("transform", "translateY(-10px)").animate({
+                    opacity: 1,
+                    transform: "translateY(0px)"
+                }, 300, function () {
+                    // **Inicializar datepickers después de la animación**
+                    $('.datepicker').datepicker({
+                        format: 'yyyy-mm-dd',
+                        autoclose: true,
+                        language: 'es'
+                    });
 
-    $.post(url, JSON.stringify(datos), function (responseText, status) {
-        try {
-            if (status == "success") {
-                document.getElementById('frmArea').innerHTML = responseText;
-
-                // Inicializar datepickers después de cargar el formulario
-                $('.datepicker').datepicker({
-                    format: 'yyyy-mm-dd',
-                    autoclose: true,
-                    language: 'es'
+                    // **Llamada al método para calcular el periodo**
+                    obtenerPeriodo();
                 });
 
-            } else {
-                throw status;
+            } catch (error) {
+                mostrarErrorCaptura('Error al cargar el formulario: ' + error);
             }
-        } catch (e) {
-            // Usar la nueva función de modal de error
-            mostrarErrorCaptura('Error al cargar el formulario: ' + e);
-        }
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-        mostrarErrorCaptura('Error de conexión: ' + textStatus + ' - ' + errorThrown);
+        })
+        .catch(error => {
+            mostrarErrorCaptura('Error de conexión: ' + error);
+        });
     });
-
-
 }
+
 
 /**
  * Función para cambiar el estado de un período con confirmación
