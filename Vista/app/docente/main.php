@@ -2,7 +2,7 @@
 ?>
 
 <div id="frmArea">
-    <h2 class="mb-4">JEFE DE CARRERA</h2>
+    <h2 class="mb-4">DOCENTE</h2>
 
     <div class="row mb-3">
         <div class="col-12 text-end ">
