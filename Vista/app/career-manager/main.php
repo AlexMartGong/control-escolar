@@ -89,9 +89,7 @@ $res = $objJeDAO->MostrarJefesCarrera();
             <?php
                     $cont++;
                 }
-            } else {
-                echo ("<tr><td colspan='6'>Sin resultados para mostrar</td></tr>");
-            }
+            } 
             ?>
 
         </tbody>
