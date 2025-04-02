@@ -19,8 +19,8 @@ function option(opc, filter) {
 
         let url = "";
         switch (opc) {
-            case 'career':
-                url = "career/main.php";
+            case 'docente':
+                url = "docente/main.php";
                 break;
             case 'period':
                 url = "period/main.php";
@@ -69,8 +69,14 @@ function option(opc, filter) {
                                     lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Todos"]]
                                 };
 
-                                if (opc === 'career' && $('#tableCareer').length) {
-                                    $('#tableCareer').DataTable(commonConfig);
+                                if (opc === 'docente' && $('#tableDocente').length) {
+                                    $('#tableDocente').DataTable({
+                                        ...commonConfig,
+                                        columnDefs: [
+                                            {"searchable": true, "targets": [1]}, //Buscar por nombre del docente
+                                            {"searchable": false, "targets": "_all"}
+                                        ]
+                                    });
                                 }
                                 if (opc === 'career-manager' && $('#tableCareerManager').length) {
                                     $('#tableCareerManager').DataTable({

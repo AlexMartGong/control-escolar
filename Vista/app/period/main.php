@@ -85,10 +85,11 @@ $res = $objPeDAO->MostrarPeriodos();
                                     <span>Editar</span>
                                 </button>
                             <?php else : ?>
-                                <button class="btn btn-primary btn-sm d-flex align-items-center" title="No editable" disabled>
-                                        <i class="fas fa-edit me-1"></i>
-                                        <span>Editar</span>
-                                    </button>
+                                <button class="btn btn-primary btn-sm d-flex align-items-center" title="No editable"
+                                        disabled>
+                                    <i class="fas fa-edit me-1"></i>
+                                    <span>Editar</span>
+                                </button>
                             <?php endif; ?>
 
                             <label>

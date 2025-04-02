@@ -40,7 +40,7 @@
                                 class="fas fa-user-graduate me-2"></i>Alumnos</a>
                     <a href="javascript:void(0);" onclick="option('career', '');" class="nav-link"><i
                                 class="fas fa-graduation-cap me-2"></i>Carrera</a>
-                    <a href="javascript:void(0);" onclick="option('teacher', '');" class="nav-link"><i
+                    <a href="javascript:void(0);" onclick="option('docente', '');" class="nav-link"><i
                                 class="fas fa-chalkboard-teacher me-2"></i>Docente</a>
                     <a href="javascript:void(0);" onclick="option('subject', '');" class="nav-link"><i
                                 class="fas fa-book me-2"></i>Materias</a>
