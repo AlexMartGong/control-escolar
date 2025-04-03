@@ -3,18 +3,18 @@
 <?php
 ?>
 
-<link href="../css/Jefecarrera.css" rel="stylesheet">
+<link rel="stylesheet" href="../css/styleInterno.css">
 
-<div class="container py-2" id="frmAdd">
-  <div class="card shadow mx-auto" style="max-width: 768px;">
+         <div class="container " id="frmAdd">
+            <div class="card shadow mx-auto" style="max-width: 768px;">
                     <!-- Header -->
                     <div class="card-header bg-primary text-white text-center p-3">
-                    <h3 class="d-flex align-items-center justify-content-center mb-0 fs-4 fw-bold">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="me-2" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        Agregar nuevo jefe de carrera
-                    </h3>
+                        <h3 class="d-flex align-items-center justify-content-center mb-0 fs-4 fw-bold">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="me-2" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Agregar nuevo jefe de carrera
+                        </h3>
                     </div>
 
                     <!--Incio de formulario-->
@@ -84,5 +84,4 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    

@@ -103,5 +103,7 @@
 <!-- Funciones de js que son necesaria-->
 <script src="../js/periodo/function_period.js"></script>
 <script src="../js/jefe_carrera/funciones.js"></script>
+<script src="../js/docente/docente.js"></script>
+
 </body>
 </html>

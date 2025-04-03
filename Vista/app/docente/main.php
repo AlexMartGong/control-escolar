@@ -11,7 +11,7 @@
                 <i class="fas fa-arrow-circle-left"></i> Regresar
             </button>
             <button type="button" class="btn" style="background-color: #009475; border-color: #009475; color: white;"
-                    onclick="">
+                    onclick="loadFormJDocente('frmDocente','');">
                 <i class="fas fa-plus-circle"></i> Nuevo Docente
             </button>
         </div>
@@ -36,7 +36,7 @@
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="">
+                            onclick="loadFormJDocente('modDocente','');">
                         <i class="fas fa-edit me-1"></i>
                         <span>Editar</span>
                     </button>

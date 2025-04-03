@@ -1,9 +1,9 @@
 <!--MALH-->
 
 
-<link href="../css/Jefecarrera.css" rel="stylesheet">
+<link rel="stylesheet" href="../css/styleInterno.css">
 
-<div class="container py-2" id="frmmod">
+<div class="container" id="frmmod">
   <div class="card shadow mx-auto" style="max-width: 768px;">
     <!-- Header -->
     <div class="card-header bg-primary text-white text-center p-3">
