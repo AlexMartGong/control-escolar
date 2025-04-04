@@ -1,4 +1,14 @@
 <?php
+
+require '../../../Modelo/BD/ConexionBD.php';
+require '../../../Modelo/BD/ModeloBD.php';
+require '../../../Modelo/DAOs/DocenteDAO.php';
+
+$objBD = new ConexionBD($DatosBD);
+$objDoDAO = new DocenteDAO($objBD->Conectar());
+
+$res = $objDoDAO->MostrarDocente();
+
 ?>
 
 <div id="frmArea">
