@@ -77,7 +77,7 @@ function option(opc, filter) {
                                             emptyTable: "No hay registros por el momento de Docentes para Mostrar"
                                         },
                                         columnDefs: [
-                                            {"searchable": true, "targets": [1]}, //Buscar por nombre del docente
+                                            {"searchable": true, "targets": [0,1]}, //Buscar por id y nombre del docente
                                             {"searchable": false, "targets": "_all"}
                                         ]
                                     });

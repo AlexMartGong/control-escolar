@@ -38,12 +38,32 @@ $res = $objDoDAO->MostrarDocente();
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>1</td>
-            <td>Juan Luis</td>
-            <td>Desarrollador de juegos y aplicaciones mobiles</td>
-            <td>Activo</td>
-            <td>
+        <?php
+            if ($res['estado'] == 'OK' && $res['filas'] > 0) {
+                $cont = 1;
+                foreach ($res['datos'] as $fila) {
+
+                    // Definir la clase para la fila en base al estado
+                    $rowClass = "table-success";
+
+                    // Definir la clase para el badge de estado
+                    $badgeClass = "bg-success";
+                    switch ($fila['estado']) {
+                        case 'Activo':
+                            $badgeClass = "bg-success";
+                            break;
+                        case 'Inactivo':
+                            $badgeClass = "bg-danger";
+                            break;
+                    }
+            ?>
+
+                    <tr class="<?= $rowClass ?>">
+                        <td><?= $fila['clave_de_docente'] ?></td>
+                        <td><?= $fila['docente'] ?></td>
+                        <td><?= $fila['perfil_de_docente'] ?></td>
+                        <td><span class="badge <?= $badgeClass ?>"><?= $fila['estado'] ?></span></td>
+                        <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
                             onclick="loadFormJDocente('modDocente','');">
@@ -63,6 +83,13 @@ $res = $objDoDAO->MostrarDocente();
                 </div>
             </td>
         </tr>
+
+        <?php
+                $cont++;
+            }
+        }
+        ?>
+
         </tbody>
     </table>
 </div>
