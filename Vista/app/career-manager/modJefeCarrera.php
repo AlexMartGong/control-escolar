@@ -32,7 +32,7 @@
                       <input
                         type="text"
                         id="idmanager"
-                        placeholder="JJJ-0000"
+                        placeholder="Ejem: TEA-0001"
                         maxlength="9"
                         title="Solo letras, números y guion medio. Máximo 9 caracteres."
                         class="form-control"

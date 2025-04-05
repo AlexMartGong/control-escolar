@@ -27,7 +27,7 @@
                                 class="form-control" 
                                 id="clavedocente" 
                                  oninput="verificarInputdocente('clavedocente','btnGuardarJ')"
-                                placeholder="Ingrese la clave del docente" required>
+                                placeholder="Ejem: TED-0001" required>
                             </div>
                         </div>
                         

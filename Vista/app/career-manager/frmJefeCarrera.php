@@ -28,7 +28,7 @@
                                         type="text"
                                         class="form-control"
                                         id="idmanager"
-                                        placeholder="TTT-0000"
+                                        placeholder="Ejem: TEA-0001"
                                         maxlength="9"
                                         title="Solo letras, números y guion medio. Máximo 9 caracteres."
                                         oninput="verificarInputfrm('idmanager','btnGuardarJ')"

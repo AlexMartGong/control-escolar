@@ -26,7 +26,7 @@
                                  title="Solo letras, números y guion medio. Máximo 9 caracteres."
                                 class="form-control" 
                                 id="clavedocente" 
-                                placeholder="Ingrese la clave del docente" 
+                                placeholder="Ejem: TED-0001" 
                                 required
                                 disabled>
                             </div>

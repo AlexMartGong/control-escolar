@@ -1,7 +1,7 @@
 //MALH
 // Esta funcion que permite cargar los formularios de agregar Docente y modificarlo, no desde function.js
 function loadFormJDocente(opc, id = "") {
-    let url ="";
+    let url = "";
     if (opc === "frmDocente") {
         url = "docente/frmTeacher.php";
     } else if (opc === "modDocente") {
