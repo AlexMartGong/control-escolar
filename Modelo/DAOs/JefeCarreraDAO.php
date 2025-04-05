@@ -23,34 +23,34 @@ class JefeCarreraDAO
         $nombre = $datos->nombre;
 
         try {
-            $stmt = $this->conector->prepare("CALL spAgregarJefeCarrera(:id, :nombre)");
+            $stmt = $this->conector->prepare("CALL spAgregarJefeCarrera(:id, :nombre, @mensaje)");
             $stmt->bindParam(':id', $id, PDO::PARAM_STR);
             $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
+            $stmt->execute();
 
-            if ($stmt->execute()) {
-                return ['estado' => 'OK'];
+            $select = $this->conector->query("select @mensaje as mensaje");
+            $resultado = $select->fetch(PDO::FETCH_ASSOC);
+            $mensaje = $resultado['mensaje'];
+
+            if (strpos($mensaje, 'Exito')!==false) {
+                return [
+                    'estado' => 'OK',
+                    'mensaje' => 'Se ingresó correctamente el jefe de carrera.'
+                ];
             } else {
                 return [
                     'estado' => 'ERROR',
-                    'mensaje' => 'No se pudo ejecutar el procedimiento.'
+                    'mensaje' => $mensaje
                 ];
             }
         } catch (PDOException $e) {
-            $msg = $e->getMessage();
-
-            if (strpos($msg, 'ID del Jefe ya existe') !== false) {
-                return [
-                    'estado' => 'ERROR',
-                    'mensaje' => 'El ID del Jefe ya existe'
-                ];
-            }
-
-            return [
+            return[
                 'estado' => 'ERROR',
-                'mensaje' => 'Excepción: ' . $msg
+                'mensaje' => 'Excepcion: ' .$e->getMessage()
             ];
+            }
         }
-    }
+
 
     /**
      * Función para buscar un Jefe de Carrera por ID.
@@ -209,8 +209,10 @@ class JefeCarreraDAO
 
         return $resultado;
     }
-
-    
-
-    
 }
+
+
+    
+
+    
+
