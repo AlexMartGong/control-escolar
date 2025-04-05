@@ -224,7 +224,7 @@ function intentarGuardarDatos() {
     try {
         //simulo un erro aqui
         //encaso de que todo sea correcto se muestra el modal mostrarDatosGuardados()
-        mostrarDatosGuardados('Datos Guardados Correctamente', '') // modal que semuestra al  aguardar datos correctamente
+        guardarNuevoDocente();
         // throw new Error('Error de prueba');
     } catch (error) {
         ErrorDeIntentoDeGuardado('Error al intentar Guardar los datos');
@@ -360,3 +360,73 @@ function changeStatusDocente(id, status, currentStatus) {
         )
     ;
 }
+
+/**
+ * Funcion para guardar nuevo docente, toma los datos y los envia al intermediario correspondiente
+ *
+ * @function
+ * @returns {boolean} Retorna `true` si los datos fueron enviados, o `false` si la validación falló.
+ */
+function guardarNuevoDocente() {
+    // Obtener y limpiar los valores de los campos del formulario
+    const id = document.getElementById("clavedocente").value.trim();
+    const nombre = document.getElementById("nombredocente").value.trim();
+    const perfil = document.getElementById("perfil_id").value.trim();
+    // Validación: asegurar que ambos campos estén completos
+    if (!id || !nombre || !perfil) {
+      mostrarFaltaDatos("Por favor, llena todos los campos obligatorios.");
+      return false;
+    }
+    // Construcción del objeto de datos a enviar
+    const datos = {
+      id: id,
+      nombre: nombre,
+      perfil: perfil,
+    };
+    // Convertir el objeto a JSON para el envío
+    const json = JSON.stringify(datos);
+    const url =
+      "../../Controlador/Intermediarios/Docente/AgregarDocente.php";
+    // Envío AJAX al servidor
+    $.ajax({
+      url: url,
+      type: "POST",
+      data: json,
+      contentType: "application/json",
+      dataType: "json",
+      // Manejo de la respuesta exitosa
+      success: function (respuesta) {
+        try {
+          console.log("Respuesta:", respuesta);
+          if (!respuesta) throw new Error("Respuesta vacía");
+          if (respuesta.estado === "OK") {
+            // Mostrar modal de éxito y recargar formulario
+            mostrarDatosGuardados(respuesta.mensaje, function () {
+              option("docente", "");
+            });
+          } else if (
+            respuesta.estado === "ERROR" &&
+            respuesta.mensaje &&
+            respuesta.mensaje.toLowerCase().includes("id del docente ya existe")
+          ) {
+            // ID duplicado: mensaje específico
+            mostrarErrorCaptura("El ID del docente ya existe. Por favor, usa otro.");
+          } else {
+            // Otro error del servidor
+            mostrarErrorCaptura(
+              respuesta.mensaje || "Error desconocido al guardar."
+            );
+          }
+        } catch (error) {
+          console.error("Fallo en el success:", error);
+          mostrarErrorCaptura("Error inesperado procesando la respuesta.");
+        }
+      },
+      // Manejo de errores de red o del servidor
+      error: function (xhr, status, error) {
+        console.error("AJAX Error:", status, error);
+        mostrarErrorCaptura(`Error de conexión: ${status} - ${error}`);
+      },
+    });
+    return true;
+  }

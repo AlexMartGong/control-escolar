@@ -13,7 +13,41 @@ class DocenteDAO
     }
 
 //aqui va el metodo para agregar docente
+public function AgregarDocente($datos)
+    {
+        $id = $datos->id;
+        $nombre = $datos->nombre;
+        $perfil = $datos->perfil;
 
+        try {
+            $stmt = $this->conector->prepare("CALL spAgregarDocente(:id, :nombre, :perfil, @mensaje)");
+            $stmt->bindParam(':id', $id, PDO::PARAM_STR);
+            $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
+            $stmt->bindParam(':perfil', $perfil, PDO::PARAM_STR);
+            $stmt->execute();
+
+            $select = $this->conector->query("select @mensaje as mensaje");
+            $resultado = $select->fetch(PDO::FETCH_ASSOC);
+            $mensaje = $resultado['mensaje'];
+
+            if (strpos($mensaje, 'Exito')!==false) {
+                return [
+                    'estado' => 'OK',
+                    'mensaje' => 'Registro guardado correctamente.'
+                ];
+            } else {
+                return [
+                    'estado' => 'ERROR',
+                    'mensaje' => $mensaje
+                ];
+            }
+        } catch (PDOException $e) {
+            return[
+                'estado' => 'ERROR',
+                'mensaje' => 'Excepcion: ' .$e->getMessage()
+            ];
+            }
+        }
 //aqui va el metodo de buscar docente por id
 
 //aqui va el metodo de modificar docente
@@ -58,6 +92,7 @@ function MostrarDocente()
 
     return $resultado;
 }
+
 
 
     
