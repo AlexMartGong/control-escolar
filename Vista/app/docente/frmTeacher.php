@@ -8,12 +8,12 @@
     <div class="row justify-content-center">
         <div class="ampliacion">
             <div class="card">
-                <div class="card-header py-3">
-                    <h4 class="mb-0"> 
-                    <i class="fa-solid fa-chalkboard-user me-3"></i>
-                         Registro de Nuevo Docente
-                    </h4>
-                </div>
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                <i class="fa-solid fa-chalkboard-user me-3"></i>
+                Registro de Nuevo Docente
+                </h5>
+            </div>
                 <div class="card-body p-4">
                     <form>
                         <div class="mb-3">
@@ -27,7 +27,7 @@
                                 class="form-control" 
                                 id="clavedocente" 
                                  oninput="verificarInputdocente('clavedocente','btnGuardarJ')"
-                                placeholder="Ingrese la clave del docente" required>
+                                placeholder="Ejem: TED-0001" required>
                             </div>
                         </div>
                         

@@ -40,16 +40,16 @@ body {
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
-
+/*
 .card-header {
   background-color: rgba(13, 110, 253, 0.05);
   border-bottom: 1px solid rgba(13, 110, 253, 0.2);
   font-weight: 600;
-}
+}*/
  /*clase para colores de btn*/
 .btn-primary {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+  background-color: #0033A0;
+  border-color: #0033A0;
 }
 /*clase de cuando el puntero se situa sobre el BTN*/
 .btn-primary:hover {
@@ -107,12 +107,6 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-.card-header {
-  padding: 1.5rem;
-  background: linear-gradient(0deg, var(--medium-blue), var(--dark-blue));
-  color: white;
-  border-bottom: none;
-}
 
 .card-header h3 {
   font-weight: 600;
@@ -268,3 +262,4 @@ display: flex;
     width: 100%;
   }
 }
+

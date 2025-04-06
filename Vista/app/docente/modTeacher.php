@@ -8,12 +8,12 @@
     <div class="row justify-content-center">
         <div class="ampliacion">
             <div class="card">
-                <div class="card-header py-3">
-                    <h4 class="mb-0"> 
-                    <i class="fa-solid fa-chalkboard-user me-3"></i>
-                         Modificar Docente
-                    </h4>
-                </div>
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                <i class="fa-solid fa-chalkboard-user me-3"></i>
+                Modificar Datos de docente
+                </h5>
+            </div>
                 <div class="card-body p-4">
                     <form>
                         <div class="mb-3">
@@ -26,7 +26,7 @@
                                  title="Solo letras, números y guion medio. Máximo 9 caracteres."
                                 class="form-control" 
                                 id="clavedocente" 
-                                placeholder="Ingrese la clave del docente" 
+                                placeholder="Ejem: TED-0001" 
                                 required
                                 disabled>
                             </div>

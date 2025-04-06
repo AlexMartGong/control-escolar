@@ -5,30 +5,30 @@
 
 <link rel="stylesheet" href="../css/styleInterno.css">
 
-         <div class="container " id="frmAdd">
-            <div class="card shadow mx-auto" style="max-width: 768px;">
-                    <!-- Header -->
-                    <div class="card-header bg-primary text-white text-center p-3">
-                        <h3 class="d-flex align-items-center justify-content-center mb-0 fs-4 fw-bold">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="me-2" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            Agregar nuevo jefe de carrera
-                        </h3>
-                    </div>
+ <div class="container " id="frmAdd">
+    <div class="row justify-content-center">
+        <div class="ampliacion">
+             <div class="card">
+                 <!-- Header -->
+                 <div class="card-header bg-primary text-white ">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-tie me-2"></i>
+                             Agregar Jefe de Carrera
+                    </h5>
+                 </div>
 
                     <!--Incio de formulario-->
                     <div class="card-body">
                         <form>
                             <div class="mb-4">
-                                <label for="id" class="form-label">ID Jefe de Carrera:</label>
+                                <label for="id" class="form-label">Clave Jefe de Carrera:</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
                                     <input
                                         type="text"
                                         class="form-control"
                                         id="idmanager"
-                                        placeholder="TTT-0000"
+                                        placeholder="Ejem: TEA-0001"
                                         maxlength="9"
                                         title="Solo letras, números y guion medio. Máximo 9 caracteres."
                                         oninput="verificarInputfrm('idmanager','btnGuardarJ')"
@@ -57,7 +57,7 @@
                                 <label for="estadoJefe" class="form-label">Estado:</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-blue-light"><i class="fas fa-check-circle"></i></span>
-                                    <input type="text" class="form-control" id="estadoJefe" readonly value="Activo" disabled>
+                                        <input type="text" class="form-control" id="estadoJefe" readonly value="Activo" disabled>
                                 </div>
                             </div>
 
@@ -76,12 +76,14 @@
                                         onclick="clearArea('frmAdd');">
                                         <i class="fas fa-times-circle me-2"></i>Cancelar
                                     </button>
-                                   
+                                        
                                 </div>
                             </div>
                         </form>
                     </div>
-                </div>
-            </div>
-        </div>
+             </div>
+          </div>
+       </div>    
+     </div>
+ </div>
     
