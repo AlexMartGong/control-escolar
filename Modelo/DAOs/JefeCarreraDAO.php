@@ -63,70 +63,100 @@ class JefeCarreraDAO
         $c = $this->conector;
 
         if (empty($id)) {
-            $resultado['mensaje'] = "Error Modificar JefeCarrera: ID vacío.";
+            $resultado['mensaje'] = "Error Buscar JefeCarrera: ID vacío.";
             return $resultado;
         }
 
         try {
-            $sp = $c->prepare("CALL spBuscarJefeCarreraByID(:pid)");
+            $sp = $c->prepare("CALL spBuscarJefeCarreraByID(:pid, @mensaje)");
             $sp->bindParam(':pid', $id, PDO::PARAM_STR);
-
             $sp->execute();
+            
             $datos = $sp->fetch(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Libera el resultado de la consulta para la siguinte
 
-            if ($datos) {
+             // Ahora obtener el mensaje de salida
+             $respuestaSP = $c->query("SELECT @mensaje");
+             $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+             $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Manejar mensaje de salida
+            if ($resultado['respuestaSP'] == 'Estado: Exito') {
                 $resultado['estado'] = "OK";
                 $resultado['datos'] = $datos;
             } else {
-                $resultado['mensaje'] = "Error Modificar JefeCarrera: No se encontró el Jefe de Carrera.";
+                $resultado['mensaje'] = "Error Buscar JefeCarrera: No se encontró el Jefe de Carrera.";
             }
+
         } catch (PDOException $e) {
-            $resultado['mensaje'] = "Error Modificar JefeCarrera: problemas con la base de datos; " . $e->getMessage();
+            $resultado['mensaje'] = "Error Buscar JefeCarrera: problemas con la base de datos; " . $e->getMessage();
         }
 
         return $resultado;
     }
 
+    /**
+     * Función para modificar los datos de un Jefe de Carrera.
+     * Llama al procedimiento almacenado spModificarJefeCarrera.
+     * 
+     * @param string $pid      ID del Jefe de Carrera con el formato AAA-1234.
+     * @param string $pnombre  Nombre del Jefe de Carrera (máximo 50 caracteres, solo letras, espacios y punto).
+     * 
+     * @return array Retorna un array con el estado de la operación, mensaje y respuesta del procedimiento.
+     */
     public function ModificarJefeCarrera($pid, $pnombre)
     {
+        // Estado por defecto: error
         $resultado = ['estado' => 'Error'];
         $c = $this->conector;
 
-        // Validar que el ID y el nombre no estén vacíos
+        // Validar que los campos no estén vacíos
         if (empty($pid) || empty($pnombre)) {
             $resultado['mensaje'] = "Error Modificar JefeCarrera: No se permiten valores vacíos.";
             return $resultado;
         }
 
-        // Validación del formato del ID: tres letras, un guión, cuatro números
+        // Validar formato del ID: tres letras, un guión y cuatro números (ejemplo: ABC-1234)
         if (!preg_match('/^[A-Za-z]{3}-\d{4}$/', $pid)) {
             $resultado['mensaje'] = "Error Modificar JefeCarrera: El formato del ID es incorrecto. Debe ser tres letras seguidas de un guion y cuatro números.";
             return $resultado;
         }
 
-        // Validar el nombre: solo letras, espacios y punto (.) con un máximo de 50 caracteres
+        // Validar el nombre: solo letras, espacios y puntos (.) con máximo 50 caracteres
         if (!preg_match('/^[A-Za-zÁáÉéÍíÓóÚúÑñ.\s]{1,50}$/', $pnombre)) {
             $resultado['mensaje'] = "Error Modificar JefeCarrera: El nombre solo puede contener letras, espacios y punto (.) y debe tener un máximo de 50 caracteres.";
             return $resultado;
         }
 
         try {
-            // Log para ver el SP que se ejecutará
+            // Registrar en el log la ejecución del procedimiento
             error_log("Ejecutando SP para modificar Jefe de Carrera con ID: $pid y Nombre: $pnombre");
 
-            // Ejecutando directamente el SP
-            $sp = $c->prepare("CALL spModificarJefeCarrera(:pid, :pnombre)");
+            // Preparar y ejecutar el procedimiento almacenado
+            $sp = $c->prepare("CALL spModificarJefeCarrera(:pid, :pnombre, @mensaje)");
             $sp->bindParam(':pid', $pid, PDO::PARAM_STR);
             $sp->bindParam(':pnombre', $pnombre, PDO::PARAM_STR);
             $sp->execute();
+            $sp->closeCursor(); // Liberar resultados para permitir consultar @mensaje
 
-            if ($sp->rowCount() > 0) {
+            // Obtener el mensaje de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Registrar en log el mensaje de salida del SP
+            error_log("Mensaje spDocente: " . $resultado['respuestaSP']);
+
+            // Evaluar el resultado del procedimiento
+            if ($resultado['respuestaSP'] == 'Estado: Exito') {
                 $resultado['estado'] = "OK";
                 $resultado['mensaje'] = "Jefe de Carrera actualizado correctamente.";
             } else {
                 $resultado['mensaje'] = "Error Modificar JefeCarrera: No se realizaron modificaciones.";
             }
+
         } catch (PDOException $e) {
+            // Registrar error en log y devolver mensaje de error
             error_log("Error en la base de datos: " . $e->getMessage());
             $resultado['mensaje'] = "Error Modificar JefeCarrera: problemas en la base de datos; " . $e->getMessage();
         }

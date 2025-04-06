@@ -1,7 +1,4 @@
 
-
-
-
 <link rel="stylesheet" href="../css/styleInterno.css">
 
 <div class="container" id="modTeacher">
@@ -68,15 +65,13 @@
                                 <label class="form-check-label" for="estado">Estado</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-blue-light"><i class="fas fa-check-circle"></i></span>
-                                    <select  class="form-control" disabled id="perfil_Id" >
-                                        <option value="activo" selected>Activo</option>
-                                        <option value="inactivo">Inactivo</option>
+                                    <select  class="form-control" disabled id="estado" >
+                                        <option value="Activo" selected>Activo</option>
+                                        <option value="Inactivo">Inactivo</option>
                                     </select>
                                 </div>
                          </div>
                         
-
-                    
                         <div class="row">
                             <div class="col-12 separarBotones gap-2">
                             <button type="button"
