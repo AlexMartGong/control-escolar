@@ -56,7 +56,56 @@ class DocenteDAO
 
 
     //Aqui va el metodo para cambiar de estatus docente   
+    public function CambiarEstado($datos)
+    {
+        $resultado['estado'] = "Error";
 
+        if (empty($datos->pid) || empty($datos->pestado)) {
+            $resultado['mensaje'] = "Error: No se permiten valores vacíos.";
+            return $resultado;
+        }
+
+        $estadosValidos = ['Activo', 'Inactivo'];
+
+        if (!in_array($datos->pestado, $estadosValidos)) {
+            $resultado['mensaje'] = "Error: Estado no válido.";
+            return $resultado;
+        }
+
+        try {
+            // Verificar si el registro existe
+            $consulta = $this->conector->prepare("SELECT estado FROM docente WHERE claveDocente = :pid");
+            $consulta->bindParam(':pid', $datos->pid, PDO::PARAM_STR);
+            $consulta->execute();
+            $estadoActual = $consulta->fetchColumn();
+
+            if ($estadoActual === false) {
+                $resultado['mensaje'] = "Error: El registro no existe.";
+                return $resultado;
+            }
+
+            // Ejecutar el procedimiento almacenado
+            $sp = $this->conector->prepare("CALL spModificarEstadoDocente(:pclave, :pestado, @mensaje)");
+            $sp->bindParam(':pclave', $datos->pid, PDO::PARAM_STR);
+            $sp->bindParam(':pestado', $datos->pestado, PDO::PARAM_STR);
+            $sp->execute();
+
+            $msgQuery = $this->conector->query("SELECT @mensaje AS mensaje");
+            $mensajeData = $msgQuery->fetch(PDO::FETCH_ASSOC);
+            $mensaje = $mensajeData['mensaje'] ?? 'Sin mensaje recibido';
+
+
+            // Recuperar el mensaje del OUT
+            $resultado['mensaje'] = $mensaje;
+            $resultado['estado'] = (str_contains($mensaje, 'Exito')) ? "OK" : "Error";
+    
+        } catch (PDOException $e) {
+            $resultado['estado'] = "Error";
+            $resultado['mensaje'] = "Error en la base de datos: " . $e->getMessage();
+        }
+
+        return $resultado;
+    }
 
     function MostrarDocente()
     {

@@ -168,12 +168,20 @@ class JefeCarreraDAO
             }
 
             // Ejecutar el procedimiento almacenado
-            $sp = $this->conector->prepare("CALL spModificarEstadoJefeCarrera(?, ?)");
-            $sp->execute([$datos->pid, $datos->pestado]);
+            $sp = $this->conector->prepare("CALL spModificarEstadoJefeCarrera(:pid, :pestado, @mensaje)");
+            $sp->bindParam(':pid', $datos->pid, PDO::PARAM_STR);
+            $sp->bindParam(':pestado', $datos->pestado, PDO::PARAM_STR);
+            $sp->execute();
 
-            // Si no lanzó excepción, se considera éxito
-            $resultado['estado'] = "OK";
-            $resultado['mensaje'] = "Estado actualizado correctamente.";
+            $msgQuery = $this->conector->query("SELECT @mensaje AS mensaje");
+            $mensajeData = $msgQuery->fetch(PDO::FETCH_ASSOC);
+            $mensaje = $mensajeData['mensaje'] ?? 'Sin mensaje recibido';
+
+
+            // Recuperar el mensaje del OUT
+            $resultado['mensaje'] = $mensaje;
+            $resultado['estado'] = (str_contains($mensaje, 'Exito')) ? "OK" : "Error";
+    
         } catch (PDOException $e) {
             $resultado['estado'] = "Error";
             $resultado['mensaje'] = "Error en la base de datos: " . $e->getMessage();
