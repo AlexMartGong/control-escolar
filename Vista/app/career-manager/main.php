@@ -27,10 +27,6 @@ $res = $objJeDAO->MostrarJefesCarrera();
         </div>
     </div>
 
-
-
-
-
     <table class="table table-hover" id="tableCareerManager">
         <thead>
             <tr class="table-dark text-center">
@@ -89,7 +85,7 @@ $res = $objJeDAO->MostrarJefesCarrera();
             <?php
                     $cont++;
                 }
-            } 
+            }
             ?>
 
         </tbody>

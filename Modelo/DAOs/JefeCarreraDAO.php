@@ -32,7 +32,7 @@ class JefeCarreraDAO
             $resultado = $select->fetch(PDO::FETCH_ASSOC);
             $mensaje = $resultado['mensaje'];
 
-            if (strpos($mensaje, 'Exito')!==false) {
+            if (strpos($mensaje, 'Exito') !== false) {
                 return [
                     'estado' => 'OK',
                     'mensaje' => 'Se ingresó correctamente el jefe de carrera.'
@@ -44,13 +44,12 @@ class JefeCarreraDAO
                 ];
             }
         } catch (PDOException $e) {
-            return[
+            return [
                 'estado' => 'ERROR',
-                'mensaje' => 'Excepcion: ' .$e->getMessage()
+                'mensaje' => 'Excepcion: ' . $e->getMessage()
             ];
-            }
         }
-
+    }
 
     /**
      * Función para buscar un Jefe de Carrera por ID.
@@ -194,15 +193,30 @@ class JefeCarreraDAO
         $c = $this->conector;
 
         try {
-            $sp = $c->prepare("CALL spMostrarJefeCarrera()");
+          
+            $sp = $c->prepare("CALL spMostrarJefeCarrera(@mensaje)");
             $sp->execute();
-            $resultado['filas'] = $sp->rowCount();
 
-            if ($resultado['filas'] > 0) {
-                $resultado['datos'] = $sp->fetchAll();
+            // Obtener los datos primero
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Libera el conjunto de resultados actual para permitir ejecutar otra consulta en la misma conexión (por ejemplo, SELECT @mensaje)
+
+            // Ahora obtener el mensaje de salida
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            error_log("Mensaje spJefe: " . $resultado['respuestaSP']);
+
+            // Manejar mensaje de salida
+            if ($resultado['respuestaSP'] == 'Estado: Exito') {
+                $resultado['datos'] = $datos;
+                $resultado['filas'] = count($datos);
             } else {
-                $resultado['estado'] = "Sin registros de jefes de carrera para mostrar";
+                $resultado['filas'] = 0;
+                $resultado['estado'] = "Sin registros de Jefe de Carrera para mostrar";
             }
+            
         } catch (PDOException $e) {
             $resultado['estado'] = "Error Mostrar Jefes de Carrera: " . $e->getMessage();
         }
@@ -210,9 +224,3 @@ class JefeCarreraDAO
         return $resultado;
     }
 }
-
-
-    
-
-    
-

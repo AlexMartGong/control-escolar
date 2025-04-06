@@ -41,7 +41,7 @@ $siguienteID = $objPeDAO->obtenerSiguienteIDPeriodo();
                 <!-- Nombre del Periodo -->
                 <div class="col-md-5">
                     <div class="form-floating">
-                        <input type="text" class="form-control" id="txtPeriodo" placeholder="ENE-JUN 2024" required>
+                        <input type="text" class="form-control" id="txtPeriodo" placeholder="Agosto 2024 - Enero 2025" maxlength="30"  pattern="[A-Za-z0-9\- ]+"  required>
                         <label for="txtPeriodo">Nombre del Periodo</label>
                         <div class="invalid-feedback">
                             Por favor ingrese un nombre para el periodo
