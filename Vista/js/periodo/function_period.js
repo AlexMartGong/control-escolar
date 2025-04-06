@@ -41,6 +41,17 @@ function loadFormPeriodo(id) {
 
                 // **Llamada al método para calcular el periodo**
                 obtenerPeriodo();
+
+                // Ahora agregamos el evento al campo txtPeriodo
+                const txtPeriodo = document.getElementById("txtPeriodo");
+
+                if (txtPeriodo) {
+                  txtPeriodo.addEventListener("input", function () {
+
+                    // Solo permite letras, números, espacio y guion medio
+                    this.value = this.value.replace(/[^A-Za-z0-9\- ]/g, '');
+                  });
+                }
               }
             );
         } catch (error) {
@@ -52,6 +63,7 @@ function loadFormPeriodo(id) {
       });
   });
 }
+
 
 /**
  * Función para cambiar el estado de un período con confirmación

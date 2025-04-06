@@ -122,45 +122,54 @@ class PeriodoDAO
      * @return array - Estado de la operación y mensaje.
      */
     public function AgregarPeriodo($datos)
-    {
-        $resultado = ['estado' => 'Error'];
+{
+    $resultado = ['estado' => 'Error'];
 
-        $validacionVacios = $this->validarCamposVacios($datos);
-        if ($validacionVacios !== true) {
-            $resultado['mensaje'] = $validacionVacios;
-            return $resultado;
-        }
-
-        $validacion = $this->validarFechas($datos->fechaInicio, $datos->fechaTermino, $datos->fechaInicioAjuste, $datos->fechaFinalAjuste);
-        if ($validacion !== true) {
-            $resultado['mensaje'] = $validacion;
-            return $resultado;
-        }
-
-        try {
-            $sp = $this->conector->prepare("CALL spAgregarPeriodo(:pidPeriodo, :pperiodo, :pfechaInicio, :pfechaTermino, :pfechaInicioAjuste, :pfechaTerminoAjuste)");
-
-            $sp->bindParam(':pidPeriodo', $datos->id, PDO::PARAM_INT);
-            $sp->bindParam(':pperiodo', $datos->periodo, PDO::PARAM_STR);
-            $sp->bindParam(':pfechaInicio', $datos->fechaInicio, PDO::PARAM_STR);
-            $sp->bindParam(':pfechaTermino', $datos->fechaTermino, PDO::PARAM_STR);
-            $sp->bindParam(':pfechaInicioAjuste', $datos->fechaInicioAjuste, PDO::PARAM_STR);
-            $sp->bindParam(':pfechaTerminoAjuste', $datos->fechaFinalAjuste, PDO::PARAM_STR);
-
-            $sp->execute();
-
-            if ($sp->rowCount() > 0) {
-                $resultado['estado'] = "OK";
-                $resultado['mensaje'] = "Periodo agregado exitosamente";
-            } else {
-                $resultado['mensaje'] = "No se insertó ningún registro";
-            }
-        } catch (PDOException $e) {
-            $resultado['mensaje'] = "Error en el spAgregarPeriodo: " . $e->getMessage();
-        }
-
+    // Validación de campos vacíos
+    $validacionVacios = $this->validarCamposVacios($datos);
+    if ($validacionVacios !== true) {
+        $resultado['mensaje'] = $validacionVacios;
         return $resultado;
     }
+
+    // Validación del formato del campo periodo (solo letras, números, guion medio y espacio)
+    if (!preg_match('/^[A-Za-z0-9\- ]+$/', $datos->periodo)) {
+        $resultado['mensaje'] = "El nombre del periodo contiene caracteres no permitidos.";
+        return $resultado;
+    }
+
+    // Validación de las fechas
+    $validacion = $this->validarFechas($datos->fechaInicio, $datos->fechaTermino, $datos->fechaInicioAjuste, $datos->fechaFinalAjuste);
+    if ($validacion !== true) {
+        $resultado['mensaje'] = $validacion;
+        return $resultado;
+    }
+
+    // Ejecución del procedimiento almacenado
+    try {
+        $sp = $this->conector->prepare("CALL spAgregarPeriodo(:pidPeriodo, :pperiodo, :pfechaInicio, :pfechaTermino, :pfechaInicioAjuste, :pfechaTerminoAjuste)");
+
+        $sp->bindParam(':pidPeriodo', $datos->id, PDO::PARAM_INT);
+        $sp->bindParam(':pperiodo', $datos->periodo, PDO::PARAM_STR);
+        $sp->bindParam(':pfechaInicio', $datos->fechaInicio, PDO::PARAM_STR);
+        $sp->bindParam(':pfechaTermino', $datos->fechaTermino, PDO::PARAM_STR);
+        $sp->bindParam(':pfechaInicioAjuste', $datos->fechaInicioAjuste, PDO::PARAM_STR);
+        $sp->bindParam(':pfechaTerminoAjuste', $datos->fechaFinalAjuste, PDO::PARAM_STR);
+
+        $sp->execute();
+
+        if ($sp->rowCount() > 0) {
+            $resultado['estado'] = "OK";
+            $resultado['mensaje'] = "Periodo agregado exitosamente";
+        } else {
+            $resultado['mensaje'] = "No se insertó ningún registro";
+        }
+    } catch (PDOException $e) {
+        $resultado['mensaje'] = "Error en el spAgregarPeriodo: " . $e->getMessage();
+    }
+
+    return $resultado;
+}
 
     public function BuscarPeriodo($tipo, $valor)
     {
