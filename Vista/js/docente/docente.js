@@ -282,7 +282,7 @@ function changeStatusDocente(id, status, currentStatus) {
     document.getElementById("btnCancelar").addEventListener("click", function () {
         // Resetear el select al cancelar
         const selectElement = document.querySelector(
-            `select[onchange="changeStatusJefeCarrera('${id}', this.value, '${currentStatus}')"]`
+            `select[onchange="changeStatusDocente('${id}', this.value, '${currentStatus}')"]`
         );
         if (selectElement) {
             selectElement.selectedIndex = 0;
@@ -292,7 +292,7 @@ function changeStatusDocente(id, status, currentStatus) {
     // También resetear al cerrar el modal con la X o haciendo clic fuera
     modalElement.addEventListener("hidden.bs.modal", function () {
         const selectElement = document.querySelector(
-            `select[onchange="changeStatusJefeCarrera('${id}', this.value, '${currentStatus}')"]`
+            `select[onchange="changeStatusDocente('${id}', this.value, '${currentStatus}')"]`
         );
         if (selectElement) {
             selectElement.selectedIndex = 0;
@@ -317,14 +317,14 @@ function changeStatusDocente(id, status, currentStatus) {
                 let json = JSON.stringify(data);
 
                 console.log(
-                    `Cambiando estado de jefe de carrera ${id} a ${
+                    `Cambiando estado de docente ${id} a ${
                         status === "1" ? "Activo" : "Inactivo"
                     }`
                 );
 
                 // Realizar petición AJAX para cambiar el estado
                 $.ajax({
-                    url: "../../Controlador/Intermediarios/",
+                    url: "../../Controlador/Intermediarios/Docente/CambiarEstadoD.php",
                     type: "POST",
                     data: json,
                     contentType: "application/json",
@@ -333,11 +333,11 @@ function changeStatusDocente(id, status, currentStatus) {
                         try {
                             if (response.estado === "OK") {
                                 mostrarDatosGuardados(
-                                    `El estado del jefe de carrera ${id} ha sido cambiado a "${
+                                    `El estado del docente ${id} ha sido cambiado a "${
                                         status === "1" ? "Activo" : "Inactivo"
                                     }" correctamente.`,
                                     function () {
-                                        option("career-manager", "");
+                                        option("docente", "");
                                     }
                                 );
                             } else {
