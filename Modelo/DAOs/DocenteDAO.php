@@ -49,11 +49,123 @@ class DocenteDAO
         }
     }
 
-    //aqui va el metodo de buscar docente por id
+    /**
+     * Función para buscar un Docente por ID.
+     * Llama al procedimiento almacenado spBuscarDocenteByID.
+     *
+     * @param string $id ID del Docente a buscar.
+     * @return array Retorna un array con el estado de la operación, mensaje y datos si se encuentra el docente.
+     */
+    public function BuscarDocente($id)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
 
+        // Validar que el ID no esté vacío
+        if (empty($id)) {
+            $resultado['mensaje'] = "Error Modificar Docente: ID vacío.";
+            return $resultado;
+        }
 
-    //aqui va el metodo de modificar docente
+        try {
+            // Llamar al procedimiento almacenado con parámetro de entrada y salida
+            $sp = $c->prepare("CALL spBuscarDocenteByID(:pid, @mensaje)");
+            $sp->bindParam(':pid', $id, PDO::PARAM_STR);
+            $sp->execute();
 
+            // Obtener los datos devueltos por el procedimiento
+            $datos = $sp->fetch(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar recursos
+
+            // Obtener mensaje de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Si el mensaje indica éxito, se devuelven los datos
+            if ($resultado['respuestaSP'] === 'Estado: Exito') {
+                $resultado['estado'] = "OK";
+                $resultado['datos'] = $datos;
+            } else {
+                $resultado['mensaje'] = "Error Buscar Docente: No se encontró el Docente.";
+            }
+
+        } catch (PDOException $e) {
+            // Captura de errores de la base de datos
+            $resultado['mensaje'] = "Error Buscar Docente: problemas con la base de datos; " . $e->getMessage();
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Función para modificar los datos de un Docente.
+     * Llama al procedimiento almacenado spModificarDocente.
+     *
+     * @param string $pid ID del Docente. Debe tener el formato ABC-1234.
+     * @param string $pnombre Nombre completo del Docente (máximo 50 caracteres).
+     * @param string $pperfil Perfil académico del Docente.
+     * @return array Retorna un array con el estado de la operación y un mensaje descriptivo.
+     */
+    public function ModificarDocente($pid, $pnombre, $pperfil)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // Validar que ningún campo esté vacío
+        if (empty($pid) || empty($pnombre) || empty($pperfil)) {
+            $resultado['mensaje'] = "Error Modificar Docente: No se permiten valores vacíos.";
+            return $resultado;
+        }
+
+        // Validar formato del ID (ejemplo: ABC-1234)
+        if (!preg_match('/^[A-Za-z]{3}-\d{4}$/', $pid)) {
+            $resultado['mensaje'] = "Error Modificar Docente: El formato del ID es incorrecto. Debe ser tres letras seguidas de un guion y cuatro números.";
+            return $resultado;
+        }
+
+        // Validar nombre (solo letras, espacios y punto, máximo 50 caracteres)
+        if (!preg_match('/^[A-Za-zÁáÉéÍíÓóÚúÑñ.\s]{1,50}$/', $pnombre)) {
+            $resultado['mensaje'] = "Error Modificar Docente: El nombre de docente solo puede contener letras, espacios y punto (.) y debe tener un máximo de 50 caracteres.";
+            return $resultado;
+        }
+
+        try {
+            // Log para seguimiento en el archivo de errores
+            error_log("Ejecutando SP para modificar Docente con ID: $pid y Nombre: $pnombre");
+
+            // Ejecutar procedimiento almacenado
+            $sp = $c->prepare("CALL spModificarDocente(:pid, :pnombre, :pperfil, @mensaje)");
+            $sp->bindParam(':pid', $pid, PDO::PARAM_STR);
+            $sp->bindParam(':pnombre', $pnombre, PDO::PARAM_STR);
+            $sp->bindParam(':pperfil', $pperfil, PDO::PARAM_STR);
+            $sp->execute();
+            $sp->closeCursor();
+
+            // Obtener mensaje de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Registrar en log el mensaje del SP
+            error_log("Mensaje spDocente: " . $resultado['respuestaSP']);
+
+            // Evaluar mensaje del SP
+            if ($resultado['respuestaSP'] === 'Estado: Exito') {
+                $resultado['estado'] = "OK";
+                $resultado['mensaje'] = "Docente actualizado correctamente.";
+            } else {
+                $resultado['mensaje'] = "Error Modificar Docente: No se realizaron modificaciones.";
+            }
+
+        } catch (PDOException $e) {
+            // Registrar error en el log
+            error_log("Error en la base de datos: " . $e->getMessage());
+            $resultado['mensaje'] = "Error Modificar Docente: problemas en la base de datos; " . $e->getMessage();
+        }
+
+        return $resultado;
+    }
 
     //Aqui va el metodo para cambiar de estatus docente   
     public function CambiarEstado($datos)
@@ -107,41 +219,51 @@ class DocenteDAO
         return $resultado;
     }
 
-    function MostrarDocente()
+    /**
+     * Función para mostrar todos los Docentes registrados en el sistema.
+     * Llama al procedimiento almacenado spMostrarDocentes.
+     * 
+     * @return array Retorna un array con el estado de la operación, mensaje, datos y cantidad de filas obtenidas.
+     */
+    public function MostrarDocente()
     {
+        // Inicializar estado como OK por defecto
         $resultado['estado'] = "OK";
         $c = $this->conector;
 
         try {
-
-            // Ejecutar procedimiento almacenado
+            // Preparar y ejecutar el procedimiento almacenado
             $sp = $c->prepare("CALL spMostrarDocentes(@mensaje)");
             $sp->execute();
 
-            // Obtener los datos primero
+            // Obtener todos los datos retornados
             $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
-            $sp->closeCursor(); // Libera el conjunto de resultados actual para permitir ejecutar otra consulta en la misma conexión (por ejemplo, SELECT @mensaje)
+            $sp->closeCursor(); // Liberar resultado para permitir obtener @mensaje
 
-            // Ahora obtener el mensaje de salida
+            // Consultar el mensaje de salida del procedimiento almacenado
             $respuestaSP = $c->query("SELECT @mensaje");
             $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
             $resultado['respuestaSP'] = $mensaje['@mensaje'];
 
+            // Registrar en log para depuración
             error_log("Mensaje spDocente: " . $resultado['respuestaSP']);
 
-            // Manejar mensaje de salida
+            // Verificar si el procedimiento fue exitoso
             if ($resultado['respuestaSP'] == 'Estado: Exito') {
-                $resultado['datos'] = $datos;
-                $resultado['filas'] = count($datos);
+                $resultado['datos'] = $datos;              // Asignar datos recuperados
+                $resultado['filas'] = count($datos);       // Contar registros obtenidos
             } else {
                 $resultado['filas'] = 0;
                 $resultado['estado'] = "Sin registros de Docente para mostrar";
             }
 
         } catch (PDOException $e) {
+            // Manejo de excepciones por errores en la base de datos
             $resultado['estado'] = "Error Mostrar Docente: " . $e->getMessage();
         }
 
         return $resultado;
     }
+
+
 }

@@ -418,9 +418,6 @@ function guardarNuevoJefe() {
  * Si el registro existe, se llenan los campos del formulario con sus datos y se deshabilita el campo ID.
  * En caso contrario, se muestra un mensaje de error al usuario.
  */
-/*
- * Función para buscar un Jefe de Carrera solo por ID pasado desde la tabla.
- */
 function BuscarJefeCarrera(id) {
   let url =
     "../../Controlador/Intermediarios/JefeCarrera/ModificarJefeCarrera.php";

@@ -24,7 +24,7 @@ function loadFormJDocente(opc, id = "") {
                         .fadeIn(500, function () {
                             // Si es edición, llamar a buscarDocente automáticamente
                             if (opc === "modDocente" && id !== "") {
-                                //(id);
+                                BuscarDocente(id);
                             }
                         })
                         .css("transform", "translateY(-10px)")
@@ -120,7 +120,7 @@ function validarcamposDocente(opc) {
                 //Si todo esta bien podemos almacenar los datos
             } else {
                 deshabilitarbtnDocente(true, "btnGuardarJ");
-                intentarGuardarDatos(); //funcion que manda a guardar los datos
+                ModificarDocente();
             }
 
             break;
@@ -214,7 +214,6 @@ function ErrorDeIntentoDeGuardado(mensaje) {
         modalElement.remove();
     });
 }
-
 
 // Estoy simulado en caso de un error al intertar guardar si todo esta bien,
 // el error se muestra por perdida de conexion o problemas del equipo
@@ -428,4 +427,91 @@ function guardarNuevoDocente() {
       },
     });
     return true;
+  }
+
+  /*
+ * Función para buscar un Docente por ID.
+ * Se llenan los campos del formulario con sus datos y se deshabilita el campo ID.
+ * En caso contrario, se muestra un mensaje de error al usuario.
+ */
+function BuscarDocente(id) {
+    let url = "../../Controlador/Intermediarios/Docente/ModificarDocente.php";
+  
+    let datos = { id: id, Buscar: true };
+    let json = JSON.stringify(datos);
+  
+    $.post(
+      url,
+      json,
+      function (response, status) {
+        console.log("Respuesta del servidor:", response);
+        console.log("Datos enviados:", json);
+  
+        if (status === "success" && response.estado === "OK" && response.datos) {
+          console.log("Datos recibidos:", response.datos);
+  
+          document.getElementById("clavedocente").value = response.datos.clave_de_docente;
+          document.getElementById("nombredocente").value = response.datos.docente;
+          document.getElementById("perfil_id").value = response.datos.perfil_de_docente;
+          document.getElementById("estado").value = response.datos.estado;
+  
+          document.getElementById("clavedocente").disabled = true;
+        } else {
+          sinres("Docente no encontrado.");
+        }
+      },
+      "json"
+    ).fail(function (xhr, status, error) {
+      console.error("Error en la solicitud POST:", xhr.responseText);
+      mostrarErrorCaptura("Error al buscar el Docente.");
+    });
+  }
+
+  /*
+ * Función para modificar el Jefe de Carrera.
+ * Solo permite la modificación del nombre, manteniendo el ID inmutable.
+ */
+function ModificarDocente() {
+    const id = document.getElementById("clavedocente").value.trim();
+    const nombre = document.getElementById("nombredocente").value.trim();
+    const perfil = document.getElementById("perfil_id").value.trim();
+    
+    if (!id || !nombre | !perfil)  {
+      mostrarFaltaDatos("Debe completar todos los campos obligatorios.");
+    }
+  
+    let datos = new Object();
+    datos.idDocente = id;
+    datos.nombre = nombre;
+    datos.perfil = perfil;
+    datos.Modificar = true;
+  
+    let json = JSON.stringify(datos);
+    let url = "../../Controlador/Intermediarios/Docente/ModificarDocente.php";
+    console.log("Datos JSON enviados:", json);
+  
+    $.post(
+      url,
+      json,
+      function (response, status) {
+        if (response.success) {
+          mostrarDatosGuardados(
+            "El Docente se ha sido modificado correctamente.",
+            ""
+          );
+          option("docente", "");
+        } else {
+          mostrarErrorCaptura(
+            "No se pudo modificar Docente. Verifique los datos e inténtelo nuevamente."
+          );
+        }
+      },
+      "json" // Indica que la respuesta esperada es JSON
+    ).fail(function (xhr, status, error) {
+      // Manejo de error
+      console.error("Error en la solicitud POST:", xhr.responseText);
+      mostrarErrorCaptura(
+        "No se pudo conectar con el servidor. Inténtelo más tarde."
+      );
+    });
   }
