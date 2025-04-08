@@ -495,16 +495,11 @@ function ModificarDocente() {
       json,
       function (response, status) {
         if (response.success) {
-          mostrarDatosGuardados(
-            "El Docente se ha sido modificado correctamente.",
-            ""
-          );
-          option("docente", "");
-        } else {
-          mostrarErrorCaptura(
-            "No se pudo modificar Docente. Verifique los datos e inténtelo nuevamente."
-          );
-        }
+            mostrarDatosGuardados(response.mensaje, "");
+            option("docente", "");
+          } else {
+            mostrarErrorCaptura(response.mensaje);
+          }
       },
       "json" // Indica que la respuesta esperada es JSON
     ).fail(function (xhr, status, error) {

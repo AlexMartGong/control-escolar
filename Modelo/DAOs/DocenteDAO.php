@@ -89,7 +89,6 @@ class DocenteDAO
             } else {
                 $resultado['mensaje'] = "Error Buscar Docente: No se encontró el Docente.";
             }
-
         } catch (PDOException $e) {
             // Captura de errores de la base de datos
             $resultado['mensaje'] = "Error Buscar Docente: problemas con la base de datos; " . $e->getMessage();
@@ -109,63 +108,81 @@ class DocenteDAO
      */
     public function ModificarDocente($pid, $pnombre, $pperfil)
     {
-        $resultado = ['estado' => 'Error'];
-        $c = $this->conector;
+    $resultado = ['estado' => 'Error'];
+    $c = $this->conector;
 
-        // Validar que ningún campo esté vacío
-        if (empty($pid) || empty($pnombre) || empty($pperfil)) {
-            $resultado['mensaje'] = "Error Modificar Docente: No se permiten valores vacíos.";
-            return $resultado;
-        }
-
-        // Validar formato del ID (ejemplo: ABC-1234)
-        if (!preg_match('/^[A-Za-z]{3}-\d{4}$/', $pid)) {
-            $resultado['mensaje'] = "Error Modificar Docente: El formato del ID es incorrecto. Debe ser tres letras seguidas de un guion y cuatro números.";
-            return $resultado;
-        }
-
-        // Validar nombre (solo letras, espacios y punto, máximo 50 caracteres)
-        if (!preg_match('/^[A-Za-zÁáÉéÍíÓóÚúÑñ.\s]{1,50}$/', $pnombre)) {
-            $resultado['mensaje'] = "Error Modificar Docente: El nombre de docente solo puede contener letras, espacios y punto (.) y debe tener un máximo de 50 caracteres.";
-            return $resultado;
-        }
-
-        try {
-            // Log para seguimiento en el archivo de errores
-            error_log("Ejecutando SP para modificar Docente con ID: $pid y Nombre: $pnombre");
-
-            // Ejecutar procedimiento almacenado
-            $sp = $c->prepare("CALL spModificarDocente(:pid, :pnombre, :pperfil, @mensaje)");
-            $sp->bindParam(':pid', $pid, PDO::PARAM_STR);
-            $sp->bindParam(':pnombre', $pnombre, PDO::PARAM_STR);
-            $sp->bindParam(':pperfil', $pperfil, PDO::PARAM_STR);
-            $sp->execute();
-            $sp->closeCursor();
-
-            // Obtener mensaje de salida del procedimiento
-            $respuestaSP = $c->query("SELECT @mensaje");
-            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
-            $resultado['respuestaSP'] = $mensaje['@mensaje'];
-
-            // Registrar en log el mensaje del SP
-            error_log("Mensaje spDocente: " . $resultado['respuestaSP']);
-
-            // Evaluar mensaje del SP
-            if ($resultado['respuestaSP'] === 'Estado: Exito') {
-                $resultado['estado'] = "OK";
-                $resultado['mensaje'] = "Docente actualizado correctamente.";
-            } else {
-                $resultado['mensaje'] = "Error Modificar Docente: No se realizaron modificaciones.";
-            }
-
-        } catch (PDOException $e) {
-            // Registrar error en el log
-            error_log("Error en la base de datos: " . $e->getMessage());
-            $resultado['mensaje'] = "Error Modificar Docente: problemas en la base de datos; " . $e->getMessage();
-        }
-
+    // Validar que ningún campo esté vacío
+    if (empty($pid) || empty($pnombre) || empty($pperfil)) {
+        $resultado['mensaje'] = "Por favor, complete todos los campos requeridos: ID, nombre y perfil del docente.";
         return $resultado;
     }
+
+    // Validar formato del ID (ejemplo: ABC-1234)
+    if (!preg_match('/^[A-Za-z]{3}-\d{4}$/', $pid)) {
+        $resultado['mensaje'] = "El ID del docente debe tener el formato correcto: tres letras seguidas de un guion y cuatro números (ejemplo: ABC-1234).";
+        return $resultado;
+    }
+
+    // Validar nombre (solo letras, espacios y punto, máximo 50 caracteres, sin espacios consecutivos ni al inicio/final)
+    if (!preg_match('/^[A-Za-zÁáÉéÍíÓóÚúÑñ](?:[A-Za-zÁáÉéÍíÓóÚúÑñ\s]*[A-Za-zÁáÉéÍíÓóÚúÑñ])?(?:[\.])?$/', $pnombre)) {
+        $resultado['mensaje'] = "El Nombre del docente debe contener solo letras, espacios y puntos (.), sin espacios consecutivos ni al principio o final, y debe tener como máximo 50 caracteres.";
+        return $resultado;
+    }
+
+    // Validar perfil (solo letras, espacios y punto, máximo 50 caracteres, sin espacios consecutivos ni al inicio/final)
+    if (!preg_match('/^[A-Za-zÁáÉéÍíÓóÚúÑñ](?:[A-Za-zÁáÉéÍíÓóÚúÑñ\s]*[A-Za-zÁáÉéÍíÓóÚúÑñ])?(?:[\.])?$/', $pperfil)) {
+        $resultado['mensaje'] = "El Perfil del docente debe contener solo letras, espacios y puntos (.), sin espacios consecutivos ni al principio o final, y debe tener como máximo 50 caracteres.";
+        return $resultado;
+    }
+
+    try {
+        // Log para seguimiento en el archivo de errores
+        error_log("Ejecutando SP para modificar Docente con ID: $pid y Nombre: $pnombre");
+
+        // Ejecutar procedimiento almacenado
+        $sp = $c->prepare("CALL spModificarDocente(:pid, :pnombre, :pperfil, @mensaje)");
+        $sp->bindParam(':pid', $pid, PDO::PARAM_STR);
+        $sp->bindParam(':pnombre', $pnombre, PDO::PARAM_STR);
+        $sp->bindParam(':pperfil', $pperfil, PDO::PARAM_STR);
+        $sp->execute();
+        $sp->closeCursor();
+
+        // Obtener mensaje de salida del procedimiento
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        // Registrar en log el mensaje del SP
+        error_log("Mensaje spDocente: " . $resultado['respuestaSP']);
+
+        // Evaluar mensaje del SP
+        switch ($resultado['respuestaSP']) {
+            case 'Estado: Exito':
+                $resultado['estado'] = "OK";
+                $resultado['mensaje'] = "Los datos del docente han sido modificados correctamente.";
+                break;
+            case 'Estado: Sin cambios':
+                $resultado['mensaje'] = "No se realizaron cambios, los datos son idénticos a los actuales.";
+                break;
+            case 'Error: No existe el registro con el ID solicitado':
+                $resultado['mensaje'] = "No se encontró el docente con el ID proporcionado.";
+                break;
+            case 'Error: No se pudo modificar el registro':
+                $resultado['mensaje'] = "No se pudo modificar el registro del docente. Intente nuevamente más tarde.";
+                break;
+            default:
+                $resultado['mensaje'] = "Ocurrió un error inesperado. Por favor, intente nuevamente.";
+                break;
+        }
+    } catch (PDOException $e) {
+        // Registrar error en el log
+        error_log("Error en la base de datos: " . $e->getMessage());
+        $resultado['mensaje'] = "Hubo un problema al modificar los datos del docente. Por favor, intente nuevamente más tarde.";
+    }
+
+    return $resultado;
+    }
+
 
     //Aqui va el metodo para cambiar de estatus docente   
     public function CambiarEstado($datos)
@@ -210,7 +227,6 @@ class DocenteDAO
             // Recuperar el mensaje del OUT
             $resultado['mensaje'] = $mensaje;
             $resultado['estado'] = (str_contains($mensaje, 'Exito')) ? "OK" : "Error";
-    
         } catch (PDOException $e) {
             $resultado['estado'] = "Error";
             $resultado['mensaje'] = "Error en la base de datos: " . $e->getMessage();
@@ -256,7 +272,6 @@ class DocenteDAO
                 $resultado['filas'] = 0;
                 $resultado['estado'] = "Sin registros de Docente para mostrar";
             }
-
         } catch (PDOException $e) {
             // Manejo de excepciones por errores en la base de datos
             $resultado['estado'] = "Error Mostrar Docente: " . $e->getMessage();
@@ -264,6 +279,4 @@ class DocenteDAO
 
         return $resultado;
     }
-
-
 }

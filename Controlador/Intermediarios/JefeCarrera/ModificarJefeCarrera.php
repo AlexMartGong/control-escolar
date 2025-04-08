@@ -44,13 +44,15 @@
                     $datos['idJefe'],
                     $datos['nombre']
                 );
+
                 if ($resultado['estado'] == "OK") {
-                    $resultado = ['success' => true, 'mensaje' => "El Jefe de Carrera se ha actualizado correctamente."];
+                    $resultado = ['success' => true, 'mensaje' => $resultado['mensaje']];
                     error_log("Jefe de Carrera actualizado correctamente. ID: " . $datos['idJefe']);
                 } else {
-                    $resultado = ['success' => false, 'mensaje' => "No se pudo actualizar el Jefe de Carrera."];
+                    $resultado = ['success' => false, 'mensaje' => $resultado['mensaje']];
                     error_log("Error al actualizar el Jefe de Carrera con ID: " . $datos['idJefe']);
                 }
+
             } else {
                 $resultado = ['success' => false, 'mensaje' => "Error Modificar JefeCarrera: Datos insuficientes."];
                 error_log("Datos insuficientes para modificar el Jefe de Carrera.");
