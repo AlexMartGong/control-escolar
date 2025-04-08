@@ -45,13 +45,15 @@
                     $datos['nombre'],
                     $datos['perfil']
                 );
+                
                 if ($resultado['estado'] == "OK") {
-                    $resultado = ['success' => true, 'mensaje' => "El Docente se ha actualizado correctamente."];
+                    $resultado = ['success' => true, 'mensaje' => $resultado['mensaje']];
                     error_log("Docente actualizado correctamente. ID: " . $datos['idDocente']);
                 } else {
-                    $resultado = ['success' => false, 'mensaje' => "No se pudo actualizar el Docente."];
+                    $resultado = ['success' => false, 'mensaje' => $resultado['mensaje']];
                     error_log("Error al actualizar el Docente con ID: " . $datos['idDocente']);
                 }
+                
             } else {
                 $resultado = ['success' => false, 'mensaje' => "Error Modificar Docente: Datos insuficientes."];
                 error_log("Datos insuficientes para modificar el Docente.");

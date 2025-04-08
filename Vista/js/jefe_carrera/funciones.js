@@ -479,17 +479,14 @@ function ModificarJefeCarrera() {
     url,
     json,
     function (response, status) {
+
       if (response.success) {
-        mostrarDatosGuardados(
-          "El Jefe de Carrera ha sido modificado correctamente.",
-          ""
-        );
+        mostrarDatosGuardados(response.mensaje, "");
         option("career-manager", "");
       } else {
-        mostrarErrorCaptura(
-          "No se pudo modificar el Jefe de Carrera. Verifique los datos e inténtelo nuevamente."
-        );
+        mostrarErrorCaptura(response.mensaje);
       }
+
     },
     "json" // Indica que la respuesta esperada es JSON
   ).fail(function (xhr, status, error) {

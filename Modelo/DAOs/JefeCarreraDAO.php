@@ -112,19 +112,19 @@ class JefeCarreraDAO
 
         // Validar que los campos no estén vacíos
         if (empty($pid) || empty($pnombre)) {
-            $resultado['mensaje'] = "Error Modificar JefeCarrera: No se permiten valores vacíos.";
+            $resultado['mensaje'] = "Por favor, complete todos los campos requeridos: ID y nombre del jefe de carrera.";
             return $resultado;
         }
 
         // Validar formato del ID: tres letras, un guión y cuatro números (ejemplo: ABC-1234)
         if (!preg_match('/^[A-Za-z]{3}-\d{4}$/', $pid)) {
-            $resultado['mensaje'] = "Error Modificar JefeCarrera: El formato del ID es incorrecto. Debe ser tres letras seguidas de un guion y cuatro números.";
+            $resultado['mensaje'] = "El ID del Jefe de carrera debe tener el formato correcto: tres letras seguidas de un guion y cuatro números (ejemplo: ABC-1234).";
             return $resultado;
         }
 
-        // Validar el nombre: solo letras, espacios y puntos (.) con máximo 50 caracteres
-        if (!preg_match('/^[A-Za-zÁáÉéÍíÓóÚúÑñ.\s]{1,50}$/', $pnombre)) {
-            $resultado['mensaje'] = "Error Modificar JefeCarrera: El nombre solo puede contener letras, espacios y punto (.) y debe tener un máximo de 50 caracteres.";
+        // Validar el nombre: solo letras, espacios y punto, máximo 50 caracteres, sin espacios consecutivos ni al inicio/final
+        if (!preg_match('/^[A-Za-zÁáÉéÍíÓóÚúÑñ](?:[A-Za-zÁáÉéÍíÓóÚúÑñ\s]*[A-Za-zÁáÉéÍíÓóÚúÑñ])?(?:[\.])?$/', $pnombre)) {
+            $resultado['mensaje'] = "El Nombre del docente debe contener solo letras, espacios y puntos (.), sin espacios consecutivos ni al principio o final, y debe tener como máximo 50 caracteres.";
             return $resultado;
         }
 
@@ -147,18 +147,24 @@ class JefeCarreraDAO
             // Registrar en log el mensaje de salida del SP
             error_log("Mensaje spDocente: " . $resultado['respuestaSP']);
 
-            // Evaluar el resultado del procedimiento
-            if ($resultado['respuestaSP'] == 'Estado: Exito') {
+            // Evaluar mensaje del SP
+        switch ($resultado['respuestaSP']) {
+            case 'Estado: Exito':
                 $resultado['estado'] = "OK";
-                $resultado['mensaje'] = "Jefe de Carrera actualizado correctamente.";
-            } else {
-                $resultado['mensaje'] = "Error Modificar JefeCarrera: No se realizaron modificaciones.";
-            }
+                $resultado['mensaje'] = "Los datos del Jefe de Carrera han sido modificados correctamente.";
+                break;
+            case 'Error: El registro no existe':
+                $resultado['mensaje'] = "El registro seleccionado de Jefe de carrera No existe.";
+                break;
+            default:
+                $resultado['mensaje'] = "Ocurrió un error inesperado. Por favor, intente nuevamente.";
+                break;
+        }
 
         } catch (PDOException $e) {
             // Registrar error en log y devolver mensaje de error
             error_log("Error en la base de datos: " . $e->getMessage());
-            $resultado['mensaje'] = "Error Modificar JefeCarrera: problemas en la base de datos; " . $e->getMessage();
+            $resultado['mensaje'] = "Hubo un problema al modificar los datos del jefe de carrera. Por favor, intente nuevamente más tarde." . $e->getMessage();
         }
 
         return $resultado;
