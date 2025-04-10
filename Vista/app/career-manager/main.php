@@ -73,8 +73,8 @@ $res = $objJeDAO->MostrarJefesCarrera();
                                         style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
                                         onchange="changeStatusJefeCarrera('<?= $fila['clave_de_jefe'] ?>', this.value, '<?= $fila['estado'] ?>')">
                                         <option disabled selected>Cambiar estado</option>
-                                        <option value="Activo" <?= $fila['estado'] === 'Activo' ? 'selected' : '' ?>>Activo</option>
-                                        <option value="Inactivo" <?= $fila['estado'] === 'Inactivo' ? 'selected' : '' ?>>Inactivo</option>
+                                        <option value="Activo">Activo</option>
+                                        <option value="Inactivo">Inactivo</option>
                                     </select>
 
                                 </label>
