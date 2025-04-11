@@ -28,7 +28,8 @@ $siguienteID = $objPeDAO->obtenerSiguienteIDPeriodo();
                 <!-- ID Periodo -->
                 <div class="col-md-3">
                     <div class="form-floating mb-3 mb-md-0">
-                        <input type="text" class="form-control" id="txtId" placeholder="202401" required disabled value="<?= $siguienteID ?>">
+                        <input type="text" class="form-control" id="txtId" placeholder="202401" required disabled
+                               value="<?= $siguienteID ?>">
                         <label for="txtId">
                             ID del Periodo
                         </label>
@@ -41,10 +42,12 @@ $siguienteID = $objPeDAO->obtenerSiguienteIDPeriodo();
                 <!-- Nombre del Periodo -->
                 <div class="col-md-5">
                     <div class="form-floating">
-                        <input type="text" class="form-control" id="txtPeriodo" placeholder="Agosto 2024 - Enero 2025" maxlength="30"  pattern="[A-Za-z0-9\- ]+"  required>
+                        <input type="text" class="form-control" id="txtPeriodo" placeholder="Agosto 2024 - Enero 2025"
+                               maxlength="30" required oninput="validarCaracteres(this)">
                         <label for="txtPeriodo">Nombre del Periodo</label>
-                        <div class="invalid-feedback">
-                            Por favor ingrese un nombre para el periodo
+                        <div class="invalid-feedback" id="periodoFeedback">
+                            No se permiten caracteres especiales en el nombre del periodo. Utilice solo letras, números,
+                            espacios y guiones.
                         </div>
                     </div>
                 </div>
