@@ -609,7 +609,7 @@ function bloquearFormulario(bloquearTodo, soloIDyPeriodo) {
 
 function validarCaracteres(input) {
     // Patrón para permitir solo letras, números, espacios y guiones
-    const patron = /^[A-Za-z0-9\- ]*$/;
+    const patron = /^[A-Za-zÑñ0-9\- ]*$/;
 
     // Obtener el botón de guardar
     const btnGuardar = document.querySelector('button[onclick*="validafrmPeriodo"]');
