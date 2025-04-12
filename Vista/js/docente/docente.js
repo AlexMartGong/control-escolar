@@ -140,24 +140,83 @@ function marcarError(input, valor) {
     }
 
 }
-
-// funcion que permite verificar los cambios de las entradas en el formulario de agregar jefe carrera
+ // funcion que permite evaluar los campos correctamente
 function verificarInputdocente(idetiqueta, idbtn) {
     let input = document.getElementById(idetiqueta);
-    let estaVacio = input.value.trim() === "";
+    const valor = input.value.trim();
+    const estaVacio = valor === "";
 
-    let clavedocenteEntrada = document.getElementById('clavedocente');
-    let nombreEntrada = document.getElementById('nombredocente');
-    let perfilEntrada = document.getElementById('perfil_id');
+    const contenedor = input.closest('.mb-4');
+    const errorPrevio = contenedor.querySelector('.errorscaracter');
 
-    //remover clases si se modifica algo
-    clavedocenteEntrada.classList.remove("entrada-error");
-    nombreEntrada.classList.remove("entrada-error");
-    perfilEntrada.classList.remove("entrada-error");
+    if (errorPrevio) {
+        errorPrevio.remove();
+        input.classList.remove("entrada-error");
+    }
 
-    // Llamamos a la función para deshabilitar o habilitar el botón según el input
-    deshabilitarbtnDocente(estaVacio, idbtn);
+    // Validaciones por tipo de campo
+    switch(idetiqueta) {
+        case "clavedocente":
+            const regexClave = /^[A-Z]{3}-\d{4}$/;
+            if (estaVacio) {
+                mostrarError(input, 'Este campo no puede estar vacío.');
+                input.classList.add("entrada-error");
+                return evaluarEstadoFormulario(idbtn);
+            }
+            if (!regexClave.test(valor)) {
+                mostrarError(input, 'Tres letras mayúsculas, guión medio y 4 números. Ej: ABC-1234');
+                input.classList.add("entrada-error");
+                return evaluarEstadoFormulario(idbtn);
+            }
+            break;
+
+        case "nombredocente":
+            const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
+            if (estaVacio) {
+                mostrarError(input, 'Este campo no puede estar vacío.');
+                input.classList.add("entrada-error");
+                return evaluarEstadoFormulario(idbtn);
+            }
+            if (!soloLetras.test(valor)) {
+                mostrarError(input, 'No se permiten caracteres especiales. Solo letras y espacios.');
+                input.classList.add("entrada-error");
+                return evaluarEstadoFormulario(idbtn);
+            }
+            break;
+
+        case "perfil_id":
+            if (estaVacio) {
+                mostrarError(input, 'Este campo no puede estar vacío.');
+                input.classList.add("entrada-error");
+                return evaluarEstadoFormulario(idbtn);
+            }
+            break;
+    }
+
+    // Siempre reevalúa el estado global al final
+    evaluarEstadoFormulario(idbtn);
 }
+
+function evaluarEstadoFormulario(idbtn) {
+    const clave = document.getElementById('clavedocente');
+    const nombre = document.getElementById('nombredocente');
+    const perfil = document.getElementById('perfil_id');
+
+    const errores = document.querySelectorAll('.errorscaracter');
+
+    const camposLlenos =
+        clave.value.trim() !== '' &&
+        nombre.value.trim() !== '' &&
+        perfil.value.trim() !== '';
+
+    const claveValida = /^[A-Z]{3}-\d{4}$/.test(clave.value.trim());
+    const nombreValido = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/.test(nombre.value.trim());
+
+    const todoBien = errores.length === 0 && camposLlenos && claveValida && nombreValido;
+
+    deshabilitarbtnDocente(!todoBien, idbtn); // true = deshabilita, false = habilita
+}
+
 
 //funcion para habilitar o desabilitar en timpo real
 function deshabilitarbtnDocente(estado, botonId) {

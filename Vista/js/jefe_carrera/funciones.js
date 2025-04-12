@@ -306,33 +306,189 @@ function validarCampos2(msj, opc) {
   }
 }
 
-//funcion que permite ver si hay cambios en las entradas en modificar jefe de carrera
-function verificarInput(idetiqueta, idbtn) {
-  let input = document.getElementById(idetiqueta);
-  let estaVacio = input.value.trim() === "";
-  let nombreInput = document.getElementById("nombremod"); //extrae el id de campo nombre en modJefe
-  let idImput = document.getElementById("idmanager"); //EXTRAE EL ID DEL CAMPO ID JEFE CARRERA tanto de modificar como agregar
-
-  nombreInput.classList.remove("entrada-error"); // Remueve la clase si se a modificado algo
-  idImput.classList.remove("entrada-error"); // se remueve la clase si se a modificado algo
-
-  // Llamamos a la función para deshabilitar o habilitar el botón según el input
-  deshabilitar(estaVacio, idbtn);
-}
-
-// funcion que permite verificar los cambios de las entradas en el formulario de agregar jefe carrera
 function verificarInputfrm(idetiqueta, idbtn) {
   let input = document.getElementById(idetiqueta);
-  let estaVacio = input.value.trim() === "";
-  let idImput = document.getElementById("idmanager"); //EXTRAE EL ID DEL CAMPO ID JEFE CARRERA tanto de modificar como agregar
-  let nombreregistro = document.getElementById("nombreReagistro"); //EXTRAE EL ID DEL Nombre de formulario Agregar
+  const valor = input.value.trim();
+  const estaVacio = valor === "";
 
-  idImput.classList.remove("entrada-error"); // Remueve la clase si se a modificado algo
-  nombreregistro.classList.remove("entrada-error"); // Remueve la clase si se a modificado algo
+  // Validaciones específicas por campo
+  const regexId = /^[A-Z]{3}-\d{4}$/;
+  const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
 
-  // Llamamos a la función para deshabilitar o habilitar el botón según el input
-  deshabilitar(estaVacio, idbtn);
+  const clave = document.getElementById('idmanager');
+  const nombre = document.getElementById('nombreReagistro');
+
+  const contenedor = input.closest('.mb-4');
+  let errorPrevio = contenedor.querySelector('.errorscaracter');
+
+  // Limpiar errores anteriores si existen
+  if (errorPrevio) {
+    errorPrevio.remove();
+    input.classList.remove("entrada-error");
+  }
+
+  // Validar campos 
+  if (idetiqueta === "idmanager") {
+    if (estaVacio) {
+      mostrarError(input, 'Este campo no puede estar vacío.');
+      input.classList.add("entrada-error");
+    } else if (!regexId.test(valor)) {
+      mostrarError(input, 'Tres letras mayúsculas, guión medio y 4 números. Ej: ABC-1234');
+      input.classList.add("entrada-error");
+    }
+  } else {
+    if (estaVacio) {
+      mostrarError(input, 'Este campo no puede estar vacío.');
+      input.classList.add("entrada-error");
+    } else if (!soloLetras.test(valor)) {
+      mostrarError(input, 'Solo letras y espacios permitidos.');
+      input.classList.add("entrada-error");
+    }
+  }
+
+  
+  evaluarFormulario(idbtn);
 }
+
+function evaluarFormulario(idbtn) {
+  const clave = document.getElementById('idmanager');
+  const nombre = document.getElementById('nombreReagistro');
+
+  const errores = document.querySelectorAll('.errorscaracter');
+
+  const camposLlenos =
+    clave.value.trim() !== '' &&
+    nombre.value.trim() !== '';
+
+  const claveValida = /^[A-Z]{3}-\d{4}$/.test(clave.value.trim());
+  const nombreValido = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/.test(nombre.value.trim());
+
+  const btn = document.getElementById(idbtn);
+
+  if (errores.length === 0 && camposLlenos && claveValida && nombreValido) {
+    deshabilitar(false, idbtn); // Habilita
+  } else {
+    deshabilitar(true, idbtn);  // Deshabilita
+  }
+}
+
+//funcion que permite ver si hay cambios en las entradas en modificar jefe de carrera
+function verificarInputmod(idetiqueta, idbtn) {
+  let input = document.getElementById(idetiqueta);
+  const valor = input.value.trim();
+  const estaVacio = valor === "";
+  const clave = document.getElementById('idmanager');
+  const nombre = document.getElementById('nombremod');
+  var vacios = true;
+
+  //const nombre = document.getElementById('nombremod');
+ //valores definidos que deve ingresar el usuario
+ const regexId = /^[A-Z]{3}-\d{4}$/.test(valor); // permite la que insercion sea de acuerdo alos requerimientos
+  const contieneCaracteresEspeciales = /[^a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]/.test(valor); // permite la insercion de letras, espacios, acentos y letras con tilde 
+  
+  if(clave.value.trim() === '' || nombre.value.trim() === ''  ){
+    console.log("algo vacio");
+     vacios = false;
+  }
+
+
+//if para validar los diferentes campos del formulario
+
+  if(idetiqueta === "idmanager")  
+  {
+    const contenedor = input.closest('.mb-4');
+    const errorPrevio = contenedor.querySelector('.errorscaracter');
+
+    // Si el campo está vacío
+    if (estaVacio) {
+      if (!errorPrevio) {
+        mostrarError(input, 'Este campo no puede estar vacío.');
+      } else {
+        errorPrevio.textContent = 'Este campo no puede estar vacío.';
+      }
+      input.classList.add("entrada-error");
+      deshabilitar(true, idbtn);
+      return;
+    }
+
+    // Si contiene caracteres especiales
+    if (!regexId) {
+      if (!errorPrevio) {
+        mostrarError(input, 'Tres letras mayusculas al inicio, un guión medio - y 4 numeros.');
+      } else {
+        errorPrevio.textContent = 'Tres letras mayusculas al inicio, un guión medio - y 4 numeros.'; // si el que escribe se equiboca dos veces puedes cambiar el
+      }
+      input.classList.add("entrada-error");
+      deshabilitar(true, idbtn);
+      return;
+    }
+      // Si todo está bien, eliminamos errores
+      if (vacios) {deshabilitar(false, idbtn);   }
+      if(errorPrevio){ errorPrevio.remove(); input.classList.remove("entrada-error");  }
+   
+
+  }
+  else
+  {
+   
+      const contenedor = input.closest('.mb-4');
+      const errorPrevio = contenedor.querySelector('.errorscaracter');
+
+      // Si el campo está vacío
+      if (estaVacio) {
+        if (!errorPrevio) {
+          mostrarError(input, 'Este campo no puede estar vacío.');
+        } else {
+          errorPrevio.textContent = 'Este campo no puede estar vacío.';
+        }
+        input.classList.add("entrada-error");
+        deshabilitar(true, idbtn);
+        return;
+      }
+
+      // Si contiene caracteres especiales
+      if (contieneCaracteresEspeciales) {
+        if (!errorPrevio) {
+          mostrarError(input, 'No se permiten caracteres especiales. Solo letras y espacios.');
+        } else {
+          errorPrevio.textContent = 'No se permiten caracteres especiales. Solo letras y espacios.';
+        }
+        input.classList.add("entrada-error");
+        deshabilitar(true, idbtn);
+        return;
+      }
+
+       // Si todo está bien, eliminamos errores
+       if (vacios) {deshabilitar(false, idbtn);  }
+       if(errorPrevio){ errorPrevio.remove(); input.classList.remove("entrada-error");}
+
+  }
+
+}
+
+//funcion para mostrar el error de escritura
+function mostrarError( input ,mensaje) {
+
+  const contenedorCampo = input.closest('.mb-4');
+
+  // Eliminamos mensaje anterior si ya existe
+  const errorPrevio = contenedorCampo.querySelector('.errorscaracter');
+  if (errorPrevio) errorPrevio.remove();
+
+  const alerta = document.createElement('p');
+  alerta.textContent = mensaje;
+  alerta.classList.add('errorscaracter'); 
+  contenedorCampo.appendChild(alerta); // Insertamos debajo del input group
+  /* por si quieren despues de 5 seg desarapecer el parrafo
+  setTimeout(() => {
+      alerta.remove();
+  }, 5000);*/
+}
+
+
+
+
+
 
 //funcion para habilitar o desabilitar en timpo real
 function deshabilitar(estado, botonId) {

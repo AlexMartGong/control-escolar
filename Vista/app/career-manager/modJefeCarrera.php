@@ -36,7 +36,7 @@
                         maxlength="9"
                         title="Solo letras, números y guion medio. Máximo 9 caracteres."
                         class="form-control"
-                        oninput="verificarInput('idmanager','modbtnj')"
+                        oninput="verificarInputmod('idmanager','modbtnj')"
                         required>
                        </div>
                   </div>
@@ -75,7 +75,7 @@
                         class="form-control"
                         maxlength="50"
                         title="Solo letras y espacios. Máximo 50 caracteres."
-                        oninput="verificarInput('nombremod','modbtnj')"
+                        oninput="verificarInputmod('nombremod','modbtnj')"
                         required>
 
                     </div>

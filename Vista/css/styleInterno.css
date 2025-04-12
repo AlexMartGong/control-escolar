@@ -231,8 +231,8 @@ font-weight: 600;
 padding-top: 2px;
 }
 .entrada-error{
-border: 2px solid red;
-background-color: #ffe6e6;
+border: 2px solid red !important;
+
 
 }
 
@@ -262,4 +262,14 @@ display: flex;
     width: 100%;
   }
 }
-
+.errorscaracter {
+  /*background-color: rgba(235, 96, 64, 0.719); */
+  color: red; 
+  padding: 5px 5px; 
+  text-align: center;
+  /*border-radius: 6px; */
+  font-weight: 500; 
+ /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); */
+  margin-top: 5px;
+  font-size: .9rem;
+}
