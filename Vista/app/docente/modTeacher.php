@@ -13,7 +13,7 @@
             </div>
                 <div class="card-body p-4">
                     <form>
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="clave" class="form-label">Clave del docente</label>
                             <div class="input-group">
                             <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
@@ -29,7 +29,7 @@
                             </div>
                         </div>
                         
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="nombre" class="form-label">Nombre</label>
                             <div class="input-group">
                             <span class="input-group-text bg-blue-light"><i class="fas fa-user"></i></span>
@@ -43,7 +43,7 @@
                              </div>
                         </div>
                         
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="perfil" class="form-label">Perfil</label>
                             <div class="input-group">
                            <span class="input-group-text bg-blue-light"><i class="fa-solid fa-address-book"></i></span>

@@ -1,7 +1,3 @@
- 
- 
-
-
 <link rel="stylesheet" href="../css/styleInterno.css">
 
 <div class="container" id="frmTeacher">
@@ -16,7 +12,7 @@
             </div>
                 <div class="card-body p-4">
                     <form>
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="clave" class="form-label">Clave del docente</label>
                             <div class="input-group">
                             <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
@@ -29,9 +25,10 @@
                                  oninput="verificarInputdocente('clavedocente','btnGuardarJ')"
                                 placeholder="Ejem: TED-0001" required>
                             </div>
+                                
                         </div>
                         
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="nombre" class="form-label">Nombre</label>
                             <div class="input-group">
                             <span class="input-group-text bg-blue-light"><i class="fas fa-user"></i></span>
@@ -43,9 +40,10 @@
                                 id="nombredocente" 
                                 placeholder="Ingrese el nombre completo" required>
                              </div>
+
                         </div>
                         
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="perfil" class="form-label">Perfil</label>
                             <div class="input-group">
                            <span class="input-group-text bg-blue-light"><i class="fa-solid fa-address-book"></i></span>
