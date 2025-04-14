@@ -327,7 +327,6 @@ function verificarInputfrm(idetiqueta, idbtn) {
     errorPrevio.remove();
     input.classList.remove("entrada-error");
     iconerror.classList.remove('is-invalid');
-
   }
 
   // Validar campos 
@@ -341,7 +340,14 @@ function verificarInputfrm(idetiqueta, idbtn) {
       iconerror.classList.add('is-invalid');
       input.classList.add("entrada-error");
       
+    }else if (regexId.test(valor)){
+        var claveExistente = false;
+      // aqui se manda averificar que la clave exista o no en la base de datos y la funcion deve retornar un valor en la cual deve cambiar de true o false para ejecutar la funcion de abajo
+      // y se ejecuate esta funcion para que se muestren los mensajes de que la clave ya existe
+      if(claveExistente){claveExistenteJefe(iconerror,input);}
+      else{ console.log('la clave no existe y se puede guardar')}
     }
+
   } else {
     if (estaVacio) {
       mostrarError(input, 'Este campo no puede estar vacío.');
@@ -378,6 +384,12 @@ function evaluarFormulario(idbtn) {
   } else {
     deshabilitar(true, idbtn);  // Deshabilita
   }
+}
+
+function claveExistenteJefe( iconerror,input){
+  mostrarError(input, 'La clave ya existe intente con otra.');
+  iconerror.classList.add('is-invalid');
+  input.classList.add("entrada-error");
 }
 
 //funcion que permite ver si hay cambios en las entradas en modificar jefe de carrera

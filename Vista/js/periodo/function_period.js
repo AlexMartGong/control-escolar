@@ -612,7 +612,7 @@ function validarCaracteres(input) {
     const patron = /^[A-Za-záéíóúÁÉÍÓÚÑñ0-9\- ]*$/;
 
     // Obtener el botón de guardar
-    const btnGuardar = document.querySelector('button[onclick*="validafrmPeriodo"]');
+    const btnGuardar = document.querySelector('button[onclick*="validafrmPeriodo"]'); 
 
     // Verificar si el valor actual cumple con el patrón
     if (!patron.test(input.value)) {
