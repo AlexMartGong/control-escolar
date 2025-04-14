@@ -25,7 +25,7 @@
                                  oninput="verificarInputdocente('clavedocente','btnGuardarJ')"
                                 placeholder="Ejem: TED-0001" required>
                             </div>
-
+                                
                         </div>
                         
                         <div class="mb-4">

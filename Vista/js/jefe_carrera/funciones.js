@@ -310,21 +310,24 @@ function verificarInputfrm(idetiqueta, idbtn) {
   let input = document.getElementById(idetiqueta);
   const valor = input.value.trim();
   const estaVacio = valor === "";
+  const iconerror = document.querySelector(`#${idetiqueta}`);
 
   // Validaciones específicas por campo
   const regexId = /^[A-Z]{3}-\d{4}$/;
   const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
 
-  const clave = document.getElementById('idmanager');
-  const nombre = document.getElementById('nombreReagistro');
+  /*const clave = document.getElementById('idmanager');
+  const nombre = document.getElementById('nombreReagistro');*/
 
   const contenedor = input.closest('.mb-4');
   let errorPrevio = contenedor.querySelector('.errorscaracter');
 
-  // Limpiar errores anteriores si existen
+  // Limpiar errores anteriores si existen errores si no los borra.
   if (errorPrevio) {
     errorPrevio.remove();
     input.classList.remove("entrada-error");
+    iconerror.classList.remove('is-invalid');
+
   }
 
   // Validar campos 
@@ -332,17 +335,22 @@ function verificarInputfrm(idetiqueta, idbtn) {
     if (estaVacio) {
       mostrarError(input, 'Este campo no puede estar vacío.');
       input.classList.add("entrada-error");
+      iconerror.classList.add('is-invalid');
     } else if (!regexId.test(valor)) {
-      mostrarError(input, 'Tres letras mayúsculas, guión medio y 4 números. Ej: ABC-1234');
+      mostrarError(input, ' Solo se permiten tres letras mayúsculas, guión medio - y 4 números. Ejem. TEA-0001');
+      iconerror.classList.add('is-invalid');
       input.classList.add("entrada-error");
+      
     }
   } else {
     if (estaVacio) {
       mostrarError(input, 'Este campo no puede estar vacío.');
       input.classList.add("entrada-error");
+      iconerror.classList.add('is-invalid');
     } else if (!soloLetras.test(valor)) {
-      mostrarError(input, 'Solo letras y espacios permitidos.');
+      mostrarError(input, 'No se permiten caracteres especiales. Solo letras y espacios.');
       input.classList.add("entrada-error");
+      iconerror.classList.add('is-invalid');
     }
   }
 
@@ -396,6 +404,8 @@ function verificarInputmod(idetiqueta, idbtn) {
 
   if(idetiqueta === "idmanager")  
   {
+    
+    const iconoerror = document.querySelector('#idmanager')
     const contenedor = input.closest('.mb-4');
     const errorPrevio = contenedor.querySelector('.errorscaracter');
 
@@ -403,34 +413,44 @@ function verificarInputmod(idetiqueta, idbtn) {
     if (estaVacio) {
       if (!errorPrevio) {
         mostrarError(input, 'Este campo no puede estar vacío.');
+        iconoerror.classList.add('is-invalid');
       } else {
+        iconoerror.classList.add('is-invalid');
         errorPrevio.textContent = 'Este campo no puede estar vacío.';
       }
       input.classList.add("entrada-error");
       deshabilitar(true, idbtn);
+      iconoerror.classList.remove('is-invalid');
       return;
     }
 
     // Si contiene caracteres especiales
     if (!regexId) {
+      const iconoerror2 = document.querySelector('#nombremod')
       if (!errorPrevio) {
-        mostrarError(input, 'Tres letras mayusculas al inicio, un guión medio - y 4 numeros.');
+        mostrarError(input, 'Solo se permite tres letras mayusculas al inicio, un guión medio - y 4 numeros. Ejem. TEA-0001');
+        iconoerror2.classList.add('is-invalid');
+        console.log('no se');
+
       } else {
-        errorPrevio.textContent = 'Tres letras mayusculas al inicio, un guión medio - y 4 numeros.'; // si el que escribe se equiboca dos veces puedes cambiar el
+        errorPrevio.textContent = 'Solo se permite tres letras mayusculas al inicio, un guión medio - y 4 numeros. Ejem. TEA-0001'; // si el que escribe se equiboca dos veces puedes cambiar el
+        iconoerror2.classList.add('is-invalid');
       }
       input.classList.add("entrada-error");
+      iconoerror2.classList.add('is-invalid');
       deshabilitar(true, idbtn);
       return;
     }
       // Si todo está bien, eliminamos errores
       if (vacios) {deshabilitar(false, idbtn);   }
-      if(errorPrevio){ errorPrevio.remove(); input.classList.remove("entrada-error");  }
+      if(errorPrevio){ errorPrevio.remove(); input.classList.remove("entrada-error");   iconoerror2.classList.remove('is-invalid');}
    
 
   }
   else
   {
-   
+      const iconerror = document.querySelector(`#${idetiqueta}`);
+
       const contenedor = input.closest('.mb-4');
       const errorPrevio = contenedor.querySelector('.errorscaracter');
 
@@ -438,11 +458,14 @@ function verificarInputmod(idetiqueta, idbtn) {
       if (estaVacio) {
         if (!errorPrevio) {
           mostrarError(input, 'Este campo no puede estar vacío.');
+          iconerror.classList.add('is-invalid');
         } else {
           errorPrevio.textContent = 'Este campo no puede estar vacío.';
+          iconerror.classList.add('is-invalid');
         }
         input.classList.add("entrada-error");
         deshabilitar(true, idbtn);
+        iconerror.classList.add('is-invalid');
         return;
       }
 
@@ -450,17 +473,20 @@ function verificarInputmod(idetiqueta, idbtn) {
       if (contieneCaracteresEspeciales) {
         if (!errorPrevio) {
           mostrarError(input, 'No se permiten caracteres especiales. Solo letras y espacios.');
+          iconerror.classList.add('is-invalid');
         } else {
           errorPrevio.textContent = 'No se permiten caracteres especiales. Solo letras y espacios.';
+          iconerror.classList.add('is-invalid');
         }
         input.classList.add("entrada-error");
         deshabilitar(true, idbtn);
+        iconerror.classList.add('is-invalid');
         return;
       }
 
        // Si todo está bien, eliminamos errores
        if (vacios) {deshabilitar(false, idbtn);  }
-       if(errorPrevio){ errorPrevio.remove(); input.classList.remove("entrada-error");}
+       if(errorPrevio){ errorPrevio.remove(); input.classList.remove("entrada-error"); iconerror.classList.remove('is-invalid');}
 
   }
 

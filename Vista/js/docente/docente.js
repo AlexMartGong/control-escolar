@@ -140,11 +140,13 @@ function marcarError(input, valor) {
     }
 
 }
- // funcion que permite evaluar los campos correctamente
+ // funcion que permite evaluar los campos correctamente mientras escribe en el input
 function verificarInputdocente(idetiqueta, idbtn) {
     let input = document.getElementById(idetiqueta);
     const valor = input.value.trim();
     const estaVacio = valor === "";
+
+    const iconerror = document.querySelector(`#${idetiqueta}`);
 
     const contenedor = input.closest('.mb-4');
     const errorPrevio = contenedor.querySelector('.errorscaracter');
@@ -152,6 +154,7 @@ function verificarInputdocente(idetiqueta, idbtn) {
     if (errorPrevio) {
         errorPrevio.remove();
         input.classList.remove("entrada-error");
+        iconerror.classList.remove('is-invalid');
     }
 
     // Validaciones por tipo de campo
@@ -159,13 +162,15 @@ function verificarInputdocente(idetiqueta, idbtn) {
         case "clavedocente":
             const regexClave = /^[A-Z]{3}-\d{4}$/;
             if (estaVacio) {
-                mostrarError(input, 'Este campo no puede estar vacío.');
+                mostrarErrorDocente(input, 'Este campo no puede estar vacío.');
                 input.classList.add("entrada-error");
+                iconerror.classList.add('is-invalid');
                 return evaluarEstadoFormulario(idbtn);
             }
             if (!regexClave.test(valor)) {
-                mostrarError(input, 'Tres letras mayúsculas, guión medio y 4 números. Ej: ABC-1234');
+                mostrarErrorDocente(input, 'Solo se permite tres letras mayusculas al inicio, un guión medio - y 4 numeros. Ejem. TED-0001');
                 input.classList.add("entrada-error");
+                iconerror.classList.add('is-invalid');
                 return evaluarEstadoFormulario(idbtn);
             }
             break;
@@ -173,21 +178,31 @@ function verificarInputdocente(idetiqueta, idbtn) {
         case "nombredocente":
             const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
             if (estaVacio) {
-                mostrarError(input, 'Este campo no puede estar vacío.');
+                mostrarErrorDocente(input, 'Este campo no puede estar vacío.');
                 input.classList.add("entrada-error");
+                iconerror.classList.add('is-invalid');
                 return evaluarEstadoFormulario(idbtn);
             }
             if (!soloLetras.test(valor)) {
-                mostrarError(input, 'No se permiten caracteres especiales. Solo letras y espacios.');
+                mostrarErrorDocente(input, 'No se permiten caracteres especiales. Solo letras y espacios.');
                 input.classList.add("entrada-error");
+                iconerror.classList.add('is-invalid');
                 return evaluarEstadoFormulario(idbtn);
             }
             break;
 
         case "perfil_id":
+            const soloLetras2 = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
             if (estaVacio) {
-                mostrarError(input, 'Este campo no puede estar vacío.');
+                mostrarErrorDocente(input, 'Este campo no puede estar vacío.');
                 input.classList.add("entrada-error");
+                iconerror.classList.add('is-invalid');
+                return evaluarEstadoFormulario(idbtn);
+            }
+            if (!soloLetras2.test(valor)) {
+                mostrarErrorDocente(input, 'No se permiten caracteres especiales. Solo letras y espacios.');
+                input.classList.add("entrada-error");
+                iconerror.classList.add('is-invalid');
                 return evaluarEstadoFormulario(idbtn);
             }
             break;
@@ -216,6 +231,24 @@ function evaluarEstadoFormulario(idbtn) {
 
     deshabilitarbtnDocente(!todoBien, idbtn); // true = deshabilita, false = habilita
 }
+//funcion para mostrar el error de escritura
+function mostrarErrorDocente( input ,mensaje) {
+
+    const contenedorCampo = input.closest('.mb-4');
+  
+    // Eliminamos mensaje anterior si ya existe
+    const errorPrevio = contenedorCampo.querySelector('.errorscaracter');
+    if (errorPrevio) errorPrevio.remove();
+  
+    const alerta = document.createElement('p');
+    alerta.textContent = mensaje;
+    alerta.classList.add('errorscaracter'); 
+    contenedorCampo.appendChild(alerta); // Insertamos debajo del input group
+    /* por si quieren despues de 5 seg desarapecer el parrafo
+    setTimeout(() => {
+        alerta.remove();
+    }, 5000);*/
+  }
 
 
 //funcion para habilitar o desabilitar en timpo real
