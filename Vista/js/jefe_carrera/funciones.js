@@ -347,7 +347,7 @@ function verificarInputfrm(idetiqueta, idbtn) {
         } else {
             console.log('La clave no existe y se puede usar.');
         }
-        evaluarEstadoFormulario(idbtn); 
+        evaluarFormulario(idbtn); 
     });
     }
 
