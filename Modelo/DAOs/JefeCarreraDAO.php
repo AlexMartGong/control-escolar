@@ -267,4 +267,16 @@ class JefeCarreraDAO
 
         return $resultado;
     }
+
+        /**
+     * Función para verificar la clave del jefe de carrera y si ya existe una igual 
+     */
+public function existeClave($clave) {
+    $sql = "SELECT COUNT(*) AS total FROM jefecarrera WHERE idjefe = :clave";
+    $stmt = $this->conector->prepare($sql);
+    $stmt->bindParam(':clave', $clave);
+    $stmt->execute();
+    $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $fila['total'] > 0;
+}
 }
