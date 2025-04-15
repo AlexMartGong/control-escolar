@@ -13,7 +13,7 @@
                  <div class="card-header bg-primary text-white ">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-user-tie me-2"></i>
-                             Agregar Jefe de Carrera
+                             Registro de nuevo Jefe de Carrera
                     </h5>
                  </div>
 

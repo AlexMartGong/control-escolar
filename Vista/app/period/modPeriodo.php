@@ -132,7 +132,10 @@
             <div class="d-flex gap-3 mt-4">
                 <button type="button" class="btn btn-primary px-4 py-2 d-flex align-items-center" id="btnActualizar"
                         onclick="validafrmPeriodo('El período académico ha sido actualizado exitosamente','Modificar');">
-                    <i class="fas fa-save me-2"></i>Actualizar
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="me-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        Modificar
                 </button>
                 <button type="button" class="btn btn-outline-secondary px-4 py-2 d-flex align-items-center"
                         onclick="option('period')">
