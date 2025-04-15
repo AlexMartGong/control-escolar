@@ -279,4 +279,19 @@ class DocenteDAO
 
         return $resultado;
     }
+
+    /**
+     * Función para verificar la clave del docente y si ya existe una igual 
+     */
+public function existeClave($clave) {
+    $sql = "SELECT COUNT(*) AS total FROM docente WHERE claveDocente = :clave";
+    $stmt = $this->conector->prepare($sql);
+    $stmt->bindParam(':clave', $clave);
+    $stmt->execute();
+    $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $fila['total'] > 0;
 }
+}
+
+
+

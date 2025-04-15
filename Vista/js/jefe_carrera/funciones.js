@@ -341,11 +341,14 @@ function verificarInputfrm(idetiqueta, idbtn) {
       input.classList.add("entrada-error");
       
     }else if (regexId.test(valor)){
-        var claveExistente = false;
-      // aqui se manda averificar que la clave exista o no en la base de datos y la funcion deve retornar un valor en la cual deve cambiar de true o false para ejecutar la funcion de abajo
-      // y se ejecuate esta funcion para que se muestren los mensajes de que la clave ya existe
-      if(claveExistente){claveExistenteJefe(iconerror,input);}
-      else{ console.log('la clave no existe y se puede guardar')}
+      verificarClaveJefeCarrera(valor, function(existe) {
+        if (existe) {
+            claveExistenteJefe(iconerror, input); 
+        } else {
+            console.log('La clave no existe y se puede usar.');
+        }
+        evaluarEstadoFormulario(idbtn); 
+    });
     }
 
   } else {
@@ -690,4 +693,31 @@ function ModificarJefeCarrera() {
       "No se pudo conectar con el servidor. Inténtelo más tarde."
     );
   });
+
+  
 }
+
+  /*
+ * Función para verificar la clave del jefe de carrera y si ya existe.
+ */
+  function verificarClaveJefeCarrera(clave, callback) {
+    $.ajax({
+        url: "../../Controlador/Intermediarios/JefeCarrera/VerificarClaveJC.php",
+        type: "POST",
+        data: JSON.stringify({ clave: clave }),
+        contentType: "application/json",
+        dataType: "json",
+        success: function (respuesta) {
+            if (respuesta.existe) {
+                console.log("Respuesta del backend:", respuesta);
+                callback(true);  // la clave ya existe
+            } else {
+                callback(false); // no existe, se puede usar
+            }
+        },
+        error: function () {
+            console.error("Error al verificar la clave del docente.");
+            callback(false);
+        }
+    });
+  }
