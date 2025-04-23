@@ -1,3 +1,5 @@
+let originalValues = {};
+
 function loadFormPeriodo(id) {
     let container = $("#frmArea");
     let url =
@@ -356,6 +358,12 @@ function buscarPeriodo() {
                     response.datos.estado === "Pendiente"
                 ) {
                     bloquearFormulario(false, true);
+
+                    // Almacenar los valores originales después de que el formulario se ha llenado
+                    storeOriginalValues();
+
+                    // Configurar los listeners para detectar cambios
+                    setupFormChangeListeners();
                 } else {
                     errorActualizacion(
                         "No se puede modificar este periodo porque su estatus es: " +
@@ -612,7 +620,7 @@ function validarCaracteres(input) {
     const patron = /^[A-Za-záéíóúÁÉÍÓÚÑñ0-9\- ]*$/;
 
     // Obtener el botón de guardar
-    const btnGuardar = document.querySelector('button[onclick*="validafrmPeriodo"]'); 
+    const btnGuardar = document.querySelector('button[onclick*="validafrmPeriodo"]');
 
     // Verificar si el valor actual cumple con el patrón
     if (!patron.test(input.value)) {
@@ -621,7 +629,7 @@ function validarCaracteres(input) {
         input.classList.add("is-invalid");
         document.getElementById("periodoFeedback").style.display = "block";
 
-        // Desactivar el botón de guardar
+        // Desactivar el botón de guardar independientemente de otras modificaciones
         if (btnGuardar) {
             btnGuardar.disabled = true;
         }
@@ -631,9 +639,64 @@ function validarCaracteres(input) {
         input.classList.remove("is-invalid");
         document.getElementById("periodoFeedback").style.display = "none";
 
-        // Activar el botón de guardar
-        if (btnGuardar) {
-            btnGuardar.disabled = false;
-        }
+        // En lugar de activar directamente, verificar si el formulario ha sido modificado
+        checkFormModified();
     }
+}
+
+// Función para almacenar los valores originales después de cargar el formulario
+function storeOriginalValues() {
+    originalValues = {
+        periodo: document.getElementById("txtPeriodo").value,
+        fechaInicio: document.getElementById("txtFechaInicio").value,
+        fechaTermino: document.getElementById("txtFechaTermino").value,
+        fechaInicioAjuste: document.getElementById("txtFechaInicioAjuste").value,
+        fechaFinalAjuste: document.getElementById("txtFechaFinalAjuste").value
+    };
+
+    // Inicialmente deshabilitamos el botón ya que no hay cambios
+    document.getElementById("btnActualizar").disabled = true;
+}
+
+// Función para verificar si el formulario ha sido modificado
+function checkFormModified() {
+    const currentValues = {
+        periodo: document.getElementById("txtPeriodo").value,
+        fechaInicio: document.getElementById("txtFechaInicio").value,
+        fechaTermino: document.getElementById("txtFechaTermino").value,
+        fechaInicioAjuste: document.getElementById("txtFechaInicioAjuste").value,
+        fechaFinalAjuste: document.getElementById("txtFechaFinalAjuste").value
+    };
+
+    // Comparar cada valor
+    const isModified =
+        currentValues.periodo !== originalValues.periodo ||
+        currentValues.fechaInicio !== originalValues.fechaInicio ||
+        currentValues.fechaTermino !== originalValues.fechaTermino ||
+        currentValues.fechaInicioAjuste !== originalValues.fechaInicioAjuste ||
+        currentValues.fechaFinalAjuste !== originalValues.fechaFinalAjuste;
+
+    // Habilitar/deshabilitar botón según el estado de modificación
+    document.getElementById("btnActualizar").disabled = !isModified;
+}
+
+// Función para agregar oyentes de eventos a todos los campos del formulario
+function setupFormChangeListeners() {
+    const formElements = [
+        "txtPeriodo",
+        "txtFechaInicio",
+        "txtFechaTermino",
+        "txtFechaInicioAjuste",
+        "txtFechaFinalAjuste"
+    ];
+
+    formElements.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            // Usar evento input para campos de texto y change para fechas
+
+            element.addEventListener("input", checkFormModified);
+            element.addEventListener("change", checkFormModified);
+        }
+    });
 }
