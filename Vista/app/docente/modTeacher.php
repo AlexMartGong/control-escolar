@@ -30,7 +30,7 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label for="nombre" class="form-label">Nombre</label>
+                            <label for="nombre" class="form-label">Nombre Del Docente</label>
                             <div class="input-group">
                             <span class="input-group-text bg-blue-light"><i class="fas fa-user"></i></span>
                                 <input type="text"

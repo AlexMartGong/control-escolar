@@ -1,60 +1,63 @@
 <link rel="stylesheet" href="../css/styleInterno.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-<div class="container" id="frmTeacher">
+
+<div class="container" id="fmrcarrera">
     <div class="row justify-content-center">
         <div class="ampliacion">
             <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0">
-                <i class="fa-solid fa-chalkboard-user me-3"></i>
-                Registro de nuevo Docente
+                <i class="bi bi-journal-bookmark"></i>
+                Registro de nueva Carrera
                 </h5>
             </div>
                 <div class="card-body p-4">
                     <form>
                         <div class="mb-4">
-                            <label for="clave" class="form-label">Clave de docente</label>
+                            <label for="clave" class="form-label">Clave de Carrera</label>
                             <div class="input-group">
                             <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
                                 <input 
                                 type="text" 
-                                 maxlength="9"
+                                 maxlength="15"
                                  title="Solo letras, números y guion medio. Máximo 9 caracteres."
                                 class="form-control" 
-                                id="clavedocente" 
-                                 oninput="verificarInputdocente('clavedocente','btnGuardarJ')"
-                                placeholder="Ejem: TED-0001" required>
-                            </div>
-                                
+                                id="clavecarrera" 
+                                 oninput="verificarInputcarrera('clavecarrera','btnGuardarJ')"
+                                placeholder="Ejem: IINF-2010-220" required>
+                             
+                            </div>  
                         </div>
                         
                         <div class="mb-4">
-                            <label for="nombre" class="form-label">Nombre Del Docente</label>
+                            <label for="nombre" class="form-label">Nombre de Carrera</label>
                             <div class="input-group">
-                            <span class="input-group-text bg-blue-light"><i class="fas fa-user"></i></span>
+                            <span class="input-group-text bg-blue-light"><i class="bi bi-mortarboard"></i>
+                            </span>
                                 <input type="text"
                                 maxlength="50"
                                 title='Maximo 50 caracteres'
                                 class="form-control" 
-                                  oninput="verificarInputdocente('nombredocente','btnGuardarJ')"
-                                id="nombredocente" 
-                                placeholder="Ingrese el nombre completo" required>
+                                  oninput="verificarInputcarrera('nombrecarrera','btnGuardarJ')"
+                                id="nombrecarrera" 
+                                placeholder="Ingrese el nombre de carrera" required>
                              </div>
 
                         </div>
                         
                         <div class="mb-4">
-                            <label for="perfil" class="form-label">Perfil</label>
+                            <label for="perfil" class="form-label">CLave de Jefe de Carrera</label>
                             <div class="input-group">
                            <span class="input-group-text bg-blue-light"><i class="fa-solid fa-address-book"></i></span>
                                 <input 
-                                maxlength="50"
-                                title='Maximo 50 caracteres'
+                                maxlength="9"
+                                 title="Solo letras, números y guion medio. Máximo 9 caracteres."
                                 class="form-control" 
                                 type="text"
-                                id="perfil_id" 
-                                  oninput="verificarInputdocente('perfil_id','btnGuardarJ')"
-                                placeholder="Ingrese su perfil" 
+                                id="clavejefe" 
+                                  oninput="verificarInputcarrera('clavejefe','btnGuardarJ')"
+                                placeholder="Ejem: TEA-0001" 
                                 required
                                 >
                            </div>
@@ -79,13 +82,13 @@
                             <button type="button"
                                     id="btnGuardarJ"
                                     class="btn btn3 btn-primary"
-                                    onclick="validarcamposDocente('guardar');" 
+                                    onclick="validarcamposCarrera('guardar');" 
                                    disabled >
                                     <i class="fas fa-save me-2"></i>Guardar
                                 </button>
                                 <button type="button"
                                 class="btn btn-outline-secondary" 
-                                    onclick="clearArea('frmTeacher'); option('docente','')">
+                                    onclick="clearArea('fmrcarrera'); option('carrera','')">
                                     <i class="fas fa-times-circle me-2"></i>Cancelar
                                 </button>
                                

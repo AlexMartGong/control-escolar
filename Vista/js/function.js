@@ -31,6 +31,9 @@ function option(opc, filter) {
             case 'career-manager':
                 url = "career-manager/main.php";
                 break;
+                case 'carrera':
+                url = "carrera/frmCarrera.php";
+                break;
             default:
                 mainContent.html('<div class="alert alert-warning">Opción no válida</div>');
                 return;
@@ -343,7 +346,7 @@ function mostrarErrorCaptura(mensaje) {
 function mostrarFaltaDatos(mensaje, callback) {
     // Crear el contenido del modal
     let modalHTML = `
-    <div class="modal fade" id="faltaDatosModal" tabindex="-1" aria-labelledby="faltaDatosModalLabel" aria-hidden="true">
+    <div class="modal fade" id="faltaDatosModal" tabindex="-1" aria-labelledby="faltaDatosModalLabel" >
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
@@ -400,7 +403,7 @@ function mostrarFaltaDatos(mensaje, callback) {
 function mostrarDatosGuardados(mensaje, callback) {
     // Crear el contenido del modal
     let modalHTML = `
-    <div class="modal fade" id="datosGuardadosModal" tabindex="-1" aria-labelledby="datosGuardadosModalLabel" aria-hidden="true">
+    <div class="modal fade" id="datosGuardadosModal" tabindex="-1" aria-labelledby="datosGuardadosModalLabel">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">

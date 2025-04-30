@@ -40,7 +40,7 @@
                     <!-- Enlaces directos sin submenús -->
                     <a href="javascript:void(0);" onclick="option('student', '');" class="nav-link"><i
                                 class="fas fa-user-graduate me-2"></i>Alumnos</a>
-                    <a href="javascript:void(0);" onclick="option('career', '');" class="nav-link"><i
+                    <a href="javascript:void(0);" onclick="option('carrera', '');" class="nav-link"><i
                                 class="fas fa-graduation-cap me-2"></i>Carrera</a>
                     <a href="javascript:void(0);" onclick="option('docente', '');" class="nav-link"><i
                                 class="fas fa-chalkboard-teacher me-2"></i>Docente</a>
@@ -104,6 +104,7 @@
 <script src="../js/periodo/function_period.js"></script>
 <script src="../js/jefe_carrera/funciones.js"></script>
 <script src="../js/docente/docente.js"></script>
+<script src="../js/carrerajs/carrera.js"></script>
 
 </body>
 </html>
