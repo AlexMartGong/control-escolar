@@ -11,7 +11,7 @@
             <div class="card-header bg-primary text-white ">
               <h5 class="card-title mb-0">
               <i class="fas fa-user-tie me-2"></i>
-                Modificar datos de Jefe de Carrera
+                Modificar datos de jefe de carrera
               </h5>
             </div>
 

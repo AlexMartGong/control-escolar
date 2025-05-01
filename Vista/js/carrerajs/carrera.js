@@ -281,3 +281,28 @@ function deshabilitarbtnCarrera(estado, botonId) {
         console.error("Botón no encontrado con ID:", botonId);
     }
 }
+
+
+// funcion para inyectar opciones a select
+//espero esto sea de ayuda xd
+// para ejecutar la funcion ir a function.js y quitar // para ejecutar esta funcion
+function cargarNombresEnSelect() {
+    $.ajax({
+        url: "../../Controlador/Intermediarios/........", //ponen la url correcta para cargar los nombres de los jefes de carrera
+        type: "GET", // no se si usan get o post ustedes lo cambian
+        dataType: "json",
+        success: function (respuesta) {
+            const select = $("#listaNombres");
+            select.empty(); // con esto limpiamos las opciones si ya avia
+            select.append('<option value="">Seleccione un nombre</option>'); 
+
+            respuesta.forEach(function(nombre) {
+                select.append(`<option value="${nombre}">${nombre}</option>`);
+            });
+        },
+        error: function () {
+            mostrarErrorCaptura("Error al cargar los nombres.")
+            console.error("Error al cargar los nombres.");
+        }
+    });
+}

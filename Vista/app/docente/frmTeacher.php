@@ -7,7 +7,7 @@
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0">
                 <i class="fa-solid fa-chalkboard-user me-3"></i>
-                Registro de nuevo Docente
+                Registro de nuevo docente
                 </h5>
             </div>
                 <div class="card-body p-4">
@@ -29,7 +29,7 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label for="nombre" class="form-label">Nombre Del Docente</label>
+                            <label for="nombre" class="form-label">Nombre del docente</label>
                             <div class="input-group">
                             <span class="input-group-text bg-blue-light"><i class="fas fa-user"></i></span>
                                 <input type="text"
