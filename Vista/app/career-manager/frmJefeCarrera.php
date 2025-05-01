@@ -13,7 +13,7 @@
                  <div class="card-header bg-primary text-white ">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-user-tie me-2"></i>
-                             Registro de nuevo Jefe de Carrera
+                             Registro de nuevo jefe de carrera
                     </h5>
                  </div>
 
@@ -39,7 +39,7 @@
 
 
                             <div class="mb-4">
-                                <label for="nombreReagistro" class="form-label">Nombre:</label>
+                                <label for="nombreReagistro" class="form-label">Nombre del Jefe de Carrera:</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-blue-light"><i class="fas fa-user"></i></span>
                                     <input type="text"

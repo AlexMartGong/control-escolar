@@ -11,7 +11,7 @@
             <div class="card-header bg-primary text-white ">
               <h5 class="card-title mb-0">
               <i class="fas fa-user-tie me-2"></i>
-                Modificar datos de Jefe de Carrera
+                Modificar datos de jefe de carrera
               </h5>
             </div>
 
@@ -61,7 +61,7 @@
 
                   <!-- nombre -->
                   <div class="mb-4 ">
-                    <label for="nombre" class="form-label">Nombre:</label>
+                    <label for="nombre" class="form-label">Nombre del Jefe de Carrera:</label>
                     <div class="input-group">
                       <span class="input-group-text bg-light">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
