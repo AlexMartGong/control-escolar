@@ -8,7 +8,7 @@ tambien se inyecta codigo html y clases de css desde este archivo.
 Calquier duda consultar con el autor
 */
 
-// Esta funcion que permite cargar los formularios de agregar Docente y modificarlo, no desde function.js
+// Esta funcion que permite cargar los formularios de agregar carrera y modificarlo, no desde function.js
 function loadFormJCarrera(opc, id = "") {
     let url = "";
     if (opc === "fmrcarrera") {
@@ -57,7 +57,7 @@ function loadFormJCarrera(opc, id = "") {
     });
 }
 
-//Funcion que permite evaluar los campos antes de aguardar a un docente
+//Funcion que permite evaluar los campos antes de aguardar a una carrera
 function validarcamposCarrera(opc) {
     //se obtienen los campos a evaluar
     let clavecarrerae = document.getElementById('clavecarrera');
@@ -126,8 +126,8 @@ function validarcamposCarrera(opc) {
 function intentarGuardarDatosCarrera() {
     try {
         // si todo esta bien se manda a llamar ala funcion que guarda los datos y se muestra el modal de datos aguardados correctamente 
-        console.log('funciona')
-        mostrarDatosGuardados('Exelente xd')
+        console.log('funciona');
+        guardarNuevaCarrera();
 
 
     } catch (error) {
@@ -186,16 +186,15 @@ function verificarInputcarrera(idetiqueta, idbtn) {
                 return evaluarEstadoFormulariocarrera(idbtn);
             }
             if (regexClavec.test(valor)) {
-                //funcion que permite evualuar si ya existe la clave
-                //se cambia  nombredefuncio por la funcion que hara la comprobacion si clave existe, simplemente elimina /**/ y listo para usarse
-                /* nombredefuncion(valor, function(existe) {
-                     if (existe) {
-                         claveExistenteCarrera(iconerror, input); 
-                     } else {
-                         console.log('La clave no existe y se puede usar.');
-                     }
-                     evaluarEstadoFormulariocarrera(idbtn); 
-                 });*/
+                verificarClaveCarrera(valor, function(existe) {
+                    if (existe) {
+                        claveExistenteCarrera(iconerror, input); 
+                    } else {
+                        console.log('La clave no existe y se puede usar.');
+                    }
+                    evaluarFormulario(idbtn); 
+                
+                 });
             }
             break;
 
@@ -308,71 +307,75 @@ y despues se ejecute el codigo y se inyecten las opciones al <select>
 function cargaRetrasadaDeDatos() {
     setTimeout(() => {
         //console.log("Ejecutado con retraso");
-        simulacion() //este se borrara y sera remplazado por el de abajo o si solo quieres comentarlo back end y listo
-       // cargarNombresEnSelect() este es el chido
+        //simulacion() //este se borrara y sera remplazado por el de abajo o si solo quieres comentarlo back end y listo
+       cargarNombresEnSelect() //este es el chido
     }, 500);
    
 }
 
 // funcion para inyectar opciones al select 
 //espero esto sea de ayuda xd
+// si lo fue, mayormente xd
 
 function cargarNombresEnSelect() {
     $.ajax({
-        url: "../../Controlador/Intermediarios/........", // coloca la URL correcta aquí :)
+        url: "../../Controlador/Intermediarios/Carrera/ObtenerJefesCarrera.php",
         type: "GET",
         dataType: "json",
         success: function (respuesta) {
             const select = $("#listaNombres");
             select.empty();
-            select.append('<option value="">Seleccione un nombre</option>');
+            select.append('<option value="">Seleccione un nombre</option');
 
-            // aqui agregamos las opc al select
+            // Llenar el select con datos de la BD
             respuesta.forEach(function (jefe) {
-                select.append(`<option value="${jefe.nombre}" data-clave="${jefe.clave}">${jefe.nombre}</option>`);
+                select.append(`<option value="${jefe.clave}" data-clave="${jefe.clave}">${jefe.nombre}</option>`);
             });
 
-            // bueno este evento es para cambiar clave cada ves que se selecciona una opc diferente
+            // Evento para actualizar la clave cuando se seleccione un jefe
             select.off("change").on("change", function () {
-                const clave = $(this).find("option:selected").data("clave") || "";
-                $("#clavejefe").val(clave);
+                const claveSeleccionada = $(this).find("option:selected").data("clave") || "";
+                $("#clavejefe").val(claveSeleccionada);
             });
         },
-        error: function () {
-            mostrarErrorCaptura("Error al cargar los nombres.");
-            console.error("Error al cargar los nombres.");
+        error: function (xhr, status, error) {
+            console.error("Error al cargar jefes:", status, error);
+            mostrarErrorCaptura("Error al cargar nombres de jefes de carrera.");
         }
     });
 }
 
 
+
 //funcion para simualar la inyeccion de datos en select 
 //esta funcion se borrara solo sirve para simular 
 //me llevo un buen rato xd
-function simulacion(){
-const select = document.getElementById("listaNombres");
-const inputClave = document.getElementById("clavejefe");
+/** 
+function simulacion() {
+    const select = document.getElementById("listaNombres");
+    const inputClave = document.getElementById("clavejefe");
 
 
-const opciones = [
-  { nombre: "Sutano", clave: "TED-6935" },
-  { nombre: "Fulano", clave: "TED-4821" },
-  { nombre: "Mangano", clave: "TED-7740" }
-];
+    const opciones = [
+        { nombre: "Sutano", clave: "TED-6935" },
+        { nombre: "Fulano", clave: "TED-4821" },
+        { nombre: "Mangano", clave: "TED-7740" }
+    ];
 
-// Agregar opciones al select
-opciones.forEach(op => {
-  const opcion = document.createElement("option");
-  opcion.value = op.clave;
-  opcion.textContent = op.nombre;
-  select.appendChild(opcion);
-});
+    // Agregar opciones al select
+    opciones.forEach(op => {
+        const opcion = document.createElement("option");
+        opcion.value = op.clave;
+        opcion.textContent = op.nombre;
+        select.appendChild(opcion);
+    });
 
-// Escuchar el cambio de selección
-select.addEventListener("change", function() {
-  inputClave.value = this.value; // Coloca la clave seleccionada en el input
-});
+    // Escuchar el cambio de selección
+    select.addEventListener("change", function () {
+        inputClave.value = this.value; // Coloca la clave seleccionada en el input
+    });
 }
+    */
 
 
 
@@ -497,3 +500,97 @@ function changeStatusCarrera(id, status, currentStatus) {
             });
         });
 }
+
+/**
+ * Funcion para guardar nueva carrera, toma los datos y los envia al intermediario correspondiente
+ *
+ * @function
+ * @returns {boolean} Retorna `true` si los datos fueron enviados, o `false` si la validación falló.
+ */
+function guardarNuevaCarrera() {
+    // Obtener y limpiar los valores de los campos del formulario
+    const clave = document.getElementById("clavecarrera").value.trim();
+    const nombre = document.getElementById("nombrecarrera").value.trim();
+    const idJefe = document.getElementById("clavejefe").value.trim();
+    // Validación: asegurar que ambos campos estén completos
+    if (!clave || !nombre || !idJefe) {
+      mostrarFaltaDatos("Por favor, llena todos los campos obligatorios.");
+      return false;
+    }
+    // Construcción del objeto de datos a enviar
+    const datos = {
+      clave: clave,
+      nombre: nombre,
+      idJefe: idJefe,
+    };
+    // Convertir el objeto a JSON para el envío
+    const json = JSON.stringify(datos);
+    const url =
+      "../../Controlador/Intermediarios/Carrera/AgregarCarrera.php";
+    // Envío AJAX al servidor
+    $.ajax({
+      url: url,
+      type: "POST",
+      data: json,
+      contentType: "application/json",
+      dataType: "json",
+      // Manejo de la respuesta exitosa
+      success: function (respuesta) {
+        try {
+          console.log("Respuesta:", respuesta);
+          if (!respuesta) throw new Error("Respuesta vacía");
+          if (respuesta.estado === "OK") {
+            // Mostrar modal de éxito y recargar formulario
+            mostrarDatosGuardados(respuesta.mensaje, function () {
+              option("carrera", "");
+            });
+          } else if (
+            respuesta.estado === "ERROR" &&
+            respuesta.mensaje &&
+            respuesta.mensaje.toLowerCase().includes("clave de la carrera ya existe")
+          ) {
+            // ID duplicado: mensaje específico
+            mostrarErrorCaptura("La clave de la carrera ya existe. Por favor, usa otro.");
+          } else {
+            // Otro error del servidor
+            mostrarErrorCaptura(
+              respuesta.mensaje || "Error desconocido al guardar."
+            );
+          }
+        } catch (error) {
+          console.error("Fallo en el success:", error);
+          mostrarErrorCaptura("Error inesperado procesando la respuesta.");
+        }
+      },
+      // Manejo de errores de red o del servidor
+      error: function (xhr, status, error) {
+        console.error("AJAX Error:", status, error);
+        mostrarErrorCaptura(`Error de conexión: ${status} - ${error}`);
+      },
+    });
+    return true;
+  }
+    /*
+ * Función para verificar la clave de la carrera y si ya existe.
+ */
+    function verificarClaveCarrera(clave, callback) {
+        $.ajax({
+            url: "../../Controlador/Intermediarios/Carrera/VerificarClaveC.php",
+            type: "POST",
+            data: JSON.stringify({ clave: clave }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function (respuesta) {
+                if (respuesta.existe) {
+                    console.log("Respuesta del backend:", respuesta);
+                    callback(true);  // la clave ya existe
+                } else {
+                    callback(false); // no existe, se puede usar
+                }
+            },
+            error: function () {
+                console.error("Error al verificar la clave de la carrera.");
+                callback(false);
+            }
+        });
+      }

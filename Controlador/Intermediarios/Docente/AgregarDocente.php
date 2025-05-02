@@ -1,12 +1,12 @@
 <?php 
-// Archivo Intermediario que sirve para recibir los datos del cliente y usarlos con el metodo AgregarJefeCarrera de la clase JefeCarreraDAO.php.php
+// Archivo Intermediario que sirve para recibir los datos del cliente y usarlos con el metodo AgregarDocente de la clase DocenteDAO.php.php
 header('Content-Type: application/json');
-// Se incluyen los archivos necesarios para la conexión a la base de datos, la configuración, y las operaciones del jefe de carrera.
+// Se incluyen los archivos necesarios para la conexión a la base de datos, la configuración, y las operaciones del docente.
 require '../../../Modelo/BD/ConexionBD.php';   // Archivo para la conexión con la base de datos.
 require '../../../Modelo/BD/ModeloBD.php';     // Archivo con la configuración de la base de datos.
-require '../../../Modelo/DAOs/DocenteDAO.php'; // Archivo que contiene las operaciones del jefe de carrera.
+require '../../../Modelo/DAOs/DocenteDAO.php'; // Archivo que contiene las operaciones del docente.
 
-// Función para validar los datos del jefe
+// Función para validar los datos del docente
 function validarDatos($datos) {
     if (!isset($datos->id) || !preg_match('/^[A-Za-z0-9\-]{1,9}$/', $datos->id)) {
         return "El ID del docente solo debe contener letras, números y guion medio (máx 9).";
@@ -33,10 +33,10 @@ if ($datos) {
         $c = new ConexionBD($DatosBD);
         // Conectar a la base de datos
         $conexion = $c->Conectar();
-        // Crear una instancia de la clase PeriodoDAO con la conexión a la base de datos
+        // Crear una instancia de la clase DocenteDAO con la conexión a la base de datos
         $objDaoDocente = new DocenteDAO($conexion);
 
-        // Llamada al método AgregarPeriodo para agregar el nuevo periodo a la base de datos
+        // Llamada al método AgregarDocente para agregar el nuevo periodo a la base de datos
         $resultado = $objDaoDocente->AgregarDocente($datos);
     }else{
         $resultado['mensaje'] = $validacion;
