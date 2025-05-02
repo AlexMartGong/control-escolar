@@ -8,7 +8,7 @@
                 <i class="fas fa-arrow-circle-left"></i> Regresar
             </button>
             <button type="button" class="btn" style="background-color: #009475; border-color: #009475; color: white;"
-                    onclick="">
+                    onclick=" loadFormJCarrera('fmrcarrera',''); cargaRetrasadaDeDatos(); ">
                 <i class="fas fa-plus-circle"></i> Nueva carrera
             </button>
         </div>

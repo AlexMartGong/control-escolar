@@ -9,7 +9,7 @@ Calquier duda consultar con el autor
 */
 
 // Esta funcion que permite cargar los formularios de agregar Docente y modificarlo, no desde function.js
-/*function loadFormJCarrera(opc, id = "") {
+function loadFormJCarrera(opc, id = "") {
     let url = "";
     if (opc === "fmrcarrera") {
         url = "carrera/frmCarrera.php";
@@ -32,9 +32,10 @@ Calquier duda consultar con el autor
                         .hide()
                         .fadeIn(500, function () {
                             // Si es edición, llamar a buscarDocente automáticamente
-                            if (opc === "modDocente" && id !== "") {
-                                BuscarDocente(id);
-                            }
+
+                           /* if (opc === "modDocente" && id !== "") {
+                                BuscarDocente(id); me imagino que esto se remplaza ahora por el de carrera
+                            }*/
                         })
                         .css("transform", "translateY(-10px)")
                         .animate(
@@ -54,7 +55,7 @@ Calquier duda consultar con el autor
             );
         });
     });
-}*/
+}
 
 //Funcion que permite evaluar los campos antes de aguardar a un docente
 function validarcamposCarrera(opc) {
@@ -146,6 +147,12 @@ function marcarErrorCarrera(input, valor) {
     }
 }
 
+//esta funcion solo es llamda cuando se seleciona una opcion en el <select> primero se agregan los datos y despues validan
+function retrasoSelect(idetiqueta, idbtn){
+    setTimeout (() => {
+        verificarInputcarrera(idetiqueta, idbtn)
+    }, 1000)
+}
 // funcion que permite evaluar los campos que esten correctamente mientras el usuario escribe
 function verificarInputcarrera(idetiqueta, idbtn) {
     let input = document.getElementById(idetiqueta);
@@ -209,19 +216,24 @@ function verificarInputcarrera(idetiqueta, idbtn) {
             break;
 
         case "clavejefe":
+            
             const regexClave = /^[A-Z]{3}-\d{4}$/;
             if (estaVacio) {
                 mostrarErrorCarrera(input, 'Este campo no puede estar vacío.');
                 input.classList.add("entrada-error");
                 iconerror.classList.add('is-invalid');
                 return evaluarEstadoFormulariocarrera(idbtn);
+                
             }
             if (!regexClave.test(valor)) {
                 mostrarErrorCarrera(input, 'Solo se permite tres letras mayusculas al inicio, un guión medio - y 4 numeros. Ejem. TEA-0001');
                 input.classList.add("entrada-error");
                 iconerror.classList.add('is-invalid');
                 return evaluarEstadoFormulariocarrera(idbtn);
-            }
+                
+                
+            } 
+            
             break;
     }
     evaluarEstadoFormulariocarrera(idbtn);
@@ -287,29 +299,82 @@ function deshabilitarbtnCarrera(estado, botonId) {
 }
 
 
-// funcion para inyectar opciones a select
+//funcion que ejecutara con un retraso predeterminado a las funciones
+/*
+cargarNombresEnSelect()
+esto con el objetivo de que se carge primero el la inyeccion del html al DOM
+y despues se ejecute el codigo y se inyecten las opciones al <select>
+*/
+function cargaRetrasadaDeDatos() {
+    setTimeout(() => {
+        //console.log("Ejecutado con retraso");
+        simulacion() //este se borrara y sera remplazado por el de abajo o si solo quieres comentarlo back end y listo
+       // cargarNombresEnSelect() este es el chido
+    }, 500);
+   
+}
+
+// funcion para inyectar opciones al select 
 //espero esto sea de ayuda xd
-// para ejecutar la funcion ir a function.js y quitar // para ejecutar esta funcion
+
 function cargarNombresEnSelect() {
     $.ajax({
-        url: "../../Controlador/Intermediarios/........", //ponen la url correcta para cargar los nombres de los jefes de carrera
-        type: "GET", // no se si usan get o post ustedes lo cambian
+        url: "../../Controlador/Intermediarios/........", // coloca la URL correcta aquí :)
+        type: "GET",
         dataType: "json",
         success: function (respuesta) {
             const select = $("#listaNombres");
-            select.empty(); // con esto limpiamos las opciones si ya avia
+            select.empty();
             select.append('<option value="">Seleccione un nombre</option>');
 
-            respuesta.forEach(function (nombre) {
-                select.append(`<option value="${nombre}">${nombre}</option>`);
+            // aqui agregamos las opc al select
+            respuesta.forEach(function (jefe) {
+                select.append(`<option value="${jefe.nombre}" data-clave="${jefe.clave}">${jefe.nombre}</option>`);
+            });
+
+            // bueno este evento es para cambiar clave cada ves que se selecciona una opc diferente
+            select.off("change").on("change", function () {
+                const clave = $(this).find("option:selected").data("clave") || "";
+                $("#clavejefe").val(clave);
             });
         },
         error: function () {
-            mostrarErrorCaptura("Error al cargar los nombres.")
+            mostrarErrorCaptura("Error al cargar los nombres.");
             console.error("Error al cargar los nombres.");
         }
     });
 }
+
+
+//funcion para simualar la inyeccion de datos en select 
+//esta funcion se borrara solo sirve para simular 
+//me llevo un buen rato xd
+function simulacion(){
+const select = document.getElementById("listaNombres");
+const inputClave = document.getElementById("clavejefe");
+
+
+const opciones = [
+  { nombre: "Sutano", clave: "TED-6935" },
+  { nombre: "Fulano", clave: "TED-4821" },
+  { nombre: "Mangano", clave: "TED-7740" }
+];
+
+// Agregar opciones al select
+opciones.forEach(op => {
+  const opcion = document.createElement("option");
+  opcion.value = op.clave;
+  opcion.textContent = op.nombre;
+  select.appendChild(opcion);
+});
+
+// Escuchar el cambio de selección
+select.addEventListener("change", function() {
+  inputClave.value = this.value; // Coloca la clave seleccionada en el input
+});
+}
+
+
 
 function changeStatusCarrera(id, status, currentStatus) {
     // Si no hay un estado seleccionado (opción por defecto) o el estado seleccionado es igual al actual, no hacer nada
