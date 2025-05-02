@@ -37,7 +37,7 @@ function option(opc, filter) {
                 url "carrera/modCarrera.php"
                 */
                 case 'carrera':
-                url = "carrera/frmCarrera.php";
+                url = "carrera/main.php";
                 //esta funcion se ejecutara en la pantalla principal Carrera una ves que esta este lista
                 //cargarNombresEnSelect()
                 break;
@@ -114,6 +114,20 @@ function option(opc, filter) {
                                         },
                                         columnDefs: [
                                             {"searchable": true, "targets": [1]}, //Buscar por nombre de periodo
+                                            {"searchable": false, "targets": "_all"}
+                                        ]
+                                    });
+                                }
+
+                                if (opc === 'carrera' && $('#tableCarrera').length) {
+                                    $('#tableCarrera').DataTable({
+                                        ...commonConfig,
+                                        language: {
+                                            url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
+                                            emptyTable: "No hay registros por el momento de Periodos para Mostrar"
+                                        },
+                                        columnDefs: [
+                                            {"searchable": true, "targets": [0, 1]}, //Buscar por, id y nombre de la carrera
                                             {"searchable": false, "targets": "_all"}
                                         ]
                                     });
