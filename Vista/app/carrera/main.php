@@ -9,7 +9,7 @@
             </button>
             <button type="button" class="btn" style="background-color: #009475; border-color: #009475; color: white;"
                     onclick="">
-                <i class="fas fa-plus-circle"></i> Nuevo carrera
+                <i class="fas fa-plus-circle"></i> Nueva carrera
             </button>
         </div>
     </div>
