@@ -52,7 +52,7 @@
                                 <label for="listaNombres" class="form-label">Nombre</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-blue-light"><i class="fa-solid fa-address-book"></i></span>
-                                        <select id="listaNombres" class="form-select listaDespliege" onchange="verificarInputcarrera('clavejefe', 'btnGuardarJ' )">
+                                        <select id="listaNombres" class="form-select listaDespliege" onchange="retrasoSelect('clavejefe', 'btnGuardarJ' )">
                                             <option disabled selected>-- Selecciona Jefe de Carrera --</option>
                                         </select>
                                     </div>

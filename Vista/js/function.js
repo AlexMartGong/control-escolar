@@ -31,15 +31,8 @@ function option(opc, filter) {
             case 'career-manager':
                 url = "career-manager/main.php";
                 break;
-                // como no existe aun la paguina principal por el momento para mostrar entre formularios se hara desde aqui
-                /*
-                url "carrera/frmCarrera.php"
-                url "carrera/modCarrera.php"
-                */
                 case 'carrera':
                 url = "carrera/main.php";
-                //esta funcion se ejecutara en la pantalla principal Carrera una ves que esta este lista
-                //cargarNombresEnSelect()
                 break;
             default:
                 mainContent.html('<div class="alert alert-warning">Opción no válida</div>');
