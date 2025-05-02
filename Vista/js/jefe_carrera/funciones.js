@@ -716,7 +716,7 @@ function ModificarJefeCarrera() {
             }
         },
         error: function () {
-            console.error("Error al verificar la clave del docente.");
+            console.error("Error al verificar la clave del jefe de carrera.");
             callback(false);
         }
     });

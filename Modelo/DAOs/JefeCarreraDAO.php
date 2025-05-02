@@ -279,4 +279,16 @@ public function existeClave($clave) {
     $fila = $stmt->fetch(PDO::FETCH_ASSOC);
     return $fila['total'] > 0;
 }
+/**
+ * Funcion para obtener los jefes de carrera para la funcionalidad de carrera
+ */
+public function obtenerJefesCarrera() {
+    $query = "SELECT idJefe AS clave, nombre FROM jefecarrera WHERE estado = 'Activo'";
+    $stmt = $this->conector->prepare($query);
+    $stmt->execute();
+    $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    return $resultado;
+}
+
 }
