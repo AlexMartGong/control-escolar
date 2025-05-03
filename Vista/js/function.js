@@ -41,7 +41,7 @@ function option(opc, filter) {
 
         let data = {filter: filter || ""};
         let json = JSON.stringify(data);
-        console.log(`Cargando ${opc} con filtro: ${json}`);
+        //console.log(`Cargando ${opc} con filtro: ${json}`);
 
         // Animación: desvanecer el contenido actual antes de limpiarlo
         mainContent.fadeOut(300, function () {
