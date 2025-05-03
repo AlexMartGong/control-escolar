@@ -13,8 +13,8 @@ function loadFormJCarrera(opc, id = "") {
     let url = "";
     if (opc === "fmrcarrera") {
         url = "carrera/frmCarrera.php";
-    } else if (opc === "modCarrera") {
-        url = "carrera/modCarrera";
+    } else if (opc === "modcarrera") {
+        url = "carrera/modCarrera.php";
     }
 
     let datas = {id: id};
@@ -81,9 +81,9 @@ function validarcamposCarrera(opc) {
 
             if (clavecarrera === '' || nombrecarrera === '' || claveJefe === '') {
                 // Verificar cada campo y aplicar la clase si está vacío
-                marcarErrorCarrera(clavecarrerae, clavecarreraa);
+                marcarErrorCarrera(clavecarrerae, nombrecarrera);
                 marcarErrorCarrera(nombreEntrada, nombredocente);
-                marcarErrorCarrera(clavejefee,);
+                marcarErrorCarrera(clavejefee, claveJefe);
                 //Mostrar modal de error de captura de datos
                 mostrarErrorCaptura('No se pueden dejar campos vacios. Verifique e intente de nuevo');
                 deshabilitarbtnCarrera(true, "btnGuardarJ");
@@ -91,17 +91,14 @@ function validarcamposCarrera(opc) {
 
             //validamos que la clave de docente y de ejefe de carrera sea escrita correctamente
             else if (!regex.test(clavecarrera) || !regexj.test(claveJefe)) {
-                mostrarErrorCaptura('Formato de Clave invalido.');
-                mostrarErrorCaptura(
-                    "Clave Invalida, Verifique");
-
+                mostrarErrorCaptura("Clave Invalida, Verifique");
                 deshabilitarbtnCarrera(true, "btnGuardarJ");
             }
 
             //validamos que el nombre solo sontenga letras y espacios
             else if (!regexNombre.test(nombrecarrera)) {
                 mostrarErrorCaptura(
-                    "Nombre inválido. Solo se permiten letras y espacios");
+                "Nombre inválido. Solo se permiten letras y espacios");
                 nombreEntrada.classList.add("entrada-error");
                 nombreEntrada.focus();
                 deshabilitarbtnCarrera(true, "btnGuardarJ");
@@ -111,23 +108,52 @@ function validarcamposCarrera(opc) {
                 /*Si todo esta bien podemos almacenar los datos
                 se desactiva el btn guardar, hasta que se realize un cambio este podra volver a guardar*/
                 deshabilitarbtnDocente(true, "btnGuardarJ");
-                intentarGuardarDatosCarrera()
+                intentarGuardarDatosCarrera('add')
 
             }
             break;
 
         //validaciones para el formulario de modificar
+        case 'modificar':
+            
+            if (clavecarrera === '' || nombrecarrera === '' || claveJefe === '') {
+                // Verificar cada campo y aplicar la clase si está vacío
+                marcarErrorCarrera(clavecarrerae, clavecarrera);
+                marcarErrorCarrera(nombreEntrada, nombrecarrera);
+                marcarErrorCarrera(clavejefee,claveJefe);
+                //Mostrar modal de error de captura de datos
+                mostrarErrorCaptura('No se pueden dejar campos vacios. Verifique e intente de nuevo');
+                deshabilitarbtnCarrera(true, "btnGuardarJ");
+            }
+            
+            else if (!regexNombre.test(nombrecarrera)) {
+                mostrarErrorCaptura("Nombre inválido. Solo se permiten letras y espacios.");
+                nombreEntrada.classList.add("entrada-error");
+                nombreEntrada.focus();
+                deshabilitarbtnCarrera(true, "btnGuardarJ");
 
+                
+            } else {
+                intentarGuardarDatosCarrera('mod')
+                deshabilitarbtnCarrera(true, "btnGuardarJ");
+            }
+
+            break;
 
     }
 }
 
 //Funcion para guardar los datos de los frm
-function intentarGuardarDatosCarrera() {
+function intentarGuardarDatosCarrera(opc) {
     try {
-        // si todo esta bien se manda a llamar ala funcion que guarda los datos y se muestra el modal de datos aguardados correctamente 
-        console.log('funciona');
-        guardarNuevaCarrera();
+       // si todo esta bien se manda a llamar ala funcion que guarda los datos y se muestra el modal de datos aguardados correctamente 
+       if(opc ==='add')guardarNuevaCarrera();
+       // se borra el modal de aqui y se colocaen el lugar correcto
+       else if (opc === 'mod') {
+           // modificarCarrera() usa este nombre como el nombre de la funcion para modificar
+            mostrarDatosGuardados('Funciona la modificacion')} 
+        
+        
 
 
     } catch (error) {
@@ -151,7 +177,7 @@ function marcarErrorCarrera(input, valor) {
 function retrasoSelect(idetiqueta, idbtn){
     setTimeout (() => {
         verificarInputcarrera(idetiqueta, idbtn)
-    }, 1000)
+    }, 500)
 }
 // funcion que permite evaluar los campos que esten correctamente mientras el usuario escribe
 function verificarInputcarrera(idetiqueta, idbtn) {
@@ -187,12 +213,9 @@ function verificarInputcarrera(idetiqueta, idbtn) {
             }
             if (regexClavec.test(valor)) {
                 verificarClaveCarrera(valor, function(existe) {
-                    if (existe) {
-                        claveExistenteCarrera(iconerror, input); 
-                    } else {
-                        console.log('La clave no existe y se puede usar.');
-                    }
-                    evaluarFormulario(idbtn); 
+                    if (existe) claveExistenteCarrera(iconerror, input); 
+
+                    evaluarEstadoFormulariocarrera(idbtn); 
                 
                  });
             }
@@ -304,45 +327,113 @@ cargarNombresEnSelect()
 esto con el objetivo de que se carge primero el la inyeccion del html al DOM
 y despues se ejecute el codigo y se inyecten las opciones al <select>
 */
-function cargaRetrasadaDeDatos() {
+function cargaRetrasadaDeDatos(opc) {
     setTimeout(() => {
         //console.log("Ejecutado con retraso");
         //simulacion() //este se borrara y sera remplazado por el de abajo o si solo quieres comentarlo back end y listo
-       cargarNombresEnSelect() //este es el chido
-    }, 500);
+       cargarNombresEnSelect(opc, 'ENC-1234') //aqui se coloca la el id.jefe que esta asociada al id de carrera. esto no afecta al formulario de agregar
+    }, 700);
    
 }
 
 // funcion para inyectar opciones al select 
 //espero esto sea de ayuda xd
 // si lo fue, mayormente xd
+//exelente 
 
-function cargarNombresEnSelect() {
-    $.ajax({
-        url: "../../Controlador/Intermediarios/Carrera/ObtenerJefesCarrera.php",
-        type: "GET",
-        dataType: "json",
-        success: function (respuesta) {
-            const select = $("#listaNombres");
-            select.empty();
-            select.append('<option value="">Seleccione un nombre</option');
+/* la opcion 'add' es para inyectar las opciones en el select en el formulario de agregar
+las reglas cambian para modificar opcion 'mod', por eso sera distinto el codigo?
+esto es por que hora tiene que ir un nombre con su clave al dar en el boton de editar
+dependiendo del id de la carrera se cargara el id del jefe de carrera y su nombre con el que se guardo
+ademas en la lista de despliege aparecera los demas jefes de carrera por si el usuario quiere cambiar de jefe
+*/
+//Para Mandar a llamar la funcion bueno lo que se hace es que se ingresa el id del jefe que esta asociado al Id de carrera y este lo cargara
+//ejemplo cargarNombresEnSelect(opc, idJefeCarrera) opc se remplaza por mod y idjefeCarrera por ENC-1234 como se muestra en cargaRetrasadaDeDatos() arriba
 
-            // Llenar el select con datos de la BD
-            respuesta.forEach(function (jefe) {
-                select.append(`<option value="${jefe.clave}" data-clave="${jefe.clave}">${jefe.nombre}</option>`);
+function cargarNombresEnSelect(opc, idJefeCarrera) {
+    
+    switch(opc)
+    {
+        //No tocar este codigo, este es para el formulario de agregar
+        case 'add':
+
+            $.ajax({
+                url: "../../Controlador/Intermediarios/Carrera/ObtenerJefesCarrera.php",
+                type: "GET",
+                dataType: "json",
+                success: function (respuesta) {
+                    const select = $("#listaNombres");
+                    select.empty();
+                    select.append('<option disabled selected>Seleccione un nombre</option>');
+
+                    // Llenar el select con datos de la BD
+                    respuesta.forEach(function (jefe) {
+                        select.append(`<option value="${jefe.clave}" data-clave="${jefe.clave}">${jefe.nombre}</option>`);
+                    });
+
+                    // Evento para actualizar la clave cuando se seleccione un jefe
+                    select.off("change").on("change", function () {
+                        const claveSeleccionada = $(this).find("option:selected").data("clave") || "";
+                        $("#clavejefe").val(claveSeleccionada);
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar jefes:", status, error);
+                    mostrarErrorCaptura("Error al cargar nombres de jefes de carrera.");
+                }
             });
+            break;
+            //esta parte se usa para inyectar opc prederteminadas en el <select> del formulario modificar 
+            case 'mod':
+               
+            $.ajax({
+                    url: "../../Controlador/Intermediarios/Carrera/ObtenerJefesCarrera.php",
+                    type: "GET",
+                    dataType: "json",
+                    success: function (respuesta) {
+                        const select = $("#listaNombres");
+                        select.empty();
+            
+                        let claveSeleccionada = "";
+            
+                        if (!idJefeCarrera) {
+                            select.append('<option disabled selected>Seleccione un nombre</option>');
+                        }
+                        
+            
+                        // se cargan las opc
+                        respuesta.forEach(function (jefe) {
+                            // como dato que aprendi alas malas si usas == tencuidado ya que este '5' == 5    true → hace conversión
+                            // y si usas === es para comparar de que si o si deven ser iguales '5' === 5  false → tipos distintos
+                            // y yo tenia == en deves de === por eso no funcionaba xd
+                            const esSeleccionado = jefe.clave === idJefeCarrera;
+                            
+                            if (esSeleccionado) {
+                                claveSeleccionada = jefe.clave;
+                            }
+                            select.append(`
+                                <option value="${jefe.clave}" data-id="${jefe.id}" data-clave="${jefe.clave}" ${esSeleccionado ? "selected" : ""}>
+                                    ${jefe.nombre}
+                                </option>
+                            `);
+                        });
+                       
 
-            // Evento para actualizar la clave cuando se seleccione un jefe
-            select.off("change").on("change", function () {
-                const claveSeleccionada = $(this).find("option:selected").data("clave") || "";
-                $("#clavejefe").val(claveSeleccionada);
-            });
-        },
-        error: function (xhr, status, error) {
-            console.error("Error al cargar jefes:", status, error);
-            mostrarErrorCaptura("Error al cargar nombres de jefes de carrera.");
-        }
-    });
+                        $("#clavejefe").val(claveSeleccionada)
+                        console.log("Clave seleccionada:", claveSeleccionada || "[VACÍO]")
+                       
+                        select.off("change").on("change", function () {
+                            const nuevaClave = $(this).find("option:selected").data("clave") || "";
+                            $("#clavejefe").val(nuevaClave);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error al cargar jefes:", status, error);
+                        mostrarErrorCaptura("Error al cargar nombres de jefes de carrera.");
+                    }
+                });
+                break;
+    }
 }
 
 
