@@ -328,9 +328,6 @@ y despues se ejecute el codigo y se inyecten las opciones al <select>
 */
 function cargaRetrasadaDeDatos(opc) {
     setTimeout(() => {
-        //console.log("Ejecutado con retraso");
-        //simulacion() //este se borrara y sera remplazado por el de abajo o si solo quieres comentarlo back end y listo
-       cargarNombresEnSelect(opc, 'ENC-1234') //aqui se coloca la el id.jefe que esta asociada al id de carrera. esto no afecta al formulario de agregar
     }, 700);
    
 }
@@ -718,10 +715,10 @@ function BuscarCarrera(id) {
                 // Rellenamos el formulario con los datos de la carrera
                 document.getElementById("clavecarrera").value = response.datos.clave_de_carrera;
                 document.getElementById("nombrecarrera").value = response.datos.nombre_de_carrera;
+                
                 document.getElementById("estado").value = response.datos.estado;
 
-                // Deshabilitamos el campo clave para evitar modificar el ID
-                document.getElementById("clavecarrera").disabled = true;
+                cargarNombresEnSelect('mod', response.datos.clave_de_jefe);
             } else {
                 // Si no se encontró la carrera, se muestra un mensaje
                 sinres("Carrera no encontrada.");
