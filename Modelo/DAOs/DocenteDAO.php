@@ -3,7 +3,7 @@ class DocenteDAO
 {
     private $conector;
 
-    /**
+        /**
      * Constructor de la clase DocenteDAO.
      * @param PDO $conector - Objeto de conexión a la base de datos.
      */
@@ -49,7 +49,7 @@ class DocenteDAO
         }
     }
 
-    /**
+        /**
      * Función para buscar un Docente por ID.
      * Llama al procedimiento almacenado spBuscarDocenteByID.
      *
@@ -97,7 +97,7 @@ class DocenteDAO
         return $resultado;
     }
 
-    /**
+        /**
      * Función para modificar los datos de un Docente.
      * Llama al procedimiento almacenado spModificarDocente.
      *
@@ -235,7 +235,7 @@ class DocenteDAO
         return $resultado;
     }
 
-    /**
+        /**
      * Función para mostrar todos los Docentes registrados en el sistema.
      * Llama al procedimiento almacenado spMostrarDocentes.
      * 
@@ -280,7 +280,7 @@ class DocenteDAO
         return $resultado;
     }
 
-    /**
+        /**
      * Función para verificar la clave del docente y si ya existe una igual 
      */
 public function existeClave($clave) {

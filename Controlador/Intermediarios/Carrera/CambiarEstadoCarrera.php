@@ -7,8 +7,8 @@
 
     $datos = json_decode(file_get_contents("php://input"), true);
 
-    // Verificar si los datos llegan correctamente
-    error_log("Datos recibidos en PHP: " . json_encode($datos));
+    // Decodificar los datos JSON recibidos en el cuerpo de la solicitud
+    $datos = json_decode(file_get_contents("php://input"));
 
     // Inicializar la respuesta con estado de error
     $resultado = ['estado' => 'Error'];
@@ -31,10 +31,17 @@
                 $resultado = $objDaoCarrera->CambiarEstadoCarrera($datos);
                 
                 if ($resultado['estado'] == "OK") {
-                    $resultado = ['mensaje' => $resultado['mensaje']];
+                    
+                    $resultado = [
+                        'estado' => 'OK',
+                        'mensaje' => $resultado['mensaje']
+                    ];
                     error_log("Estado actualizado correcta de la carrera con ID: " . $datos->pclave);
                 } else {
-                    $resultado = ['mensaje' => $resultado['mensaje']];
+                    $resultado = [
+                        'estado' => 'Error',
+                        'mensaje' => $resultado['mensaje']
+                    ];
                     error_log("Error al cambiar la carrera con ID: " . $datos->pclave);
                 }
 
