@@ -1,3 +1,16 @@
+<?php
+
+require '../../../Modelo/BD/ConexionBD.php';
+require '../../../Modelo/BD/ModeloBD.php';
+require '../../../Modelo/DAOs/CarreraDAO.php';
+
+$objBD = new ConexionBD($DatosBD);
+$objCaDAO = new CarreraDAO($objBD->Conectar());
+
+$res = $objCaDAO->MostrarCarrera();
+
+?>
+
 <div id="frmArea">
     <h2 class="mb-4">CARRERA</h2>
 
@@ -26,12 +39,32 @@
         </tr>
         </thead>
         <tbody>
-        <tr class="">
-            <td>IINF-2010-220</td>
-            <td>Informtacia</td>
-            <td>ENC-1234</td>
-            <td>Luis Fernando</td>
-            <td>Activo</td>
+        <?php
+            if ($res['estado'] == 'OK' && $res['filas'] > 0) {
+                $cont = 1;
+                foreach ($res['datos'] as $fila) {
+
+                    // Definir la clase para la fila en base al estado
+                    $rowClass = "table-success";
+
+                    // Definir la clase para el badge de estado
+                    $badgeClass = "bg-success";
+                    switch ($fila['estado']) {
+                        case 'Activo':
+                            $badgeClass = "bg-success";
+                            break;
+                        case 'Inactivo':
+                            $badgeClass = "bg-danger";
+                            break;
+                    }
+            ?>
+        <tr class="<?=$rowClass?>">
+                        <td><?= $fila['clave_de_carrera'] ?></td>
+                        <td><?= $fila['nombre_de_carrera'] ?></td>
+                        <td><?= $fila['clave_de_jefe'] ?></td>
+                        <td><?= $fila['jefe_de_carrera'] ?></td>
+                        <td><span class="badge <?= $badgeClass ?>"><?= $fila['estado'] ?></span></td>
+                        
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
@@ -52,6 +85,11 @@
                 </div>
             </td>
         </tr>
+        <?php
+                    $cont++;
+                }
+            }
+            ?>
         </tbody>
     </table>
 </div>

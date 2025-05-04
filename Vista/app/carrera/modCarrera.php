@@ -24,7 +24,6 @@
                                  title="Solo letras, números y guion medio. Máximo 9 caracteres."
                                 class="form-control" 
                                 id="clavecarrera" 
-                                value="IINF-2010-220"
                                 disabled>
                             </div>
  
@@ -40,7 +39,6 @@
                                 class="form-control" 
                                   oninput="verificarInputcarrera('nombrecarrera','btnGuardarJ')"
                                 id="nombrecarrera" 
-                                value="Informatica"
                                 placeholder="Ingrese el nombre de carrera" required>
                              </div>
 
