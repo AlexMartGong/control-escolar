@@ -33,9 +33,9 @@ function loadFormJCarrera(opc, id = "") {
                         .fadeIn(500, function () {
                             // Si es edición, llamar a buscarDocente automáticamente
 
-                           /* if (opc === "modDocente" && id !== "") {
-                                BuscarDocente(id); me imagino que esto se remplaza ahora por el de carrera
-                            }*/
+                           if (opc === "modcarrera" && id !== "") {
+                                BuscarCarrera(id); 
+                            }
                         })
                         .css("transform", "translateY(-10px)")
                         .animate(
@@ -150,12 +150,11 @@ function intentarGuardarDatosCarrera(opc) {
        if(opc ==='add')guardarNuevaCarrera();
        // se borra el modal de aqui y se colocaen el lugar correcto
        else if (opc === 'mod') {
-           // modificarCarrera() usa este nombre como el nombre de la funcion para modificar
-            mostrarDatosGuardados('Funciona la modificacion')} 
         
+        ModificarCarrera();
         
-
-
+    } 
+        
     } catch (error) {
         // en caso de una falla se deabilita el boton y se muestra el modal con el problema
         ErrorDeIntentoDeGuardado('Error al intentar Guardar los datos');
@@ -327,11 +326,11 @@ cargarNombresEnSelect()
 esto con el objetivo de que se carge primero el la inyeccion del html al DOM
 y despues se ejecute el codigo y se inyecten las opciones al <select>
 */
-function cargaRetrasadaDeDatos(opc) {
+function cargaRetrasadaDeDatos(opc, idJefeCarrera) {
     setTimeout(() => {
         //console.log("Ejecutado con retraso");
         //simulacion() //este se borrara y sera remplazado por el de abajo o si solo quieres comentarlo back end y listo
-       cargarNombresEnSelect(opc, 'ENC-1234') //aqui se coloca la el id.jefe que esta asociada al id de carrera. esto no afecta al formulario de agregar
+       cargarNombresEnSelect(opc, idJefeCarrera) //aqui se coloca la el id.jefe que esta asociada al id de carrera. esto no afecta al formulario de agregar
     }, 700);
    
 }
@@ -471,8 +470,8 @@ function simulacion() {
 
 
 function changeStatusCarrera(id, status, currentStatus) {
-    // Si no hay un estado seleccionado (opción por defecto) o el estado seleccionado es igual al actual, no hacer nada
-    if (!status || status === "Cambiar estado" || status === currentStatus) {
+    // Si no hay un estado seleccionado (opción por defecto), no hacer nada
+    if (!status || status === "Cambiar estado") {
         return;
     }
 
@@ -567,11 +566,17 @@ function changeStatusCarrera(id, status, currentStatus) {
                 timeout: 10000, // 10 segundos de timeout
                 success: function (response) {
                     try {
+                        if (typeof response === "string") {
+                            response = JSON.parse(response);
+                        }
+                
                         if (response.estado === "OK") {
                             mostrarDatosGuardados(
-                                `El estado de la carrera ${id} ha sido cambiado a "${status === "1" ? "Activo" : "Inactivo}" }"correctamente.`,
+                                `El estado de la carrera ${id} ha sido cambiado a "${
+                                    status === "1" ? "Activo" : "Inactivo"
+                                }" correctamente.`,
                                 function () {
-                                    option("career", "");
+                                    option("carrera", "");
                                 }
                             );
                         } else {
@@ -582,7 +587,8 @@ function changeStatusCarrera(id, status, currentStatus) {
                     } catch (e) {
                         mostrarErrorCaptura("Error al procesar la respuesta: " + e.message);
                     }
-                },
+                }
+                ,
                 error: function (xhr, status, error) {
                     mostrarErrorCaptura(
                         `Error al cambiar el estado: ${status} - ${error}`
@@ -685,3 +691,95 @@ function guardarNuevaCarrera() {
             }
         });
       }
+
+     /*
+ * Función para buscar una Carrera por su ID.
+ * Envía una solicitud POST al servidor y, si tiene éxito, llena el formulario con los datos recibidos.
+ * Además, desactiva el campo de clave de carrera para evitar su edición.
+ */
+function BuscarCarrera(id) {
+    let url = "../../Controlador/Intermediarios/Carrera/ModificarCarrera.php"; // Ruta al intermediario PHP
+
+    let datos = { id: id, Buscar: true }; // Objeto con parámetros de búsqueda
+    let json = JSON.stringify(datos);     // Convertimos a formato JSON
+
+    // Enviamos la solicitud POST
+    $.post(
+        url,
+        json,
+        function (response, status) {
+            console.log("Respuesta del servidor:", response);
+            console.log("Datos enviados:", json);
+
+            // Validamos la respuesta del servidor
+            if (status === "success" && response.estado === "OK" && response.datos) {
+                console.log("Datos recibidos:", response.datos);
+
+                // Rellenamos el formulario con los datos de la carrera
+                document.getElementById("clavecarrera").value = response.datos.clave_de_carrera;
+                document.getElementById("nombrecarrera").value = response.datos.nombre_de_carrera;
+                document.getElementById("estado").value = response.datos.estado;
+
+               cargarNombresEnSelect('mod', response.datos.clave_de_jefe);
+            } else {
+                // Si no se encontró la carrera, se muestra un mensaje
+                sinres("Carrera no encontrada.");
+            }
+        },
+        "json" // Especificamos que la respuesta esperada es JSON
+    ).fail(function (xhr, status, error) {
+        // Manejo de errores de conexión o servidor
+        console.error("Error en la solicitud POST:", xhr.responseText);
+        mostrarErrorCaptura("Error al buscar la Carrera.");
+    });
+}
+
+/*
+ * Función para modificar los datos de una Carrera existente.
+ * Solo se permite cambiar el nombre y el jefe; la clave no puede cambiarse.
+ */
+function ModificarCarrera() {
+    // Capturamos y limpiamos los datos del formulario
+    const idC = document.getElementById("clavecarrera").value.trim();
+    const nombreC = document.getElementById("nombrecarrera").value.trim();
+    const idJ = document.getElementById("clavejefe").value.trim();
+
+    // Validamos que todos los campos requeridos estén llenos
+    if (!idC || !nombreC || !idJ) {
+        mostrarFaltaDatos("Debe completar todos los campos obligatorios.");
+        return;
+    }
+
+    // Construimos el objeto con los datos a enviar
+    let datos = {
+        claveCarrera: idC,
+        nombre: nombreC,
+        idJefe: idJ,
+        Modificar: true
+    };
+
+    let json = JSON.stringify(datos); // Convertimos a JSON
+    let url = "../../Controlador/Intermediarios/Carrera/ModificarCarrera.php"; // URL del intermediario
+    console.log("Datos JSON enviados:", json);
+
+    // Enviamos la solicitud POST
+    $.post(
+        url,
+        json,
+        function (response, status) {
+            // Si la modificación fue exitosa, mostramos mensaje de éxito
+            if (response.success) {
+                mostrarDatosGuardados(response.mensaje, "");
+                option("carrera", ""); // Refrescamos o redirigimos según sea necesario
+            } else {
+                // Si hubo un error, lo mostramos al usuario
+                mostrarErrorCaptura(response.mensaje);
+            }
+        },
+        "json" // Indicamos que esperamos JSON como respuesta
+    ).fail(function (xhr, status, error) {
+        // Manejamos fallos de conexión o servidor
+        console.error("Error en la solicitud POST:", xhr.responseText);
+        mostrarErrorCaptura("No se pudo conectar con el servidor. Inténtelo más tarde.");
+    });
+}

@@ -68,14 +68,14 @@ $res = $objCaDAO->MostrarCarrera();
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="loadFormJCarrera('modcarrera',''); cargaRetrasadaDeDatos('mod');">
+                            onclick="loadFormJCarrera('modcarrera','<?= $fila['clave_de_carrera'] ?>'); cargaRetrasadaDeDatos('mod','<?= $fila['clave_de_jefe'] ?>');">
                         <i class="fas fa-edit me-1"></i>
                         <span>Editar</span>
                     </button>
                     <label>
                         <select class="form-select form-select-sm btn-warning"
                                 style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="changeStatusCarrera('1', this.value, 'Activo')">
+                                onchange="changeStatusCarrera('<?= $fila['clave_de_carrera'] ?>', this.value, '<?= $fila['estado'] ?>')">
                             <option disabled selected>Cambiar estado</option>
                             <option value="Activo">Activo</option>
                             <option value="Inactivo">Inactivo</option>
