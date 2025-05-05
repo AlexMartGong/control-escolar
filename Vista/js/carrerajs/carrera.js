@@ -326,8 +326,11 @@ cargarNombresEnSelect()
 esto con el objetivo de que se carge primero el la inyeccion del html al DOM
 y despues se ejecute el codigo y se inyecten las opciones al <select>
 */
-function cargaRetrasadaDeDatos(opc) {
+function cargaRetrasadaDeDatos(opc, idJefeCarrera) {
     setTimeout(() => {
+        //console.log("Ejecutado con retraso");
+        //simulacion() //este se borrara y sera remplazado por el de abajo o si solo quieres comentarlo back end y listo
+       cargarNombresEnSelect(opc, idJefeCarrera) //aqui se coloca la el id.jefe que esta asociada al id de carrera. esto no afecta al formulario de agregar
     }, 700);
    
 }
@@ -715,10 +718,9 @@ function BuscarCarrera(id) {
                 // Rellenamos el formulario con los datos de la carrera
                 document.getElementById("clavecarrera").value = response.datos.clave_de_carrera;
                 document.getElementById("nombrecarrera").value = response.datos.nombre_de_carrera;
-                
                 document.getElementById("estado").value = response.datos.estado;
 
-                cargarNombresEnSelect('mod', response.datos.clave_de_jefe);
+               cargarNombresEnSelect('mod', response.datos.clave_de_jefe);
             } else {
                 // Si no se encontró la carrera, se muestra un mensaje
                 sinres("Carrera no encontrada.");

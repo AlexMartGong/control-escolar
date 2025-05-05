@@ -68,7 +68,7 @@ $res = $objCaDAO->MostrarCarrera();
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="loadFormJCarrera('modcarrera','<?= $fila['clave_de_carrera'] ?>'); cargaRetrasadaDeDatos('mod');">
+                            onclick="loadFormJCarrera('modcarrera','<?= $fila['clave_de_carrera'] ?>'); cargaRetrasadaDeDatos('mod','<?= $fila['clave_de_jefe'] ?>');">
                         <i class="fas fa-edit me-1"></i>
                         <span>Editar</span>
                     </button>
