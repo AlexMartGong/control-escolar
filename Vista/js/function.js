@@ -31,8 +31,11 @@ function option(opc, filter) {
             case 'career-manager':
                 url = "career-manager/main.php";
                 break;
-                case 'carrera':
+            case 'carrera':
                 url = "carrera/main.php";
+                break;
+            case 'materia':
+                url = "materia/main.php";
                 break;
             default:
                 mainContent.html('<div class="alert alert-warning">Opción no válida</div>');
@@ -80,7 +83,7 @@ function option(opc, filter) {
                                             emptyTable: "No hay registros por el momento de Docentes para Mostrar"
                                         },
                                         columnDefs: [
-                                            {"searchable": true, "targets": [0,1]}, //Buscar por id y nombre del docente
+                                            {"searchable": true, "targets": [0, 1]}, //Buscar por id y nombre del docente
                                             {"searchable": false, "targets": "_all"}
                                         ]
                                     });
@@ -114,6 +117,20 @@ function option(opc, filter) {
 
                                 if (opc === 'carrera' && $('#tableCarrera').length) {
                                     $('#tableCarrera').DataTable({
+                                        ...commonConfig,
+                                        language: {
+                                            url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
+                                            emptyTable: "No hay registros por el momento de Periodos para Mostrar"
+                                        },
+                                        columnDefs: [
+                                            {"searchable": true, "targets": [0, 1]}, //Buscar por, id y nombre de la carrera
+                                            {"searchable": false, "targets": "_all"}
+                                        ]
+                                    });
+                                }
+
+                                if (opc === 'materia' && $('#tableMateria').length) {
+                                    $('#tableMateria').DataTable({
                                         ...commonConfig,
                                         language: {
                                             url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
