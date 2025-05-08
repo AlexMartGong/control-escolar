@@ -44,7 +44,7 @@
                                 class="fas fa-graduation-cap me-2"></i>Carrera</a>
                     <a href="javascript:void(0);" onclick="option('docente', '');" class="nav-link"><i
                                 class="fas fa-chalkboard-teacher me-2"></i>Docente</a>
-                    <a href="javascript:void(0);" onclick="option('subject', '');" class="nav-link"><i
+                    <a href="javascript:void(0);" onclick="option('materia', '');" class="nav-link"><i
                                 class="fas fa-book me-2"></i>Materias</a>
                     <a href="javascript:void(0);" onclick="option('career-manager', '')" class="nav-link"><i
                                 class="fas fa-user-tie me-2"></i>Jefe de
@@ -105,6 +105,6 @@
 <script src="../js/jefe_carrera/funciones.js"></script>
 <script src="../js/docente/docente.js"></script>
 <script src="../js/carrerajs/carrera.js"></script>
-
+<script src="../js/materia/materia.js"></script>
 </body>
 </html>
