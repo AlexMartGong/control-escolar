@@ -120,7 +120,7 @@ function option(opc, filter) {
                                         ...commonConfig,
                                         language: {
                                             url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
-                                            emptyTable: "No hay registros por el momento de Periodos para Mostrar"
+                                            emptyTable: "No hay registros por el momento de Carreras para Mostrar"
                                         },
                                         columnDefs: [
                                             {"searchable": true, "targets": [0, 1]}, //Buscar por, id y nombre de la carrera
@@ -134,7 +134,7 @@ function option(opc, filter) {
                                         ...commonConfig,
                                         language: {
                                             url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
-                                            emptyTable: "No hay registros por el momento de Periodos para Mostrar"
+                                            emptyTable: "No hay registros por el momento de Materias para Mostrar"
                                         },
                                         columnDefs: [
                                             {"searchable": true, "targets": [0, 1]}, //Buscar por, id y nombre de la carrera
