@@ -1,9 +1,9 @@
 <?php
-    // Archivo Intermediario para realizar la modificacion de un registro de una carrera
+    // Archivo Intermediario para gestionar la búsqueda y modificación de Materia
 
     require '../../../Modelo/BD/ConexionBD.php';         // Conexión a la base de datos.
     require '../../../Modelo/BD/ModeloBD.php';          // Configuración de la base de datos.
-    require '../../../Modelo/DAOs/CarreraDAO.php';     // Operaciones relacionadas con la Carrera.
+    require '../../../Modelo/DAOs/MateriaDAO.php';     // Operaciones relacionadas con el Materia.
 
     $datos = json_decode(file_get_contents("php://input"), true);
 
@@ -20,15 +20,15 @@
     // Crear instancia de conexión y DAO
     $c = new ConexionBD($DatosBD);
     $conexion = $c->Conectar();
-    $objDaoCarrera = new CarreraDAO($conexion);
+    $objDaoMateria = new MateriaDAO($conexion);
 
     try {
         // Log de flujo de la solicitud
         error_log("Comprobando parámetros de la solicitud...");
 
             if (isset($datos)) {
-                // Llamar al método CambiarEstadoCarrera y almacenar el resultado
-                $resultado = $objDaoCarrera->CambiarEstadoCarrera($datos);
+                // Llamar al método CambiarEstadoMaterias y almacenar el resultado
+                $resultado = $objDaoMateria->CambiarEstadoMaterias($datos);
                 
                 if ($resultado['estado'] == "OK") {
                     
@@ -36,25 +36,24 @@
                         'estado' => 'OK',
                         'mensaje' => $resultado['mensaje']
                     ];
-                    error_log("Estado actualizado correcta de la carrera con ID: " . $datos->pclave);
+                    error_log("Estado actualizado correcta de la materia con ID: " . $datos->pclave);
                 } else {
                     $resultado = [
                         'estado' => 'Error',
                         'mensaje' => $resultado['mensaje']
                     ];
-                    error_log("Error al cambiar la carrera con ID: " . $datos->pclave);
+                    error_log("Error al cambiar la materia con ID: " . $datos->pclave);
                 }
 
             } else {
-                $resultado = ['mensaje' => "Error al cambiar el estado de la carrera: Datos insuficientes."];
-                error_log("Datos insuficientes para cambiar el estado de una carrera.");
+                $resultado = ['mensaje' => "Error al cambiar el estado de la materia: Datos insuficientes."];
+                error_log("Datos insuficientes para cambiar el estado de una materia.");
             }
 
     } catch (PDOException $e) {
-        $resultado['mensaje'] = "Error Modificar Carrera: problemas en la base de datos; " . $e->getMessage();
+        $resultado['mensaje'] = "Error Modificar Materia: problemas en la base de datos; " . $e->getMessage();
         error_log("Error en la base de datos: " . $e->getMessage());
     }
 
     // Enviar la respuesta en formato JSON
     echo json_encode($resultado);
-?>

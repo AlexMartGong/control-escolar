@@ -590,7 +590,7 @@ function changeStatusMateria(id, status, currentStatus) {
 
       // Realizar petición AJAX para cambiar el estado
       $.ajax({
-        url: "../../Controlador/Intermediarios/Carrera/CambiarEstadoMateria.php",
+        url: "../../Controlador/Intermediarios/Materia/CambiarEstadoMateria.php",
         type: "POST",
         data: json,
         contentType: "application/json",
@@ -607,7 +607,7 @@ function changeStatusMateria(id, status, currentStatus) {
                   status === "1" ? "Activo" : "Inactivo"
                 }" correctamente.`,
                 function () {
-                  option("carrera", "");
+                  option("materia", "");
                 }
               );
             } else {
