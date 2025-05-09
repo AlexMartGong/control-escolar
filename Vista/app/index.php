@@ -106,5 +106,6 @@
 <script src="../js/docente/docente.js"></script>
 <script src="../js/carrerajs/carrera.js"></script>
 <script src="../js/materia/materia.js"></script>
+<script src="../js/funcionesGlobales.js"></script>
 </body>
 </html>

@@ -21,7 +21,7 @@ $res = $objCaDAO->MostrarCarrera();
                 <i class="fas fa-arrow-circle-left"></i> Regresar
             </button>
             <button type="button" class="btn" style="background-color: #009475; border-color: #009475; color: white;"
-                    onclick=" loadFormJCarrera('fmrcarrera',''); cargaRetrasadaDeDatos('add'); ">
+                    onclick=" loadFormJCarrera('fmrcarrera',''); cargaRetrasadaDeDatos('add','','carrera'); ">
                 <i class="fas fa-plus-circle"></i> Nueva carrera
             </button>
         </div>
@@ -68,7 +68,7 @@ $res = $objCaDAO->MostrarCarrera();
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="loadFormJCarrera('modcarrera','<?= $fila['clave_de_carrera'] ?>'); cargaRetrasadaDeDatos('mod','<?= $fila['clave_de_jefe'] ?>');">
+                            onclick="loadFormJCarrera('modcarrera','<?= $fila['clave_de_carrera'] ?>'); cargaRetrasadaDeDatos('mod','<?= $fila['clave_de_jefe'] ?>','carrera');">
                         <i class="fas fa-edit me-1"></i>
                         <span>Editar</span>
                     </button>
