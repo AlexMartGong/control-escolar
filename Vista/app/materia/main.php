@@ -1,4 +1,13 @@
 <?php
+require '../../../Modelo/BD/ConexionBD.php';
+require '../../../Modelo/BD/ModeloBD.php';
+require '../../../Modelo/DAOs/MateriaDAO.php';
+
+$objBD = new ConexionBD($DatosBD);
+$objMaDAO = new MateriaDAO($objBD->Conectar());
+
+$res = $objMaDAO->MostrarMaterias();
+
 ?>
 <div id="frmArea">
     <h2 class="mb-4">Materia</h2>
@@ -32,16 +41,35 @@
         </tr>
         </thead>
         <tbody>
+        <?php
+            if ($res['estado'] == 'OK' && $res['filas'] > 0) {
+                $cont = 1;
+                foreach ($res['datos'] as $fila) {
+
+                    // Definir la clase para la fila en base al estado
+                    $rowClass = "table-success";
+
+                    // Definir la clase para el badge de estado
+                    $badgeClass = "bg-success";
+                    switch ($fila['estado']) {
+                        case 'Activo':
+                            $badgeClass = "bg-success";
+                            break;
+                        case 'Inactivo':
+                            $badgeClass = "bg-danger";
+                            break;
+                    }
+            ?>
         <tr class="">
-            <td>1</td>
-            <td>Programacion Orientado a objetos</td>
-            <td>5</td>
-            <td>44</td>
-            <td>30</td>
-            <td>3</td>
-            <td>2</td>
-            <td>Ing. Informatica</td>
-            <td>Activo</td>
+        <td><?= $fila['clave_de_materia'] ?></td>
+                        <td><?= $fila['nombre_de_materia'] ?></td>
+                        <td><?= $fila['unidades'] ?></td>
+                        <td><?= $fila['horas_teoricas'] ?></td>
+                        <td><?= $fila['horas_practicas'] ?></td>
+                        <td><?= $fila['creditos'] ?></td>
+                        <td><?= $fila['clave_de_carrera'] ?></td>
+                        <td><?= $fila['nombre_de_carrera'] ?></td>
+                        <td><span class="badge <?= $badgeClass ?>"><?= $fila['estado'] ?></span></td>
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
@@ -62,6 +90,12 @@
                 </div>
             </td>
         </tr>
+        <?php
+                    $cont++;
+                }
+            }
+            ?>
+            
         </tbody>
     </table>
 </div>
