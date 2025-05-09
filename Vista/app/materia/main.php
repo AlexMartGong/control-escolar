@@ -19,11 +19,11 @@ $res = $objMaDAO->MostrarMaterias();
                 <i class="fas fa-arrow-circle-left"></i> Regresar
             </button>
             <button type="button" class="btn" style="background-color: #009475; border-color: #009475; color: white;"
-                    onclick="">
+                     onclick="loadFormJMateria('frmMateria',''); cargaRetrasadaDeDatos('add','','materia');">
                 <i class="fas fa-plus-circle"></i> Nueva materia
             </button>
         </div>
-    </div>
+    </div> 
 
     <table class="table table-hover" id="tableMateria">
         <thead>
@@ -73,7 +73,7 @@ $res = $objMaDAO->MostrarMaterias();
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="">
+                            onclick="loadFormJMateria('modMateria',''); cargaRetrasadaDeDatos('mod','<?= $fila['clave_de_carrera'] ?>','materia');">
                         <i class="fas fa-edit me-1"></i>
                         <span>Editar</span>
                     </button>

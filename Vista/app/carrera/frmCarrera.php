@@ -49,18 +49,18 @@
                         <div class="mb-4">
                             <div class="row g-2">
                             <label  class="form-label">Jefe de carrera</label>
-                                <div class="col">
-                                <label for="listaNombres" class="form-label">Nombre</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-blue-light"><i class="fas fa-user-tie me-2"></i></span>
-                                        <select id="listaNombres" class="form-select listaDespliege" onchange="retrasoSelect('clavejefe', 'btnGuardarJ' )">
+                                <div class="col-12 col-sm-6 mb-2 mb-sm-0">
+                                    <label for="listaNombres" class="form-label">Nombre</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-blue-light"><i class="fas fa-user-tie me-2"></i></span>
+                                            <select id="listaNombres" class="form-select listaDespliege" onchange="retrasoSelect('clavejefe', 'btnGuardarJ', 'carrera' )">
                                             <!--Aqui se inyectaran las opciones -->
-                                        </select>
+                                            </select>
                                     </div>
                                 </div>
-                                <div class="col">
-                                <label for="clavejefe" class="form-label">Clave</label>
-                                    <div class="input-group">
+                                <div class="col-12 col-sm-6 mb-2 mb-sm-0">
+                                    <label for="clavejefe" class="form-label">Clave</label>
+                                     <div class="input-group">
                                         <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
                                         <input 
                                             type="text"
