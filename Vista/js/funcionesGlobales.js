@@ -117,8 +117,7 @@ function cargaRetrasadaDeDatos(opc, id, modulo) {
     //Aqui se agregara la funcion que permite insertar las opciones de carrera en materia
     case "materia":
       setTimeout(() => {
-        simulacion(); // este se borrora  y se coloca la opcion correcta
-        //cargarNombresMateria(opc, id) // esta es la opcion correcta el id se usa para la  carrera
+        cargarNombresMateria(opc, id) // esta es la opcion correcta el id se usa para la  carrera
       }, 1000);
       break;
   }

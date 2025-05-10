@@ -188,69 +188,68 @@ class CarreraDAO
     }
 
     /**
- * Busca una carrera por su ID.
- * Llama al procedimiento almacenado spBuscarCarreraByID.
- *
- * @param string $id ID de la carrera a buscar.
- * @return array Retorna un array con el estado de la operación, mensaje y datos si se encuentra la carrera.
- */
-public function BuscarCarrera($id)
-{
-    $resultado = ['estado' => 'Error'];
-    $c = $this->conector;
+     * Busca una carrera por su ID.
+     * Llama al procedimiento almacenado spBuscarCarreraByID.
+     *
+     * @param string $id ID de la carrera a buscar.
+     * @return array Retorna un array con el estado de la operación, mensaje y datos si se encuentra la carrera.
+     */
+    public function BuscarCarrera($id)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
 
-    // Validar que el ID no esté vacío
-    if (empty($id)) {
-        $resultado['mensaje'] = "Debe proporcionar el ID de la carrera para realizar la búsqueda.";
+        // Validar que el ID no esté vacío
+        if (empty($id)) {
+            $resultado['mensaje'] = "Debe proporcionar el ID de la carrera para realizar la búsqueda.";
+            return $resultado;
+        }
+
+        try {
+            // Ejecutar procedimiento almacenado con parámetro de entrada y salida
+            $sp = $c->prepare("CALL spBuscarCarreraByID(:pid, @mensaje)");
+            $sp->bindParam(':pid', $id, PDO::PARAM_STR);
+            $sp->execute();
+
+            // Obtener datos devueltos por el SELECT del procedimiento
+            $datos = $sp->fetch(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar recursos del cursor
+
+            // Consultar el mensaje de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Registrar en log el mensaje recibido del SP
+            error_log("Mensaje spBuscarCarreraByID: " . $resultado['respuestaSP']);
+
+            // Evaluar mensaje de salida usando switch
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    $resultado['mensaje'] = "Carrera encontrada exitosamente.";
+                    break;
+
+                case 'Error: No existe el registro con el ID solicitado':
+                    $resultado['mensaje'] = "No se encontró ninguna carrera con el ID proporcionado.";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al buscar la carrera. Por favor, intente más tarde.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Registrar errores de la base de datos
+            error_log("Error en la base de datos (BuscarCarrera): " . $e->getMessage());
+            $resultado['mensaje'] = "Error de base de datos al buscar la carrera. Intente nuevamente más tarde.";
+        }
+
         return $resultado;
     }
 
-    try {
-        // Ejecutar procedimiento almacenado con parámetro de entrada y salida
-        $sp = $c->prepare("CALL spBuscarCarreraByID(:pid, @mensaje)");
-        $sp->bindParam(':pid', $id, PDO::PARAM_STR);
-        $sp->execute();
 
-        // Obtener datos devueltos por el SELECT del procedimiento
-        $datos = $sp->fetch(PDO::FETCH_ASSOC);
-        $sp->closeCursor(); // Liberar recursos del cursor
-
-        // Consultar el mensaje de salida del procedimiento
-        $respuestaSP = $c->query("SELECT @mensaje");
-        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
-        $resultado['respuestaSP'] = $mensaje['@mensaje'];
-
-        // Registrar en log el mensaje recibido del SP
-        error_log("Mensaje spBuscarCarreraByID: " . $resultado['respuestaSP']);
-
-        // Evaluar mensaje de salida usando switch
-        switch ($resultado['respuestaSP']) {
-            case 'Estado: Exito':
-                $resultado['estado'] = "OK";
-                $resultado['datos'] = $datos;
-                $resultado['mensaje'] = "Carrera encontrada exitosamente.";
-                break;
-
-            case 'Error: No existe el registro con el ID solicitado':
-                $resultado['mensaje'] = "No se encontró ninguna carrera con el ID proporcionado.";
-                break;
-
-            default:
-                $resultado['mensaje'] = "Ocurrió un error inesperado al buscar la carrera. Por favor, intente más tarde.";
-                break;
-        }
-
-    } catch (PDOException $e) {
-        // Registrar errores de la base de datos
-        error_log("Error en la base de datos (BuscarCarrera): " . $e->getMessage());
-        $resultado['mensaje'] = "Error de base de datos al buscar la carrera. Intente nuevamente más tarde.";
-    }
-
-    return $resultado;
-}
-
-
-        /**
+    /**
      * Modifica los datos de una carrera en la base de datos.
      * 
      * Esta función llama al procedimiento almacenado `spModificarCarrera` para actualizar el nombre 
@@ -323,7 +322,6 @@ public function BuscarCarrera($id)
                     $resultado['mensaje'] = "Ocurrió un error inesperado al procesar la solicitud. Contacte al administrador si el problema persiste.";
                     break;
             }
-
         } catch (PDOException $e) {
             // Captura de errores de conexión o ejecución SQL
             error_log("Error en la base de datos al modificar carrera: " . $e->getMessage());
@@ -333,5 +331,28 @@ public function BuscarCarrera($id)
         return $resultado;
     }
 
+    /**
+     * Método que obtiene todas las carreras activas.
+     * Este método es utilizado para cargar las carreras disponibles en la interfaz
+     * donde se requiere asignar o visualizar jefes de carrera.
+     *
+     * @return array Lista de carreras activas con sus claves y nombres.
+     */
+    public function obtenerCarreras()
+    {
+        // Consulta SQL para obtener las carreras activas (estado = 'Activo')
+        $sentencia = "SELECT claveCarrera AS clave, nombre FROM carrera WHERE estado = 'Activo'";
 
+        // Preparar la sentencia para evitar inyección SQL
+        $stmt = $this->conector->prepare($sentencia);
+
+        // Ejecutar la consulta
+        $stmt->execute();
+
+        // Obtener los resultados en un arreglo asociativo
+        $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Retornar el resultado al controlador
+        return $resultado;
+    }
 }
