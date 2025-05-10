@@ -211,7 +211,9 @@ function intentarGuardarDatosmateria(opc) {
   try {
 
     //Aqui se cargan las funciones que permiten guardar o modificar los datos
-    if (opc === "add") mostrarDatosGuardados("datos Guardados Correctamente");
+    if (opc === "add") {
+      AgregarMateria()
+    }
     else if (opc === "mod") {
       mostrarDatosGuardados("datos Modificados Correctamente");
     }
@@ -420,7 +422,7 @@ function cargarNombresMateria(opc, idcarrera) {
   switch (opc) {
     case "add":
       $.ajax({
-        url: "../../Controlador/Intermediarios/", //hay que colocar la url correcta
+        url: "../../Controlador/Intermediarios/Materia/ObtenerCarreras.php", 
         type: "GET",
         dataType: "json",
         success: function (respuesta) {
@@ -627,3 +629,95 @@ function changeStatusMateria(id, status, currentStatus) {
       });
     });
 }
+
+/**
+ * Funcion para guardar nueva carrera, toma los datos y los envia al intermediario correspondiente
+ *
+ * @function
+ * @returns {boolean} Retorna `true` si los datos fueron enviados, o `false` si la validación falló.
+ */
+function AgregarMateria() {
+  // Obtener y limpiar los valores de los campos del formulario
+  const claveM  = document.getElementById("clavemateria").value.trim();
+  const nombreM = document.getElementById("nombremateria").value.trim();
+  const unidades = document.getElementById("numUnidades").value.trim();
+  const hrsteoricas  = document.getElementById("horasTeoricas").value.trim();
+  const hrspracticas = document.getElementById("horasPracticas").value.trim();
+  const creditos = document.getElementById("creditos").value.trim();
+  const claveC  = document.getElementById("claveCarrera").value.trim();
+
+  // Validación: asegurar que ambos campos estén completos
+  if (!claveM || !nombreM || !unidades || !hrsteoricas || !hrspracticas || !creditos || !claveC) {
+    mostrarFaltaDatos("Por favor, llena todos los campos obligatorios.");
+  }
+  
+  // Construcción del objeto de datos a enviar
+  const datos = {
+    pclave: claveM,
+    pnombre: nombreM,
+    punidades: parseInt(unidades),
+    phrsteoricas: parseInt(hrsteoricas),
+    phrspracticas: parseInt(hrspracticas),
+    pcreditos: parseInt(creditos),
+    pclaveCarrera: claveC
+  };
+
+  // Convertir el objeto a JSON para el envío
+  const json = JSON.stringify(datos);
+  const url = "../../Controlador/Intermediarios/Materia/AgregarMateria.php";
+  console.log("Datos JSON enviados:", json);
+
+  // Enviamos la solicitud POST
+  $.post(
+    url,
+    json,
+    function (response, status) {
+      // Si la modificación fue exitosa, mostramos mensaje de éxito
+      if (response.estado === "OK") {
+        mostrarDatosGuardados(response.mensaje, "");
+        option("materia", ""); // Refrescamos o redirigimos según sea necesario
+      } else {
+        // Si hubo un error, lo mostramos al usuario
+        mostrarErrorCaptura(response.mensaje);
+      }
+    },
+    "json" // Indicamos que esperamos JSON como respuesta
+  ).fail(function (xhr, status, error) {
+    // Manejamos fallos de conexión o servidor
+    console.error("Error en la solicitud POST:", xhr.responseText);
+    mostrarErrorCaptura(
+      "No se pudo conectar con el servidor. Inténtelo más tarde."
+    );
+  });
+}
+
+/**
+ * Función para verificar si una clave de materia ya existe en la base de datos.
+ *
+ * @param {string} clave - Clave de la materia a verificar.
+ * @param {function} callback - Función que se ejecutará con el resultado (true si existe, false si no).
+ */
+function verificarClaveMateria(clave, callback) {
+  $.ajax({
+    url: "../../Controlador/Intermediarios/Materia/VerificarClaveM.php", // Ruta al archivo PHP que valida la clave
+    type: "POST",                          // Tipo de solicitud
+    data: JSON.stringify({ clave: clave }), // Datos enviados en formato JSON
+    contentType: "application/json",       // Indicamos que enviamos JSON
+    dataType: "json",                      // Esperamos JSON como respuesta
+    success: function (respuesta) {
+      if (respuesta.existe) {
+        console.log("Respuesta del backend:", respuesta);
+        callback(true); // La clave ya existe en la base de datos
+      } else {
+        callback(false); // La clave no existe, se puede usar
+      }
+    },
+    error: function () {
+      // Manejo de errores de conexión o servidor
+      console.error("Error al verificar la clave de Materia.");
+      callback(false); // Por defecto asumimos que no existe si falla
+    },
+  });
+}
+
+
