@@ -10,19 +10,23 @@ Calquier duda consultar con el autor
 
 // Esta funcion que permite cargar los formularios de agregar Docente y modificarlo, no desde function.js
 function loadFormJMateria(opc, id = "") {
+    console.log("Llamando a loadFormJMateria con opc:", opc, "id:", id);
   let url = "";
   if (opc === "frmMateria") {
     url = "materia/frmMateria.php";
   } else if (opc === "modMateria") {
     url = "materia/modMateria.php";
   }
+  console.log("URL seleccionada:", url);
 
   let datas = { id: id };
 
   let container = $("#frmArea");
 
   container.fadeOut(300, function () {
+    
     clearArea("frmArea");
+      console.log("Datos enviados al formulario:", datas);
 
     $.post(url, JSON.stringify(datas), function (responseText, status) {
       try {
@@ -31,10 +35,17 @@ function loadFormJMateria(opc, id = "") {
             .html(responseText)
             .hide()
             .fadeIn(500, function () {
-              // Si es edición, llamar a buscarDocente automáticamente
-              /* if (opc === "modDocente" && id !== "") {
-                                BuscarDocente(id);
-                            }*/
+                console.log("Formulario cargado en pantalla, opc:", opc, "id:", id);
+
+              // Si es edición, llamar a buscarMateria automáticamente
+              if (opc === "modMateria" && id !== "") {
+                    console.log("Llamando BuscarMateria con id:", id);
+
+                BuscarMateria(id);
+              }else{
+                    console.warn("NO se llama BuscarMateria. Condición no cumplida.");
+
+              }
             })
             .css("transform", "translateY(-10px)")
             .animate(
@@ -212,10 +223,10 @@ function intentarGuardarDatosmateria(opc) {
 
     //Aqui se cargan las funciones que permiten guardar o modificar los datos
     if (opc === "add") {
-      AgregarMateria()
+      AgregarMateria();
     }
     else if (opc === "mod") {
-      mostrarDatosGuardados("datos Modificados Correctamente");
+      ModificarMateria();
     }
   } catch (error) {
     // en caso de una falla se deabilita el boton y se muestra el modal con el problema
@@ -273,6 +284,12 @@ function verificarInputmateria(idetiqueta, idbtn, contenido) {
       const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
       if (estaVacio) {
         mostrarError(input, "Este campo no puede estar vacío.", contenido);
+        input.classList.add("entrada-error");
+        iconerror.classList.add("is-invalid");
+        return evaluarEstadoFormularioMateria(idbtn);
+      }
+      if (valor.length > 100) {
+        mostrarError(input, "El nombre no puede tener más de 100 caracteres.", contenido);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioMateria(idbtn);
@@ -455,7 +472,7 @@ function cargarNombresMateria(opc, idcarrera) {
     //esta parte se usa para inyectar opc prederteminadas en el <select> del formulario modificar
     case "mod":
       $.ajax({
-        url: "../../Controlador/Intermediarios/", //hay que colocar la url correcta
+        url: "../../Controlador/Intermediarios/Materia/ObtenerCarreras.php", //hay que colocar la url correcta
         type: "GET",
         dataType: "json",
         success: function (respuesta) {
@@ -719,5 +736,120 @@ function verificarClaveMateria(clave, callback) {
     },
   });
 }
+
+/*
+ * Función para buscar una Materia por su ID.
+ * Envía una solicitud POST al servidor y, si tiene éxito, llena el formulario con los datos recibidos.
+ * Además, desactiva el campo de clave de materia para evitar su edición.
+ */
+function BuscarMateria(id) {
+  console.log("BuscarMateria ejecutada con id:", id);
+
+  let url = "../../Controlador/Intermediarios/Materia/ModificarMateria.php"; // Ruta al intermediario PHP
+
+  let datos = { id: id, Buscar: true }; // Objeto con parámetros de búsqueda
+  let json = JSON.stringify(datos); // Convertimos a formato JSON
+
+  // Enviamos la solicitud POST
+  $.post(
+    url,
+    json,
+    function (response, status) {
+      console.log("Respuesta del servidor:", response);
+      console.log("Datos enviados:", json);
+
+      // Validamos la respuesta del servidor
+      if (status === "success" && response.estado === "OK" && response.datos) {
+        console.log("Datos recibidos:", response.datos);
+
+        // Rellenamos el formulario con los datos de la carrera
+        document.getElementById("clavemateria").value =
+          response.datos.clave_de_materia;
+        document.getElementById("nombremateria").value =
+          response.datos.nombre_de_materia;
+          document.getElementById("numUnidades").value =
+          response.datos.unidades;
+          document.getElementById("horasTeoricas").value =
+          response.datos.horas_teoricas;
+        document.getElementById("horasPracticas").value =
+          response.datos.horas_practicas;
+        document.getElementById("creditos").value =
+          response.datos.creditos;       
+        document.getElementById("statusId").value = response.datos.estado;
+
+        cargarNombresEnSelect("mod", response.datos.clave_de_carrera);
+      } else {
+        // Si no se encontró la materia, se muestra un mensaje
+        sinres("Materia no encontrada.");
+      }
+    },
+    "json" // Especificamos que la respuesta esperada es JSON
+  ).fail(function (xhr, status, error) {
+    // Manejo de errores de conexión o servidor
+    console.error("Error en la solicitud POST:", xhr.responseText);
+    mostrarErrorCaptura("Error al buscar la Materia.");
+  });
+}
+
+/*
+ * Función para modificar los datos de una Materia existente.
+ * la clave no puede cambiarse.
+ */
+function ModificarMateria() {
+  // Capturamos y limpiamos los datos del formulario
+  const idM = document.getElementById("clavemateria").value.trim();
+  const nombre = document.getElementById("nombremateria").value.trim();
+  const unidades = document.getElementById("numUnidades").value.trim();
+  const hrsteoricas = document.getElementById("horasTeoricas").value.trim();
+  const hrspracticas = document.getElementById("horasPracticas").value.trim();
+  const creditos = document.getElementById("creditos").value.trim();
+  const idC = document.getElementById("claveCarrera").value.trim();
+
+  // Validamos que todos los campos requeridos estén llenos
+  if (!idM || !nombre || !idC || !unidades || !hrsteoricas || !hrspracticas || !creditos ) {
+    mostrarFaltaDatos("Debe completar todos los campos obligatorios.");
+    return;
+  }
+
+  // Construimos el objeto con los datos a enviar
+  let datos = {
+    claveMateria: idM,
+    nombre: nombre,
+    noUnidades: unidades,
+    hrsTeoricas: hrsteoricas,
+    hrsPracticas: hrspracticas,
+    creditos: creditos,
+    claveCarrera: idC,
+    Modificar: true,
+  };
+
+  let json = JSON.stringify(datos); // Convertimos a JSON
+  let url = "../../Controlador/Intermediarios/Materia/ModificarMateria.php"; // URL del intermediario
+  console.log("Datos JSON enviados:", json);
+
+  // Enviamos la solicitud POST
+  $.post(
+    url,
+    json,
+    function (response, status) {
+      // Si la modificación fue exitosa, mostramos mensaje de éxito
+      if (response.success) {
+        mostrarDatosGuardados(response.mensaje, "");
+        option("materia", ""); // Refrescamos o redirigimos según sea necesario
+      } else {
+        // Si hubo un error, lo mostramos al usuario
+        mostrarErrorCaptura(response.mensaje);
+      }
+    },
+    "json" // Indicamos que esperamos JSON como respuesta
+  ).fail(function (xhr, status, error) {
+    // Manejamos fallos de conexión o servidor
+    console.error("Error en la solicitud POST:", xhr.responseText);
+    mostrarErrorCaptura(
+      "No se pudo conectar con el servidor. Inténtelo más tarde."
+    );
+  });
+}
+
 
 
