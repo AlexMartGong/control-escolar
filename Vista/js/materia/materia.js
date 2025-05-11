@@ -262,10 +262,10 @@ function verificarInputmateria(idetiqueta, idbtn, contenido) {
       }
       if (regexClavec.test(valor)) {
         //Ingresa el nombre de la funcion que se encarga de revisar si la clave ya esta en la base de datos y borra el comentario Gracias :)
-        /* NombreDeTuFuncion(valor, function (existe) {
-          if (existe) claveExiste(iconerror, input);
+         verificarClaveMateria(valor, function (existe) {
+          if (existe) claveExiste(iconerror, input, contenido);
            evaluarEstadoFormularioMateria(idbtn);
-        });*/
+        });
       }
       break;
 
