@@ -64,8 +64,8 @@ function mostrarError(input, mensaje, contenedor) {
 }
 
 // funcion que permite Añadir un comentario si la clave Ya existe
-function claveExiste(iconerror, input) {
-  mostrarErrorCarrera(input, "La clave ya existe intente con otra.");
+function claveExiste(iconerror, input, contenedor) {
+  mostrarError(input, "La clave ya existe intente con otra.", contenedor);
   iconerror.classList.add("is-invalid");
   input.classList.add("entrada-error");
 }
