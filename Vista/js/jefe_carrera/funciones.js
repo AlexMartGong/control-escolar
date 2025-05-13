@@ -153,9 +153,7 @@ function changeStatusJefeCarrera(id, status, currentStatus) {
           try {
             if (response.estado === "OK") {
               mostrarDatosGuardados(
-                `El estado del jefe de carrera ${id} ha sido cambiado a "${
-                  status === "1" ? "Activo" : "Inactivo"
-                }" correctamente.`,
+                `El estado del jefe de carrera ${id} ha sido cambiado a "${status}" correctamente.`,
                 function () {
                   option("career-manager", "");
                 }

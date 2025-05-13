@@ -438,9 +438,7 @@ function changeStatusDocente(id, status, currentStatus) {
                         try {
                             if (response.estado === "OK") {
                                 mostrarDatosGuardados(
-                                    `El estado del docente ${id} ha sido cambiado a "${
-                                        status === "1" ? "Activo" : "Inactivo"
-                                    }" correctamente.`,
+                                    `El estado del docente ${id} ha sido cambiado a "${status}" correctamente.`,
                                     function () {
                                         option("docente", "");
                                     }
