@@ -88,8 +88,8 @@
                                     <div class="input-group">
                                         <span class="input-group-text bg-blue-light"><i class="fas fa-check-circle"></i></span>
                                         <select class="form-control listaDespliege " disabled id="statusId">
-                                            <option value="activo" selected>Activo</option>
-                                            <option value="inactivo">Inactivo</option>
+                                            <option value="Activo" selected>Activo</option>
+                                            <option value="Inactivo">Inactivo</option>
                                         </select>
                                     </div>
                                 </div>

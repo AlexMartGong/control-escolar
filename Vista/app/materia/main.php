@@ -73,7 +73,7 @@ $res = $objMaDAO->MostrarMaterias();
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="loadFormJMateria('modMateria',''); cargaRetrasadaDeDatos('mod','<?= $fila['clave_de_carrera'] ?>','materia');">
+                            onclick="loadFormJMateria('modMateria','<?= $fila['clave_de_materia'] ?>'); cargaRetrasadaDeDatos('mod','<?= $fila['clave_de_carrera'] ?>','materia');">
                         <i class="fas fa-edit me-1"></i>
                         <span>Editar</span>
                     </button>

@@ -331,4 +331,154 @@ class MateriaDAO
         // Retornar true si el total es mayor a 0, es decir, ya existe una materia con esa clave
         return $fila['total'] > 0;
     }
+
+    /**
+     * Busca una materia por su ID.
+     * Llama al procedimiento almacenado spBuscarMateriaByID.
+     *
+     * @param string $id ID de la materia a buscar.
+     * @return array Retorna un array con el estado de la operación, mensaje y datos si se encuentra la carrera.
+     */
+    public function BuscarMateria($id)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // Validar que el ID no esté vacío
+        if (empty($id)) {
+            $resultado['mensaje'] = "Debe proporcionar el ID de la materia para realizar la búsqueda.";
+            return $resultado;
+        }
+
+        try {
+            // Ejecutar procedimiento almacenado con parámetro de entrada y salida
+            $sp = $c->prepare("CALL spBuscarMateriaByID(:pid, @mensaje)");
+            $sp->bindParam(':pid', $id, PDO::PARAM_STR);
+            $sp->execute();
+
+            // Obtener datos devueltos por el SELECT del procedimiento
+            $datos = $sp->fetch(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar recursos del cursor
+
+            // Consultar el mensaje de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Registrar en log el mensaje recibido del SP
+            error_log("Mensaje spBuscarMateriaByID: " . $resultado['respuestaSP']);
+
+            // Evaluar mensaje de salida usando switch
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    $resultado['mensaje'] = "Materia encontrada exitosamente.";
+                    break;
+
+                case 'Error: No existe el registro con el ID solicitado':
+                    $resultado['mensaje'] = "No se encontró ninguna materia con el ID proporcionado.";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al buscar la materia. Por favor, intente más tarde.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Registrar errores de la base de datos
+            error_log("Error en la base de datos (BuscarCarrera): " . $e->getMessage());
+            $resultado['mensaje'] = "Error de base de datos al buscar la materia. Intente nuevamente más tarde.";
+        }
+
+        return $resultado;
+    }
+
+
+    /**
+     * Modifica los datos de una materia en la base de datos.
+     * 
+     * Esta función llama al procedimiento almacenado `spModificarMateria` para actualizar el nombre 
+     * y el jefe de la carrera correspondiente a la clave proporcionada.
+     *
+     * @param string $pclave Clave de la materia (clave primaria).
+     * @param string $pnombre Nombre de la Materia (hasta 50 caracteres).
+     * @param string $pid ID de la carrera en formato IINF-2010-220.
+     * @return array Retorna un arreglo asociativo con el estado ('OK' o 'Error') y un mensaje descriptivo.
+     */
+    public function ModificarMateria($pid, $pnombre, $punidades, $phrsteoricas, $phrspracticas, $pcreditos, $pclave)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // Validar que todos los campos requeridos estén presentes
+        if (empty($pclave) || empty($pnombre) || empty($pid) || empty($punidades) || empty($phrsteoricas) || empty($phrspracticas) || empty($pcreditos)) {
+            $resultado['mensaje'] = "Por favor, complete todos los campos requeridos: clave, nombre, unidades, horas teoricas, horas practicas, creditos e ID de la carrera.";
+            return $resultado;
+        }
+
+        // Validar formato del ID de la Materia: tres letras, un guion, cuatro números (ej. DAB-2302)
+        if (!preg_match('/^[A-Za-z]{3}-\d{4}$/', $pid)) {
+            $resultado['mensaje'] = "El ID de la materia debe tener el formato DAB-2302 (tres letras, guion, cuatro números).";
+            return $resultado;
+        }
+
+        // Validar el nombre de la carrera: solo letras, espacios y punto, sin espacios innecesarios
+        if (!preg_match('/^[A-Za-zÁÉÍÓÚÑáéíóúñ](?:[A-Za-zÁÉÍÓÚÑáéíóúñ\s]*[A-Za-zÁÉÍÓÚÑáéíóúñ])?(?:\.)?$/u', $pnombre)) {
+            $resultado['mensaje'] = "El nombre de la Materia debe contener solo letras, espacios y puntos. No se permiten espacios al inicio o final.";
+            return $resultado;
+        }
+
+        try {
+            // Registrar en el log el inicio de la operación
+            error_log("Ejecutando SP: Modificar Materia con id '$pid', nombre '$pnombre', unidades '$punidades' horasTeoricas '$phrsteoricas', horasPracticas '$phrspracticas', creditos '$pcreditos' clave '$pclave'");
+
+            // Preparar y ejecutar el procedimiento almacenado
+            $sp = $c->prepare("CALL spModificarMateria(:pid, :pnombre, :punidades, :phrsteoricas, :phrspracticas, :pcreditos, :pclave, @mensaje)");
+            $sp->bindParam(':pid', $pid, PDO::PARAM_STR);
+            $sp->bindParam(':pnombre', $pnombre, PDO::PARAM_STR);
+            $sp->bindParam(':punidades', $punidades, PDO::PARAM_INT);
+            $sp->bindParam(':phrsteoricas', $phrsteoricas, PDO::PARAM_INT);
+            $sp->bindParam(':phrspracticas', $phrspracticas, PDO::PARAM_INT);
+            $sp->bindParam(':pcreditos', $pcreditos, PDO::PARAM_INT);
+            $sp->bindParam(':pclave', $pclave, PDO::PARAM_STR);
+            $sp->execute();
+            $sp->closeCursor();
+
+            // Recuperar el mensaje devuelto por el procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Registrar mensaje del SP en log para depuración
+            error_log("Mensaje recibido del SP: " . $resultado['respuestaSP']);
+
+            // Interpretar el mensaje del SP y generar una respuesta adecuada
+            switch ($resultado['respuestaSP']) {
+                case 'Error: El registro no existe':
+                    $resultado['mensaje'] = "No se encontró la Materia con la clave proporcionada. Verifique e intente nuevamente.";
+                    break;
+                case 'Estado: Sin cambios':
+                    $resultado['mensaje'] = "No se realizaron modificaciones porque los datos ingresados son idénticos a los actuales.";
+                    break;
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['mensaje'] = "La información de la Materia se ha actualizado correctamente.";
+                    break;
+                case 'Error: No se pudo modificar el registro':
+                    $resultado['mensaje'] = "Ocurrió un problema al intentar modificar la materia. Por favor, inténtelo nuevamente más tarde.";
+                    break;
+                default:
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al procesar la solicitud. Contacte al administrador si el problema persiste.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Captura de errores de conexión o ejecución SQL
+            error_log("Error en la base de datos al modificar materia: " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al modificar los datos de la materia. Por favor, intente nuevamente más tarde.";
+            // Imprimir el mensaje para depuración
+            error_log("Detalles del error: " . $e->getTraceAsString());
+        }
+
+        return $resultado;
+    }
 }
