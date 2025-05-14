@@ -37,6 +37,9 @@ function option(opc, filter) {
             case 'materia':
                 url = "materia/main.php";
                 break;
+            case 'oferta':
+                url = "oferta/main.php";
+                break;
             default:
                 mainContent.html('<div class="alert alert-warning">Opción no válida</div>');
                 return;
@@ -83,7 +86,7 @@ function option(opc, filter) {
                                             emptyTable: "No hay registros por el momento de Docentes para Mostrar"
                                         },
                                         columnDefs: [
-                                            {"searchable": true, "targets": [0, 1]}, //Buscar por id y nombre del docente
+                                            {"searchable": true, "targets": [0, 1]},
                                             {"searchable": false, "targets": "_all"}
                                         ]
                                     });
@@ -96,7 +99,7 @@ function option(opc, filter) {
                                             emptyTable: "No hay registros por el momento de Jefe de Carrera para Mostrar"
                                         },
                                         columnDefs: [
-                                            {"searchable": true, "targets": [1]}, //Buscar por nombre de jefe
+                                            {"searchable": true, "targets": [1]},
                                             {"searchable": false, "targets": "_all"}
                                         ]
                                     });
@@ -109,7 +112,7 @@ function option(opc, filter) {
                                             emptyTable: "No hay registros por el momento de Periodos para Mostrar"
                                         },
                                         columnDefs: [
-                                            {"searchable": true, "targets": [1]}, //Buscar por nombre de periodo
+                                            {"searchable": true, "targets": [1]},
                                             {"searchable": false, "targets": "_all"}
                                         ]
                                     });
@@ -123,7 +126,7 @@ function option(opc, filter) {
                                             emptyTable: "No hay registros por el momento de Carreras para Mostrar"
                                         },
                                         columnDefs: [
-                                            {"searchable": true, "targets": [0, 1]}, //Buscar por, id y nombre de la carrera
+                                            {"searchable": true, "targets": [0, 1]},
                                             {"searchable": false, "targets": "_all"}
                                         ]
                                     });
@@ -137,7 +140,21 @@ function option(opc, filter) {
                                             emptyTable: "No hay registros por el momento de Materias para Mostrar"
                                         },
                                         columnDefs: [
-                                            {"searchable": true, "targets": [0, 1]}, //Buscar por, id y nombre de la carrera
+                                            {"searchable": true, "targets": [0, 1]},
+                                            {"searchable": false, "targets": "_all"}
+                                        ]
+                                    });
+                                }
+
+                                if (opc === 'oferta' && $('#tableOferta').length) {
+                                    $('#tableOferta').DataTable({
+                                        ...commonConfig,
+                                        language: {
+                                            url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
+                                            emptyTable: "No hay registros por el momento de ofertas para mostrar"
+                                        },
+                                        columnDefs: [
+                                            {"searchable": true, "targets": [0, 1, 2, 3, 5, 7]},
                                             {"searchable": false, "targets": "_all"}
                                         ]
                                     });

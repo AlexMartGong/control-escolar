@@ -40,7 +40,7 @@ $res = $objMaDAO->MostrarMaterias();
             <th>Opciones</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody class="table-success">
         <?php
             if ($res['estado'] == 'OK' && $res['filas'] > 0) {
                 $cont = 1;
