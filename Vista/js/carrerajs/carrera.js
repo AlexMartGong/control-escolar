@@ -514,9 +514,7 @@ function changeStatusCarrera(id, status, currentStatus) {
 
             if (response.estado === "OK") {
               mostrarDatosGuardados(
-                `El estado de la carrera ${id} ha sido cambiado a "${
-                  status === "1" ? "Activo" : "Inactivo"
-                }" correctamente.`,
+                `El estado de la carrera ${id} ha sido cambiado a "${status}" correctamente.`,
                 function () {
                   option("carrera", "");
                 }
