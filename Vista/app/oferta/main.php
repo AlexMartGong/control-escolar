@@ -1,4 +1,12 @@
 <?php
+require '../../../Modelo/BD/ConexionBD.php';
+require '../../../Modelo/BD/ModeloBD.php';
+require '../../../Modelo/DAOs/OfertaDAO.php';
+
+$objBD = new ConexionBD($DatosBD);
+$objOfDAO = new OfertaDAO($objBD->Conectar());
+
+$res = $objOfDAO->MostrarOferta();
 ?>
 
 <div id="frmArea">
@@ -37,20 +45,39 @@
         </tr>
         </thead>
         <tbody class="table-success">
+        <?php
+            if ($res['estado'] == 'OK' && $res['filas'] > 0) {
+                $cont = 1;
+                foreach ($res['datos'] as $fila) {
+
+                    // Definir la clase para la fila en base al estado
+                    $rowClass = "table-success";
+
+                    // Definir la clase para el badge de estado
+                    $badgeClass = "bg-success";
+                    switch ($fila['estado']) {
+                        case 'Asignada':
+                            $badgeClass = "bg-success";
+                            break;
+                        case 'No asignada':
+                            $badgeClass = "bg-danger";
+                            break;
+                    }
+            ?>
         <tr class="">
-            <td>OF001</td>
-            <td>1</td>
-            <td>A</td>
-            <td>Matutino</td>
-            <td>Activo</td>
-            <td>MAT101</td>
-            <td>Matemáticas Básicas</td>
-            <td>4</td>
-            <td>2</td>
-            <td>6</td>
-            <td>5</td>
-            <td>DOC001</td>
-            <td>Laura Martínez González</td>
+                <td><?= $fila['clave_de_oferta'] ?></td>
+                        <td><?= $fila['semestre'] ?></td>
+                        <td><?= $fila['grupo'] ?></td>
+                        <td><?= $fila['turno'] ?></td>
+                        <td><span class="badge <?= $badgeClass ?>"><?= $fila['estado'] ?></span></td>
+                        <td><?= $fila['clave_de_materia'] ?></td>
+                        <td><?= $fila['nombre_de_materia'] ?></td>
+                        <td><?= $fila['horas_teoricas'] ?></td>
+                        <td><?= $fila['horas_practicas'] ?></td>
+                        <td><?= $fila['creditos'] ?></td>
+                        <td><?= $fila['unidades'] ?></td>
+                        <td><?= $fila['clave_de_docente'] ?></td>
+                        <td><?= $fila['docente'] ?></td>
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
@@ -70,138 +97,11 @@
                 </div>
             </td>
         </tr>
-        <tr class="">
-            <td>OF002</td>
-            <td>2</td>
-            <td>B</td>
-            <td>Vespertino</td>
-            <td>Activo</td>
-            <td>FIS203</td>
-            <td>Física Aplicada</td>
-            <td>3</td>
-            <td>3</td>
-            <td>6</td>
-            <td>4</td>
-            <td>DOC005</td>
-            <td>Carlos Ramírez López</td>
-            <td>
-                <div class="d-flex gap-2 justify-content-center">
-                    <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="">
-                        <i class="fas fa-edit me-1"></i>
-                        <span>Editar</span>
-                    </button>
-                    <label>
-                        <select class="form-select form-select-sm btn-warning"
-                                style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="changeStatusOferta('OF002', this.value, 'Física Aplicada')">
-                            <option disabled selected>Cambiar estado</option>
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
-                        </select>
-                    </label>
-                </div>
-            </td>
-        </tr>
-        <tr class="">
-            <td>OF003</td>
-            <td>3</td>
-            <td>C</td>
-            <td>Matutino</td>
-            <td>Inactivo</td>
-            <td>PROG301</td>
-            <td>Programación Avanzada</td>
-            <td>2</td>
-            <td>4</td>
-            <td>6</td>
-            <td>6</td>
-            <td>DOC010</td>
-            <td>Ana María Sánchez Díaz</td>
-            <td>
-                <div class="d-flex gap-2 justify-content-center">
-                    <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="">
-                        <i class="fas fa-edit me-1"></i>
-                        <span>Editar</span>
-                    </button>
-                    <label>
-                        <select class="form-select form-select-sm btn-warning"
-                                style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="changeStatusOferta('OF003', this.value, 'Programación Avanzada')">
-                            <option disabled selected>Cambiar estado</option>
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
-                        </select>
-                    </label>
-                </div>
-            </td>
-        </tr>
-        <tr class="">
-            <td>OF004</td>
-            <td>1</td>
-            <td>D</td>
-            <td>Vespertino</td>
-            <td>Activo</td>
-            <td>QUI105</td>
-            <td>Química General</td>
-            <td>3</td>
-            <td>3</td>
-            <td>6</td>
-            <td>5</td>
-            <td>DOC008</td>
-            <td>Roberto Vázquez Mendoza</td>
-            <td>
-                <div class="d-flex gap-2 justify-content-center">
-                    <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="">
-                        <i class="fas fa-edit me-1"></i>
-                        <span>Editar</span>
-                    </button>
-                    <label>
-                        <select class="form-select form-select-sm btn-warning"
-                                style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="changeStatusOferta('OF004', this.value, 'Química General')">
-                            <option disabled selected>Cambiar estado</option>
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
-                        </select>
-                    </label>
-                </div>
-            </td>
-        </tr>
-        <tr class="">
-            <td>OF005</td>
-            <td>2</td>
-            <td>A</td>
-            <td>Matutino</td>
-            <td>Activo</td>
-            <td>BIO202</td>
-            <td>Biología Celular</td>
-            <td>4</td>
-            <td>2</td>
-            <td>6</td>
-            <td>4</td>
-            <td>DOC015</td>
-            <td>Patricia Flores Torres</td>
-            <td>
-                <div class="d-flex gap-2 justify-content-center">
-                    <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="">
-                        <i class="fas fa-edit me-1"></i>
-                        <span>Editar</span>
-                    </button>
-                    <label>
-                        <select class="form-select form-select-sm btn-warning"
-                                style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="changeStatusOferta('OF005', this.value, 'Biología Celular')">
-                            <option disabled selected>Cambiar estado</option>
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
-                        </select>
-                    </label>
-                </div>
-            </td>
-        </tr>
+        <?php
+                    $cont++;
+                }
+            }
+            ?>
         </tbody>
     </table>
 </div>
