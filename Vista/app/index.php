@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Escolar - TecJalisco</title>
+    <!-- CSS de Select2 -->
+    <link rel="stylesheet" href="../select2/select2.min.css">
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -100,6 +102,9 @@
 <script src="../js/function.js"></script>
 <!-- jQuery UI - needed for datepicker -->
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<!-- JS de Select2 -->
+<script src="../select2/select2.min.js"></script>
+
 <!-- Funciones de js que son necesaria-->
 <script src="../js/periodo/function_period.js"></script>
 <script src="../js/jefe_carrera/funciones.js"></script>
@@ -107,5 +112,6 @@
 <script src="../js/carrerajs/carrera.js"></script>
 <script src="../js/materia/materia.js"></script>
 <script src="../js/funcionesGlobales.js"></script>
+<script src="../js/oferta/oferta.js"></script>
 </body>
 </html>
