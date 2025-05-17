@@ -88,10 +88,10 @@ $res = $objOfDAO->MostrarOferta();
                     <label>
                         <select class="form-select form-select-sm btn-warning"
                                 style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="changeStatusOferta('OF001', this.value, 'Matemáticas Básicas')">
+                                onchange="changeStatusOferta('<?= $fila['clave_de_oferta'] ?>', this.value, '<?= $fila['estado'] ?>')">
                             <option disabled selected>Cambiar estado</option>
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
+                            <option value="Asignada">Asignada</option>
+                            <option value="No asignada">No asignada</option>
                         </select>
                     </label>
                 </div>
