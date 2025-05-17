@@ -19,7 +19,7 @@ $res = $objOfDAO->MostrarOferta();
                 <i class="fas fa-arrow-circle-left"></i> Regresar
             </button>
             <button type="button" class="btn" style="background-color: #009475; border-color: #009475; color: white;"
-                    onclick="">
+                    onclick="loadFormOferta('frmOferta','')">
                 <i class="fas fa-plus-circle"></i> Nueva oferta
             </button>
         </div>
@@ -81,7 +81,7 @@ $res = $objOfDAO->MostrarOferta();
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="">
+                            onclick="loadFormOferta('modOferta','')">
                         <i class="fas fa-edit me-1"></i>
                         <span>Editar</span>
                     </button>
