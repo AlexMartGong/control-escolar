@@ -127,19 +127,6 @@ function validarcamposDocente(opc) {
     }
 }
 
-// Función para marcar error en un campo vacío
-function marcarError(input, valor) {
-    if (valor === '') {
-        input.classList.add("entrada-error");
-
-    } else {
-        input.classList.remove("entrada-error");
-        //desabilitar boton 
-        deshabilitarbtnDocente(true, 'btnGuardarJ');
-
-    }
-
-}
  // funcion que permite evaluar los campos correctamente mientras escribe en el input
 function verificarInputdocente(idetiqueta, idbtn) {
     let input = document.getElementById(idetiqueta);

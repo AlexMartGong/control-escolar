@@ -65,7 +65,7 @@ function validarfrmOferta(opc) {
   const claveMateria = document.querySelector("#claveMateria");
   const claveDocente = document.querySelector("#claveDocente");
   const idturno = document.querySelector("#turno");
-  const idestado = document.querySelector("#IdEstado");
+  const idestado = document.querySelector("#IdPeriod");
 
   //se limpian los valores
   const oferta = idOferta.value.trim();
@@ -133,7 +133,6 @@ function validarfrmOferta(opc) {
             materia
           )
         ) {
-          
           // en caso de que oferta exista se manda a llamar al modal
           ErrorDeIntentoDeGuardado(
             "Advertencia. Ya quexiste un periodo con los mimos parametros"
@@ -141,11 +140,9 @@ function validarfrmOferta(opc) {
         } else {
           //si no existe valores repetidos entonces ahora se agregar a la tabla
           agregarOfertaTabla();
-          
         }
 
         deshabilitarboton(true, "btnAgregarOferta");
-        
       }
 
       break;
@@ -244,7 +241,7 @@ function verificarEntradasOferta(idetiqueta, idbtn, contenido) {
       if (valor <= 0 || valor > 12) {
         mostrarError(
           input,
-          "solo se permite de mayor o igual a 1 y de menor o igual a 12.",
+          "solo se permite de mayor o igual a 1 y menor o igual a 12.",
           contenido
         );
         input.classList.add("entrada-error");
@@ -345,11 +342,17 @@ function verificarEntradasOferta(idetiqueta, idbtn, contenido) {
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormulariooferta(idbtn);
       }
-    case "IdEstado":
-      if (valor === "estado") {
-        const valor = "";
-        mostrarError(input, "Selecciona una opcion.", contenido);
-        marcarError(idetiqueta, valor);
+      break;
+    case "IdPeriod":
+      const soloNumeros = /^\d+$/;
+      if (!soloNumeros.test(valor)) {
+        mostrarError(
+          input,
+          "Selecciona una opción válida (solo números).",
+          contenido
+        );
+        input.classList.add("entrada-error");
+        iconerror.classList.add("is-invalid");
         return evaluarEstadoFormulariooferta(idbtn);
       }
       break;
@@ -365,7 +368,7 @@ function evaluarEstadoFormulariooferta(idbtn) {
   const claveMateria = document.querySelector("#claveMateria");
   const claveDocente = document.querySelector("#claveDocente");
   const idturno = document.querySelector("#turno");
-  const idestado = document.querySelector("#IdEstado");
+  const idperiod = document.querySelector("#IdPeriod");
 
   //se limpian los valores
   const oferta = idOferta.value.trim();
@@ -375,7 +378,7 @@ function evaluarEstadoFormulariooferta(idbtn) {
   const materia = claveMateria.value.trim();
   const docente = claveDocente.value.trim();
   const turno = idturno.value;
-  const estado = idestado.value;
+  const periodo = idperiod.value.trim();
   const errores = document.querySelectorAll(".errorscaracter");
 
   const camposCorrectos =
@@ -386,7 +389,7 @@ function evaluarEstadoFormulariooferta(idbtn) {
     materia !== "" &&
     docente !== "" &&
     turno !== "Seleccione un turno" &&
-    estado !== "";
+    periodo !== "";
 
   const clavecar = /^[A-Z]{4}-\d{4}-\d{3}$/.test(claveCarrera.value.trim());
   const clavedo = /^[A-Z]{3}-\d{4}$/.test(claveDocente.value.trim());
@@ -417,7 +420,7 @@ function agregarOfertaTabla() {
   const nombreDocente = $("#listaDocente option:selected").text();
   const claveDocente = $("#claveDocente").val();
   const periodo = $("#listaPeriodo option:selected").text();
-  const idPeriodo = $("#IdEstado").val();
+  const idPeriodo = $("#IdPeriod").val();
   const nombreMateria = $("#listaMateria option:selected").text();
   const claveMateria = $("#claveMateria").val();
   const botonAcciones = `
@@ -429,9 +432,9 @@ function agregarOfertaTabla() {
                         `;
 
   const badgeEstado =
-    estado === "Activo"
-      ? '<span class="badge bg-success">Activo</span>'
-      : '<span class="badge bg-danger">Inactivo</span>';
+    estado === "No asignado"
+      ? '<span class="badge bg-success">Asigando</span>'
+      : '<span class="badge bg-danger">No asignado</span>';
 
   // Insertar la fila
   tablaOferta.row
@@ -452,10 +455,13 @@ function agregarOfertaTabla() {
       botonAcciones,
     ])
     .draw(false);
-    HayFilasEnTabla();
+  HayFilasEnTabla();
 
-  //limpiar el formulario
-  $("#frmOferta")[0].reset();
+  //limpio partes del form
+  $('#camposVacios input').val('');
+  $('#listaMateria').val('Seleccione una Materia').trigger('change.select2');
+  $('#listaDocente').val('Seleccione un docente').trigger('change.select2');
+
 }
 
 // funcion para eliminar la fila de la tabla
@@ -483,7 +489,7 @@ function existeOfertaEnTabla(
 ) {
   const tabla = $("#TablaDatosOferta").DataTable();
   const filas = tabla.rows().data();
-//console.log("Verificando si ya existe:", semestre, grupo, turno, claveCarrera, claveDocente, idPeriodo, claveMateria);
+  //console.log("Verificando si ya existe:", semestre, grupo, turno, claveCarrera, claveDocente, idPeriodo, claveMateria);
 
   for (let i = 0; i < filas.length; i++) {
     const fila = filas[i];
@@ -506,12 +512,12 @@ function existeOfertaEnTabla(
 
 // funcion que permite saber si hay filas o no en la tabla y habilita o desabilita el boton de guardar
 function HayFilasEnTabla() {
-    const tabla = $('#TablaDatosOferta').DataTable();
-    const totalFilas = tabla.rows().count();
+  const tabla = $("#TablaDatosOferta").DataTable();
+  const totalFilas = tabla.rows().count();
 
-    if (totalFilas === 0) {
-        deshabilitarboton(true, 'btnGuardarJ');  // Desactiva
-    } else {
-        deshabilitarboton(false, 'btnGuardarJ'); // Activa
-    }
+  if (totalFilas === 0) {
+    deshabilitarboton(true, "btnGuardarJ"); // Desactiva
+  } else {
+    deshabilitarboton(false, "btnGuardarJ"); // Activa
+  }
 }

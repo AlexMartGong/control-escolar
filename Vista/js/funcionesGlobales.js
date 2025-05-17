@@ -96,6 +96,11 @@ function retrasoSelect(idetiqueta, idbtn, modulo, contenedor) {
         verificarInputmateria(idetiqueta, idbtn, contenedor);
       }, 500);
       break;
+      case 'oferta':
+        setTimeout(() => {
+          verificarEntradasOferta(idetiqueta, idbtn, contenedor);
+        }, 500);
+        break;
   }
 }
 //funcion que ejecutara con un retraso predeterminado a las funciones

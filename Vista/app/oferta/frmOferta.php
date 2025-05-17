@@ -32,12 +32,12 @@
                     </h5>
                     
 
-                </div>
+              </div>
                 <div class="card-body p-3 p-md-4">
-                    <form id="frmOferta">
+                    <form>
                         <!-- Campo: Id oferta-->
                             <div class="row">
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-5-5 mb-3">
                                     <label for="idOferta" class="form-label">Id oferta</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
@@ -50,63 +50,22 @@
                                             disabled>
                                     </div> 
                                 </div>
-                                <!-- Campo: Semestre -->
-                                <div class="col-md-4 mb-3">
-                                    <label for="idSemestre" class="form-label">Semestre</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-blue-light"><i class="bi bi-bar-chart-line"></i></span>
-                                        <input type="number"
-                                            class="form-control" 
-                                            oninput="verificarEntradasOferta('idSemestre', 'btnAgregarOferta', 'col-md-4')"
-                                            id="idSemestre" 
-                                            placeholder="Ingrese el semestre" required>
-                                    </div>
-                                </div>
+                              
                                     <!-- Campo: Estado -->
-                        <div class="col-md-4 mb-3">
-                                <label class="form-label" for="estado">Estado</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-blue-light"><i class="fas fa-check-circle"></i></span>
-                                    <select  class="form-control" disabled id="perfil_Id" >
-                                        <option value="activo" selected>Activo</option>
-                                        <option value="inactivo">Inactivo</option>
-                                    </select>
-                                </div>
-                             </div>
+                                <div class="col-md-5-5 mb-3">
+                                        <label class="form-label" for="estado">Estado</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-blue-light"><i class="fas fa-check-circle"></i></span>
+                                            <select  class="form-control" disabled id="perfil_Id" >
+                                                <option value="No asignado" selected>No asignada</option>
+                                                <option value="Asigando">Asiganda</option>
+                                            </select>
+                                        </div>
+                                    </div>
                             </div>
                             
-                            <!-- Campo: Grupo -->
-                        <div class="mb-3 ">
-                            <div class="row g-2">
-                                <div class="col-md-6 mb-3">
-                                    <label for="idGrupo" class="form-label">Grupo</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-blue-light"><i class="bi bi-people"></i></span>
-                                        <input type="text"
-                                               style="text-transform: uppercase;" 
-                                                id="idGrupo"
-                                                oninput="verificarEntradasOferta('idGrupo', 'btnAgregarOferta', 'col-md-6')"
-                                                maxlength="1"
-                                                class="form-control">
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                   <label for="turno" class="form-label">Turno</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-blue-light"><i class="bi bi-clock"></i></span>
-                                        <select class="form-select listaDespliege" id="turno" onchange="retrasoSelect('turno', 'btnAgregarOferta', 'oferta','col-md-6' )">
-                                            <option disabled selected>Seleccione un turno</option>
-                                            <option value="Matutino">Matutino</option>
-                                            <option value="Vespertino">Vespertino</option>
-                                        </select>
-                                    </div>
-
-                                </div>
-                               
-                            </div>
-                        </div>
-
-
+                          
+                              <!-- Carrera y periodo -->
                                  <div class="row g-4 m-auto" >
                                     <!-- Columna izquierda -->  
                                     <!-- Campo: Carrera -->
@@ -119,7 +78,7 @@
                                                     <option disabled selected>Seleccione una carrera</option>
                                                     <?php
                                                     //este es solo un ejemplo de como se hara, todo esto se aplicara tambien para Docente,
-                                                    //Periodo y Materia 
+                                                    //Periodo y Materia
                                                     //todo php es modificable a su gusto
                                                     
                                                 /*  while ($d = mysql_fetch_row($ListEsp)) {
@@ -127,8 +86,7 @@
                                                         echo "<option value='$d[0]' data-clave='$d[0]'>$d[1]</option>";
                                                     }*/
                                                     ?>
-
-                                                    
+                                                   
                                                 </select>
                                                     <script>
                                                         // Inicializar Select2 Materia
@@ -144,9 +102,9 @@
                                                         });
                                                     });
                                             </script>
-                                        
                                             </div>
                                         </div> <!--termina campo-->
+
                                         <!--campo Clave-->
                                         <div class="mb-3">
                                             <label for="claveCarrera" class="form-label">Clave</label>
@@ -165,62 +123,16 @@
                                     <!--termina lado izquierdo-->
                                     
 
-                                        <!--inicia lado derecho-->
-                                        <div class=" col-md-5-5 bg-light border rounded p-3 margin-izquierda">
-                                            <div class="mb-3  ">
-                                                <label for="listaDocente" class="form-label">Nombre Docente</label>
-                                                <div class="input-group">
-                                                
-                                                    <span class="input-group-text bg-blue-light"><i class="fas fa-chalkboard-teacher"></i></span>
-                                                    <select id="listaDocente" class="form-select listaDespliege " onchange="retrasoSelect('claveDocente', 'btnAgregarOferta', 'oferta','mb-3' )">
-                                                    <option disabled selected>Seleccione un docente</option>
-                                                    <!--Aqui se inyectaran las opciones -->
-                                                   
-                                                    </select>
-                                                <script>
-                                                            // Inicializar Select2 Materia
-                                                        $(document).ready(function () {
-                                                            $('#listaDocente').select2({
-                                                                width: '82%'  
-                                                            });
-                                                            // evento que escucha el cambio y manda la clave al campo clave
-                                                            $('#listaDocente').on('change', function () {
-                                                                const clave = $(this).val(); 
-                                                                $('#claveDocente').val(clave);
-                                                            });
-                                                        });
-                                                </script>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="claveDocente" class="form-label">Clave</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
-                                                    <input 
-                                                        type="text"
-                                                        id="claveDocente" 
-                                                        class="form-control" 
-                                                        style="flex: .95 1 auto !important;"
-                                                        disabled>
-                                                </div>
-                                            </div>
-                                        </div>
-                                </div>
-                                <!--termina primera seccion-->
-                                <!--Inicia seccion-->
-
-                                     <div class="row g-3 m-auto">
-                                            <!-- Campo: Periodo -->
-                                            <!--inicia lado izquierdo-->
-                                            <div class=" col-md-5-5 bg-light border rounded p-3 margin-derecha margin-izquierda ">
+                                        <!--inicia lado derecho PERIODO-->
+                                           <div class=" col-md-5-5 bg-light border rounded p-3  margin-izquierda ">
                                                 <div class="mb-3">
                                                     <label for="listaDocente" class="form-label">Periodo</label>
                                                     <div class="input-group">
                                                         <span class="input-group-text bg-blue-light"><i class="fas fa-calendar"></i></span>
-                                                        <select id="listaPeriodo" class="form-select listaDespliege " onchange="retrasoSelect('IdEstado', 'btnAgregarOferta', 'oferta','mb-3' )">
+                                                        <select id="listaPeriodo" class="form-select listaDespliege " onchange="retrasoSelect('IdPeriod', 'btnAgregarOferta', 'oferta','mb-3' )">
                                                         <option disabled selected>Seleccione un Periodo</option>
                                                         <!--Aqui se inyectaran las opciones -->
-                                                       
+                                                        
                                                         </select>
                                                         <script>
                                                                 // Inicializar Select2 Materia
@@ -231,7 +143,7 @@
                                                                 // evento que escucha el cambio y manda el dato al campo estado
                                                                 $('#listaPeriodo').on('change', function () {
                                                                     const estatus = $(this).val(); 
-                                                                    $('#IdEstado').val(estatus);
+                                                                    $('#IdPeriod').val(estatus);
                                                                 });
                                                             });
                                                         </script>
@@ -241,23 +153,68 @@
                                                 <!--termina periodo-->
                                                 <!--incia campo clave-->
                                                 <div class="mb-3">
-                                                    <label for="IdEstado" class="form-label">Id periodo</label>
+                                                    <label for="IdPeriod" class="form-label">Id periodo</label>
                                                     <div class="input-group">
                                                         <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
                                                         <input 
                                                             type="text"
-                                                            id="IdEstado" 
+                                                            id="IdPeriod" 
                                                             class="form-control" 
                                                             style="flex: .95 1 auto !important;"
                                                             disabled>
                                                     </div>
                                                 </div>
                                             </div>
-                                                <!--termina lado izquierdo-->
-                                                <!--Comienza lado derecho-->
-                                                <!-- Campo: Materia -->
+                                            <!--termina lado derecho-->
+                                 </div><!--termina primera seccion-->
 
-                                                <div class="col-md-5-5 bg-light border rounded p-3 margin-izquierda">
+                                 <!-- Semestre,grupo y turno -->
+                        <div class="mb-1 mt-2 ">
+                            <div class="row g-2">
+                                  <!-- Campo: Semestre -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="idSemestre" class="form-label">Semestre</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-blue-light"><i class="bi bi-bar-chart-line"></i></span>
+                                        <input type="number"
+                                            class="form-control" 
+                                            oninput="verificarEntradasOferta('idSemestre', 'btnAgregarOferta', 'col-md-4')"
+                                            id="idSemestre" 
+                                            placeholder="Ingrese el semestre" required>
+                                    </div>
+                                </div>
+                                <!-- Campo: Grupo -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="idGrupo" class="form-label">Grupo</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-blue-light"><i class="bi bi-people"></i></span>
+                                        <input type="text"
+                                               style="text-transform: uppercase;" 
+                                                id="idGrupo"
+                                                oninput="verificarEntradasOferta('idGrupo', 'btnAgregarOferta', 'col-md-4')"
+                                                maxlength="1"
+                                                class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                   <label for="turno" class="form-label">Turno</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-blue-light"><i class="bi bi-clock"></i></span>
+                                        <select class="form-select listaDespliege" id="turno" onchange="retrasoSelect('turno', 'btnAgregarOferta', 'oferta','col-md-4' )">
+                                            <option disabled selected>Seleccione un turno</option>
+                                            <option value="matutino">Matutino</option>
+                                            <option value="vespertino">Vespertino</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!-- Termina Semestre,grupo y turno -->
+                                
+                                <!--Inicia seccion materia y docente-->
+                                     <div class="row g-3 m-auto" id="camposVacios">
+                                            <!-- Campo: materia -->
+                                            <!--inicia lado izquierdo-->
+                                                <div class="col-md-5-5 bg-light border rounded p-3 margin-derecha margin-izquierda">
                                                      <div class="mb-3">
                                                         <label for="listaMateria" class="form-label">Nombre Materia</label>
                                                         <div class="input-group">
@@ -265,7 +222,7 @@
                                                         <select id="listaMateria" class="form-select listaDespliege" onchange="retrasoSelect('claveMateria', 'btnAgregarOferta', 'oferta','mb-3' )">
                                                             <option disabled selected>Seleccione una Materia</option>
                                                         <!-- aqui se inyectan las option-->
-                                                           
+                                                            
                                                             </select>
                                                              <script>
                                                                         // Inicializar Select2 Materia
@@ -283,7 +240,7 @@
                                                         </div>
                                                     </div>
 
-                                                <!--Inicia campo clave-->
+                                                <!--Inicia campo clave materia-->
 
                                                     <div class="mb-3">
                                                         <label for="claveMateria" class="form-label">Clave</label>
@@ -300,11 +257,53 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                               
-                                        </div>
-                                         <!--Terminan campos de select-->
+                                                <!--Terminan campo Izquierdo-->
+                                                 
+                                                <!--Inicia campo derecho Campo docente-->
+                                                <div class=" col-md-5-5 bg-light border rounded p-3 margin-izquierda">
+                                            <div class="mb-3  ">
+                                                <label for="listaDocente" class="form-label">Nombre Docente</label>
+                                                <div class="input-group">
+                                                
+                                                    <span class="input-group-text bg-blue-light"><i class="fas fa-chalkboard-teacher"></i></span>
+                                                    <select id="listaDocente" class="form-select listaDespliege " onchange="retrasoSelect('claveDocente', 'btnAgregarOferta', 'oferta','mb-3' )">
+                                                    <option disabled selected>Seleccione un docente</option>
+                                                    <!--Aqui se inyectaran las opciones -->
+                                                  
+                                                    </select>
+                                                <script>
+                                                            // Inicializar Select2 Materia
+                                                        $(document).ready(function () {
+                                                            $('#listaDocente').select2({
+                                                                width: '82%'  
+                                                            });
+                                                            // evento que escucha el cambio y manda la clave al campo clave
+                                                            $('#listaDocente').on('change', function () {
+                                                                const clave = $(this).val(); 
+                                                                $('#claveDocente').val(clave);
+                                                            });
+                                                        });
+                                                </script>
+                                                </div>
+                                            </div>
+                                             <!--Inicia campo derecho Campo CLAVE docente-->
+                                            <div class="mb-3">
+                                                <label for="claveDocente" class="form-label">Clave</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
+                                                    <input 
+                                                        type="text"
+                                                        id="claveDocente" 
+                                                        class="form-control" 
+                                                        style="flex: .95 1 auto !important;"
+                                                        disabled>
+                                                </div>
+                                            </div>
+                                        </div>        
+                                     </div>
+                                     <!--TERMINA FORMULARIO>-->
 
-                                         <!--comienza tabla-->
+                                      <!--BOTON AGREGAR A TABLA>-->
                         
                         <div class="row">
                             <div class="col-12 separarBotones2 gap-2">
