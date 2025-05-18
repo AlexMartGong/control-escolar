@@ -1,3 +1,29 @@
+<?php
+require '../../../Modelo/BD/ConexionBD.php';
+require '../../../Modelo/BD/ModeloBD.php';
+require '../../../Modelo/DAOs/OfertaDAO.php';
+
+$objBD = new ConexionBD($DatosBD);
+$pdo = $objBD->Conectar();
+$objOfDAO = new OfertaDAO($pdo);
+
+// Obtener siguiente ID
+$siguienteID = $objOfDAO->obtenerSiguienteIDOferta();
+
+// Consultas para llenar los selects
+$consultaCarrera = $pdo->query("SELECT claveCarrera, nombre FROM carrera");
+$carreras = $consultaCarrera->fetchAll(PDO::FETCH_ASSOC);
+
+$consultaDocente = $pdo->query("SELECT claveDocente, nombre FROM docente");
+$docentes = $consultaDocente->fetchAll(PDO::FETCH_ASSOC);
+
+$consultaMateria = $pdo->query("SELECT claveMateria, nombre FROM materia");
+$materias = $consultaMateria->fetchAll(PDO::FETCH_ASSOC);
+
+$consultaPeriodo = $pdo->query("SELECT idPeriodo, periodo FROM periodo");
+$periodos = $consultaPeriodo->fetchAll(PDO::FETCH_ASSOC);
+?>
+
 <link rel="stylesheet" href="../css/styleInterno.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
                     <!--estilos para las etiquetas </select>-->
@@ -47,6 +73,7 @@
                                             class="form-control" 
                                             id="idOferta" 
                                             oninput=""
+                                            value="<?= $siguienteID ?>"
                                             disabled>
                                     </div> 
                                 </div>
@@ -86,6 +113,9 @@
                                                         echo "<option value='$d[0]' data-clave='$d[0]'>$d[1]</option>";
                                                     }*/
                                                     ?>
+                                                    <?php foreach ($carreras as $c): ?>
+                                                    <option value="<?= $c['claveCarrera'] ?>"><?= $c['nombre'] ?></option>
+                                                    <?php endforeach; ?>
                                                    
                                                 </select>
                                                     <script>
@@ -132,7 +162,9 @@
                                                         <select id="listaPeriodo" class="form-select listaDespliege " onchange="retrasoSelect('IdPeriod', 'btnAgregarOferta', 'oferta','mb-3' )">
                                                         <option disabled selected>Seleccione un Periodo</option>
                                                         <!--Aqui se inyectaran las opciones -->
-                                                        
+                                                        <?php foreach ($periodos as $c): ?>
+                                                        <option value="<?= $c['idPeriodo'] ?>"><?= $c['periodo'] ?></option>
+                                                        <?php endforeach; ?>
                                                         </select>
                                                         <script>
                                                                 // Inicializar Select2 Materia
@@ -222,7 +254,9 @@
                                                         <select id="listaMateria" class="form-select listaDespliege" onchange="retrasoSelect('claveMateria', 'btnAgregarOferta', 'oferta','mb-3' )">
                                                             <option disabled selected>Seleccione una Materia</option>
                                                         <!-- aqui se inyectan las option-->
-                                                            
+                                                            <?php foreach ($materias as $m): ?>
+                                                                <option value="<?= $m['claveMateria'] ?>"><?= $m['nombre'] ?></option>
+                                                            <?php endforeach; ?>
                                                             </select>
                                                              <script>
                                                                         // Inicializar Select2 Materia
@@ -269,7 +303,10 @@
                                                     <select id="listaDocente" class="form-select listaDespliege " onchange="retrasoSelect('claveDocente', 'btnAgregarOferta', 'oferta','mb-3' )">
                                                     <option disabled selected>Seleccione un docente</option>
                                                     <!--Aqui se inyectaran las opciones -->
-                                                  
+                                                        <?php foreach ($docentes as $d): ?>
+                                                            <option value="<?= $d['claveDocente'] ?>"><?= $d['nombre'] ?></option>
+                                                        <?php endforeach; ?>
+
                                                     </select>
                                                 <script>
                                                             // Inicializar Select2 Materia
@@ -399,6 +436,9 @@
                     }); 
             </script>
         </div>
+<script>
+  let siguienteID = <?= $siguienteID ?>;
+</script>
 
 
 

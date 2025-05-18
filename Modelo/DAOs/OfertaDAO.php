@@ -13,6 +13,140 @@ class OfertaDAO
     }
 
     /**
+     * Función para obtener el siguiente ID de periodo.
+     * Llama al procedimiento almacenado spMostrarSiguienteIDPeriodo para obtener el siguiente ID.
+     * @return int - El siguiente ID de periodo.
+     * @throws PDOException - Si ocurre un error al ejecutar la consulta.
+     */
+function obtenerSiguienteIDOferta()
+{
+    $c = $this->conector;
+
+    try {
+        $sp = $c->prepare("CALL spMostrarSiguienteIDOferta(@mensaje)");
+        $sp->execute();
+
+        $resultadoID = $sp->fetch(PDO::FETCH_ASSOC);
+        $siguienteID = $resultadoID['siguiente_id'] ?? null;
+
+        $sp->closeCursor();
+
+        if ($siguienteID === null) {
+            throw new Exception("El SP no devolvió un siguiente_id");
+        }
+
+        // Obtener el mensaje (opcional)
+        $selectMensaje = $c->query("SELECT @mensaje AS mensaje");
+        $resultadoMensaje = $selectMensaje->fetch(PDO::FETCH_ASSOC);
+        $mensaje = $resultadoMensaje['mensaje'];
+
+        // Puedes usar esto para logging, pero no como criterio principal
+        return $siguienteID;
+
+    } catch (PDOException $e) {
+        die("Error al llamar spMostrarSiguienteIDOferta: " . $e->getMessage());
+    } catch (Exception $e) {
+        die("Error: " . $e->getMessage());
+    }
+}
+
+
+
+    /**
+     * Función para agregar un periodo.
+     * @param object $datos - Objeto con los datos de la oferta a agregar.
+     * @return array - Estado de la operación y mensaje.
+     */
+    public function AgregarOferta($datos)
+{
+    $clave = $datos->clave;
+    $semestre = $datos->semestre;
+    $grupo = $datos->grupo;
+    $turno = $datos->turno;
+    $claveCarrera = $datos->claveCarrera;
+    $claveMateria = $datos->claveMateria;
+    $idPeriodo = $datos->idPeriodo;
+    $claveDocente = $datos->claveDocente;
+
+    try {
+        $stmt = $this->conector->prepare("
+            CALL spAgregarOferta(
+                :clave,
+                :semestre, 
+                :grupo, 
+                :turno, 
+                :claveCarrera, 
+                :claveMateria, 
+                :idPeriodo, 
+                :claveDocente, 
+                @mensaje
+            )
+        ");
+
+        $stmt->bindParam(':clave', $clave, PDO::PARAM_STR);
+        $stmt->bindParam(':semestre', $semestre, PDO::PARAM_INT);
+        $stmt->bindParam(':grupo', $grupo, PDO::PARAM_STR);
+        $stmt->bindParam(':turno', $turno, PDO::PARAM_STR);
+        $stmt->bindParam(':claveCarrera', $claveCarrera, PDO::PARAM_STR);
+        $stmt->bindParam(':claveMateria', $claveMateria, PDO::PARAM_STR);
+        $stmt->bindParam(':idPeriodo', $idPeriodo, PDO::PARAM_INT);
+        $stmt->bindParam(':claveDocente', $claveDocente, PDO::PARAM_STR);
+
+        $stmt->execute();
+
+        $select = $this->conector->query("SELECT @mensaje AS mensaje");
+        $resultado = $select->fetch(PDO::FETCH_ASSOC);
+        $mensaje = $resultado['mensaje'];
+
+        if (strpos($mensaje, 'Exito') !== false) {
+            return [
+                'estado' => 'OK',
+                'mensaje' => 'Registro guardado correctamente.'
+            ];
+        } else {
+            return [
+                'estado' => 'ERROR',
+                'mensaje' => $mensaje
+            ];
+        }
+    } catch (PDOException $e) {
+        return [
+            'estado' => 'ERROR',
+            'mensaje' => 'Excepción: ' . $e->getMessage()
+        ];
+    }
+}
+//Funcion para verificar si ya hay una oferta con los mismos datos
+public function OfertaYaExiste($datos)
+{
+    try {
+        $sql = "SELECT COUNT(*) FROM oferta 
+                WHERE semestre = :semestre 
+                AND grupo = :grupo 
+                AND turno = :turno 
+                AND claveCarrera = :claveCarrera 
+                AND claveMateria = :claveMateria 
+                AND idPeriodo = :idPeriodo 
+                AND claveDocente = :claveDocente";
+
+        $stmt = $this->conector->prepare($sql);
+        $stmt->bindParam(':semestre', $datos->semestre);
+        $stmt->bindParam(':grupo', $datos->grupo);
+        $stmt->bindParam(':turno', $datos->turno);
+        $stmt->bindParam(':claveCarrera', $datos->claveCarrera);
+        $stmt->bindParam(':claveMateria', $datos->claveMateria);
+        $stmt->bindParam(':idPeriodo', $datos->idPeriodo);
+        $stmt->bindParam(':claveDocente', $datos->claveDocente);
+        $stmt->execute();
+
+        return $stmt->fetchColumn() > 0;
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+
+    /**
      * Función para mostrar todos las ofertas registradas en el sistema.
      * Llama al procedimiento almacenado spMostrarOferta.
      * 

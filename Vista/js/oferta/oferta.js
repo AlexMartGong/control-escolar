@@ -193,7 +193,7 @@ function intentarGuardarDatosOferta(opc) {
     if (opc === "add") {
       //aqui se genera la funcion para validar si la oferta ya existe retorna un true o false
       // si todo esta bien se realiza la funcion para aguardar la oferta y se limpia el formulario
-      mostrarDatosGuardados("Exito"); // esta se cambia por la funcion que se nesesita para guardar
+      guardarNuevaOferta(); // esta se cambia por la funcion que se nesesita para guardar
       deshabilitarboton(true, "btnGuardarJ");
       limpiarTablaall();
     }
@@ -410,7 +410,7 @@ function evaluarEstadoFormulariooferta(idbtn) {
 function agregarOfertaTabla() {
   const tablaOferta = $("#TablaDatosOferta").DataTable();
 
-  const idOferta = $("#idOferta").val();
+  const idOferta = siguienteID++;
   const semestre = $("#idSemestre").val();
   const estado = $('input[name="estado"]:checked').val();
   const grupo = $("#idGrupo").val();
@@ -423,45 +423,64 @@ function agregarOfertaTabla() {
   const idPeriodo = $("#IdPeriod").val();
   const nombreMateria = $("#listaMateria option:selected").text();
   const claveMateria = $("#claveMateria").val();
-  const botonAcciones = `
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-danger" title="Eliminar" onclick="eliminarFila(this)">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                        `;
 
-  const badgeEstado =
-    estado === "No asignado"
-      ? '<span class="badge bg-success">Asigando</span>'
-      : '<span class="badge bg-danger">No asignado</span>';
+  // parte agregada para verificar si la oferta ya existe en la bd
+  const datosOferta = {
+    semestre: parseInt(semestre),
+    grupo: grupo,
+    turno: turno,
+    claveCarrera: claveCarrera,
+    claveMateria: claveMateria,
+    idPeriodo: parseInt(idPeriodo),
+    claveDocente: claveDocente
+  };
 
-  // Insertar la fila
-  tablaOferta.row
-    .add([
-      idOferta,
-      semestre,
-      badgeEstado,
-      grupo,
-      turno,
-      nombreCarrera,
-      claveCarrera,
-      nombreDocente,
-      claveDocente,
-      periodo,
-      idPeriodo,
-      nombreMateria,
-      claveMateria,
-      botonAcciones,
-    ])
-    .draw(false);
-  HayFilasEnTabla();
+  verificarOfertaExiste(datosOferta, function (existeEnBD) {
+    if (existeEnBD) {
+      mostrarErrorCaptura("Esta oferta ya existe en la base de datos.");
+      return;
+    }
+    //fin parte agregada
+    
+    const botonAcciones = `
+      <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn btn-danger" title="Eliminar" onclick="eliminarFila(this)">
+              <i class="fas fa-trash-alt"></i>
+          </button>
+      </div>
+    `;
 
-  //limpio partes del form
-  $('#camposVacios input').val('');
-  $('#listaMateria').val('Seleccione una Materia').trigger('change.select2');
-  $('#listaDocente').val('Seleccione un docente').trigger('change.select2');
+    const badgeEstado =
+      estado === "No asignado"
+        ? '<span class="badge bg-success">Asignado</span>'
+        : '<span class="badge bg-danger">No asignado</span>';
 
+    tablaOferta.row
+      .add([
+        idOferta,
+        semestre,
+        badgeEstado,
+        grupo,
+        turno,
+        nombreCarrera,
+        claveCarrera,
+        nombreDocente,
+        claveDocente,
+        periodo,
+        idPeriodo,
+        nombreMateria,
+        claveMateria,
+        botonAcciones
+      ])
+      .draw(false);
+
+    HayFilasEnTabla();
+
+    // Limpiar campos
+    $('#camposVacios input').val('');
+    $('#listaMateria').val('Seleccione una Materia').trigger('change.select2');
+    $('#listaDocente').val('Seleccione un docente').trigger('change.select2');
+  });
 }
 
 // funcion para eliminar la fila de la tabla
@@ -645,3 +664,61 @@ function changeStatusOferta(id, status, currentStatus) {
       });
     });
 }
+function guardarNuevaOferta() {
+  const tabla = $("#TablaDatosOferta").DataTable();
+  const filas = tabla.rows().data();
+  const datosEnviar = [];
+
+  for (let i = 0; i < filas.length; i++) {
+    const fila = filas[i];
+
+    datosEnviar.push({
+      clave: fila[0],
+      semestre: fila[1],
+      grupo: fila[3],
+      turno: fila[4],
+      claveCarrera: fila[6],
+      claveDocente: fila[8],
+      idPeriodo: fila[10],
+      claveMateria: fila[12]
+    });
+  }
+
+  fetch("../../Controlador/Intermediarios/Oferta/AgregarOferta.php", {
+    method: "POST",
+    body: JSON.stringify(datosEnviar),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+    .then(res => res.json())
+    .then(respuesta => {
+      console.log("Respuesta:", respuesta);
+      if (respuesta.estado === "OK") {
+        mostrarDatosGuardados(respuesta.mensaje);
+      } else {
+        mostrarErrorCaptura(respuesta.mensaje);
+      }
+    })
+    .catch(err => {
+      console.error("Error:", err);
+      mostrarErrorCaptura("Error al guardar las ofertas.");
+    });
+}
+function verificarOfertaExiste(datos, callback) {
+  $.ajax({
+    url: "../../Controlador/Intermediarios/Oferta/VerificarOfertaExistente.php",
+    method: "POST",
+    data: JSON.stringify(datos),
+    contentType: "application/json",
+    dataType: "json",
+    success: function (respuesta) {
+      callback(respuesta.existe);
+    },
+    error: function () {
+      mostrarErrorCaptura("Error al verificar la oferta.");
+      callback(true); // asumimos que existe para no arriesgar
+    }
+  });
+}
+
