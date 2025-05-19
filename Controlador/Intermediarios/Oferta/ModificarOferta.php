@@ -46,9 +46,9 @@ try {
     } elseif (isset($datos['Modificar']) && filter_var($datos['Modificar'], FILTER_VALIDATE_BOOLEAN)) {
 
         // Validar que todos los datos necesarios estén presentes
-        if (isset($$datos['idOferta'], $datos['semestre'], $datos['grupo'], $datos['turno'], $datos['claveCarrera'], $datos['claveMateria'], $datos['idPeriodo'], $datos['claveDocente'])) 
+        if (isset($datos['idOferta'], $datos['semestre'], $datos['grupo'], $datos['turno'], $datos['claveCarrera'], $datos['claveMateria'], $datos['idPeriodo'], $datos['claveDocente'])) 
                 {
-            error_log("Realizando modificación para la Carrera;" . $datos);
+            
 
             // Llamar al método ModificarCarrera del DAO con los datos proporcionados
             $resultado = $objDaoOferta->ModificarOferta(
@@ -73,6 +73,7 @@ try {
         } else {
             // Faltan datos para realizar la modificación
             $resultado = ['success' => false, 'mensaje' => "No se encontraron los datos de la oferta que intentas modificar. Por favor, intenta de nuevo."];
+            error_log("Datos: " . print_r($datos, true));
         }
     } else {
         // Ni Buscar ni Modificar fueron especificados correctamente

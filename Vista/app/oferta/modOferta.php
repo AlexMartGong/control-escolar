@@ -18,6 +18,7 @@ $pclaveCarrera = $_POST['claveCarrera'] ?? null;
 
 if ($pclaveCarrera) {
     $Materias = $objOfDAO->BuscarMateriasporCarrera($pclaveCarrera);
+    error_log("Respuesta de materias: " . print_r($Materias, true));
 }
 
 $Docentes = $objOfDAO->BuscarDocentesActivos()
@@ -103,19 +104,17 @@ $Docentes = $objOfDAO->BuscarDocentesActivos()
                                     <label for="listaCarrera" class="form-label">Nombre Carrera</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-blue-light"><i class="bi bi-mortarboard"></i></span>
-                                        <select id="listaCarrera" class="form-select listaDespliege " onchange="retrasoSelect('claveCarrera', 'btnGuardarJ', 'oferta','mb-3' )">
-                                            <option disabled selected>Seleccione una carrera</option>
-
+                                        <select id="listaCarrera" class="form-select listaDespliege" onchange="cargarMateriasPorCarrera()">
                                             <option disabled selected>Seleccione una carrera</option>
                                             <?php if (!empty($Carreras['datos'])): ?>
                                                 <?php foreach ($Carreras['datos'] as $carrera): ?>
-                                                    <option value="<?= $carrera['nombre_de_carrera'] ?>" <?= ($pclaveCarrera == $carrera['nombre_de_carrera']) ? 'selected' : '' ?>>
+                                                    <option value="<?= $carrera['clave_de_carrera'] ?>">
                                                         <?= $carrera['nombre_de_carrera'] ?>
                                                     </option>
                                                 <?php endforeach; ?>
                                             <?php endif; ?>
-
                                         </select>
+
                                         <script>
                                             // Inicializar Select2 Materia
                                             $(document).ready(function() {
@@ -159,11 +158,12 @@ $Docentes = $objOfDAO->BuscarDocentesActivos()
                                         <span class="input-group-text bg-blue-light"><i class="fas fa-calendar"></i></span>
                                         <select id="listaPeriodo" class="form-select listaDespliege " onchange="retrasoSelect('IdPeriod', 'btnGuardarJ', 'oferta','mb-3' )">
                                             <option disabled selected>Seleccione un Periodo</option>
-                                            <option disabled selected>Seleccione un Periodo</option>
 
                                             <?php if (!empty($Periodos['datos'])): ?>
                                                 <?php foreach ($Periodos['datos'] as $periodo): ?>
-                                                    <option value="<?= $periodo['periodo'] ?>"><?= $periodo['periodo'] ?></option>
+                                                    <option value="<?= $periodo['clave_periodo'] ?>">
+                                                        <?= $periodo['periodo'] ?>
+                                                    </option>
                                                 <?php endforeach; ?>
                                             <?php endif; ?>
 
@@ -257,13 +257,6 @@ $Docentes = $objOfDAO->BuscarDocentesActivos()
                                         <select id="listaMateria" class="form-select listaDespliege" onchange="retrasoSelect('claveMateria', 'btnGuardarJ', 'oferta','mb-3' )">
                                             <option disabled selected>Seleccione una Materia</option>
 
-                                            <option disabled selected>Seleccione una Materia</option>
-                                            <?php if (!empty($Materias['datos'])): ?>
-                                                <?php foreach ($Materias['datos'] as $materia): ?>
-                                                    <option value="<?= $materia['nombre_de_materia'] ?>"><?= $materia['nombre_de_materia'] ?></option>
-                                                <?php endforeach; ?>
-                                            <?php endif; ?>
-
                                         </select>
                                         <script>
                                             // Inicializar Select2 Materia
@@ -312,7 +305,9 @@ $Docentes = $objOfDAO->BuscarDocentesActivos()
 
                                             <?php if (!empty($Docentes['datos'])): ?>
                                                 <?php foreach ($Docentes['datos'] as $docente): ?>
-                                                    <option value="<?= $docente['docente'] ?>"><?= $docente['docente'] ?></option>
+                                                    <option value="<?= $docente['clave_de_docente'] ?>">
+                                                        <?= $docente['docente'] ?>
+                                                    </option>
                                                 <?php endforeach; ?>
                                             <?php endif; ?>
 

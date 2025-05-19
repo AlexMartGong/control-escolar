@@ -856,3 +856,46 @@ function ModificarOferta() {
     );
   });
 }
+
+function cargarMateriasPorCarrera() {
+    const claveCarrera = document.getElementById('listaCarrera').value;
+    
+    fetch('../../Controlador/Intermediarios/Materia/BuscarMaterias.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'claveCarrera=' + encodeURIComponent(claveCarrera)
+    })
+    .then(response => {
+        
+        return response.text(); // Primero obtenemos el texto para debug
+    })
+    .then(text => {
+        
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error('Error parseando JSON:', e);
+            throw e;
+        }
+        console.log('Datos parseados:', data);
+
+        const listaMateria = document.getElementById('listaMateria');
+        listaMateria.innerHTML = '<option disabled selected>Seleccione una Materia</option>';
+
+        if (data.estado === 'OK') {
+            data.datos.forEach(materia => {
+                const option = document.createElement('option');
+                option.value = materia.clave_de_materia;
+                option.textContent = materia.nombre_de_materia;
+                listaMateria.appendChild(option);
+            });
+        } else {
+            alert(data.mensaje || 'No se pudieron cargar las materias.');
+        }
+    })
+    .catch(error => {
+        console.error('Error al cargar materias:', error);
+    });
+}
+

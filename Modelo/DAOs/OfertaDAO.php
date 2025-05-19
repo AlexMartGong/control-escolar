@@ -666,9 +666,9 @@ class OfertaDAO
         try {
             // Ejecutar procedimiento almacenado con parámetro de entrada y salida
             $sp = $c->prepare("CALL spBuscarMateriasByIDCarrera(:pclave, @mensaje)");
-            $sp->bindParam(':pclave', $pclave, PDO::PARAM_INT);
+            $sp->bindParam(':pclave', $pclave, PDO::PARAM_STR);
             $sp->execute();
-
+            
             // Obtener datos devueltos por el SELECT del procedimiento
             $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
             $sp->closeCursor(); // Liberar recursos del cursor
