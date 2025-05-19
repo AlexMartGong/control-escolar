@@ -57,8 +57,8 @@
                                         <div class="input-group">
                                             <span class="input-group-text bg-blue-light"><i class="fas fa-check-circle"></i></span>
                                             <select  class="form-control" disabled id="perfil_Id" >
-                                                <option value="No asignado" selected>No asignada</option>
-                                                <option value="Asigando">Asiganda</option>
+                                                <option value="No asignada'" selected>No asignada'</option>
+                                                <option value="Asignada">Asignada</option>
                                             </select>
                                         </div>
                                     </div>
@@ -201,8 +201,8 @@
                                         <span class="input-group-text bg-blue-light"><i class="bi bi-clock"></i></span>
                                         <select class="form-select listaDespliege" id="turno" onchange="retrasoSelect('turno', 'btnGuardarJ', 'oferta','col-md-4' )">
                                             <option disabled selected>Seleccione un turno</option>
-                                            <option value="matutino">Matutino</option>
-                                            <option value="vespertino">Vespertino</option>
+                                            <option value="Matutino">Matutino</option>
+                                            <option value="Vespertino">Vespertino</option>
                                         </select>
                                     </div>
                                 </div>

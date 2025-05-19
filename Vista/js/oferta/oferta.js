@@ -30,10 +30,15 @@ function loadFormOferta(opc, id = "") {
             .html(responseText)
             .hide()
             .fadeIn(500, function () {
-              /*
 
-                
-             */
+              if (opc === "modOferta" && id !== "") {
+                BuscarOferta(id);
+              } else {
+                console.warn(
+                  "NO se llama BuscarOferta. Condición no cumplida."
+                );
+              }
+
             })
             .css("transform", "translateY(-10px)")
             .animate(
@@ -199,7 +204,9 @@ function intentarGuardarDatosOferta(opc) {
     }
     // si el caso es de modifcacion aqui se manda a llamar la funcion para modificar.
     else if (opc === "mod") {
-      mostrarDatosGuardados("Datos exito Modificados");
+      
+      ModificarOferta();
+
     }
   } catch (error) {
     // en caso de una falla se deabilita el boton y se muestra el modal con el problema
@@ -432,7 +439,7 @@ function agregarOfertaTabla() {
     claveCarrera: claveCarrera,
     claveMateria: claveMateria,
     idPeriodo: parseInt(idPeriodo),
-    claveDocente: claveDocente
+    claveDocente: claveDocente,
   };
 
   verificarOfertaExiste(datosOferta, function (existeEnBD) {
@@ -441,7 +448,7 @@ function agregarOfertaTabla() {
       return;
     }
     //fin parte agregada
-    
+
     const botonAcciones = `
       <div class="btn-group btn-group-sm" role="group">
           <button type="button" class="btn btn-danger" title="Eliminar" onclick="eliminarFila(this)">
@@ -470,16 +477,16 @@ function agregarOfertaTabla() {
         idPeriodo,
         nombreMateria,
         claveMateria,
-        botonAcciones
+        botonAcciones,
       ])
       .draw(false);
 
     HayFilasEnTabla();
 
     // Limpiar campos
-    $('#camposVacios input').val('');
-    $('#listaMateria').val('Seleccione una Materia').trigger('change.select2');
-    $('#listaDocente').val('Seleccione un docente').trigger('change.select2');
+    $("#camposVacios input").val("");
+    $("#listaMateria").val("Seleccione una Materia").trigger("change.select2");
+    $("#listaDocente").val("Seleccione un docente").trigger("change.select2");
   });
 }
 
@@ -591,7 +598,7 @@ function changeStatusOferta(id, status, currentStatus) {
   document.getElementById("btnCancelar").addEventListener("click", function () {
     // Resetear el select al cancelar
     const selectElement = document.querySelector(
-      `select[onchange="changeStatusCarrera('${id}', this.value, '${currentStatus}')"]`
+      `select[onchange="changeStatusOferta('${id}', this.value, '${currentStatus}')"]`
     );
     if (selectElement) {
       selectElement.value = currentStatus;
@@ -601,7 +608,7 @@ function changeStatusOferta(id, status, currentStatus) {
   // También resetear al cerrar el modal con la X o haciendo clic fuera
   modalElement.addEventListener("hidden.bs.modal", function () {
     const selectElement = document.querySelector(
-      `select[onchange="changeStatusCarrera('${id}', this.value, '${currentStatus}')"]`
+      `select[onchange="changeStatusOferta('${id}', this.value, '${currentStatus}')"]`
     );
     if (selectElement) {
       selectElement.value = currentStatus;
@@ -625,7 +632,7 @@ function changeStatusOferta(id, status, currentStatus) {
       // Convertir a JSON
       let json = JSON.stringify(data);
 
-      console.log(`Cambiando estado de carrera ${id} a ${status}`);
+      console.log(`Cambiando estado de oferta ${id} a ${status}`);
 
       // Realizar petición AJAX para cambiar el estado
       $.ajax({
@@ -680,7 +687,7 @@ function guardarNuevaOferta() {
       claveCarrera: fila[6],
       claveDocente: fila[8],
       idPeriodo: fila[10],
-      claveMateria: fila[12]
+      claveMateria: fila[12],
     });
   }
 
@@ -688,11 +695,11 @@ function guardarNuevaOferta() {
     method: "POST",
     body: JSON.stringify(datosEnviar),
     headers: {
-      "Content-Type": "application/json"
-    }
+      "Content-Type": "application/json",
+    },
   })
-    .then(res => res.json())
-    .then(respuesta => {
+    .then((res) => res.json())
+    .then((respuesta) => {
       console.log("Respuesta:", respuesta);
       if (respuesta.estado === "OK") {
         mostrarDatosGuardados(respuesta.mensaje);
@@ -700,7 +707,7 @@ function guardarNuevaOferta() {
         mostrarErrorCaptura(respuesta.mensaje);
       }
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Error:", err);
       mostrarErrorCaptura("Error al guardar las ofertas.");
     });
@@ -718,7 +725,134 @@ function verificarOfertaExiste(datos, callback) {
     error: function () {
       mostrarErrorCaptura("Error al verificar la oferta.");
       callback(true); // asumimos que existe para no arriesgar
-    }
+    },
   });
 }
 
+/*
+ * Función para buscar una Oferta por su ID.
+ * Envía una solicitud POST al servidor y, si tiene éxito, llena el formulario con los datos recibidos.
+ * Además, desactiva el campo de clave de materia para evitar su edición.
+ */
+function BuscarOferta(id) {
+  let url = "../../Controlador/Intermediarios/Oferta/ModificarOferta.php"; // Ruta al intermediario PHP
+
+  let datos = { id: id, Buscar: true }; // Objeto con parámetros de búsqueda
+  let json = JSON.stringify(datos); // Convertimos a formato JSON
+
+  // Enviamos la solicitud POST
+  $.post(
+    url,
+    json,
+    function (response, status) {
+      console.log("Respuesta del servidor:", response);
+      console.log("Datos enviados:", json);
+
+      // Validamos la respuesta del servidor
+      if (status === "success" && response.estado === "OK" && response.datos) {
+        console.log("Datos recibidos:", response.datos);
+
+        // Rellenamos el formulario con los datos de la carrera
+        document.getElementById("idOferta").value =
+          response.datos.clave_de_oferta;
+        document.getElementById("idSemestre").value = response.datos.semestre;
+        document.getElementById("idGrupo").value = response.datos.grupo;
+        document.getElementById("turno").value = response.datos.turno;
+        document.getElementById("claveCarrera").value =
+          response.datos.clave_de_carrera;
+        document.getElementById("claveMateria").value =
+          response.datos.clave_de_materia;
+        document.getElementById("IdPeriod").value =
+          response.datos.clave_periodo;
+        document.getElementById("claveDocente").value =
+          response.datos.clave_de_docente;
+        document.getElementById("perfil_Id").value = response.datos.estado;
+
+        //cargarNombresEnSelect("mod", response.datos.clave_de_carrera);
+      } else {
+        // Si no se encontró la materia, se muestra un mensaje
+        mostrarErrorCaptura(response.mensaje);
+      }
+    },
+    "json" // Especificamos que la respuesta esperada es JSON
+  ).fail(function (xhr, status, error) {
+    // Manejo de errores de conexión o servidor
+    console.error("Error en la solicitud POST:", xhr.responseText);
+    mostrarErrorCaptura("Error al buscar la Oferta.");
+  });
+}
+
+/*
+ * Función para modificar los datos de una Oferta existente.
+ */
+function ModificarOferta() {
+  // Capturamos y limpiamos los datos del formulario
+  const idOf = document.getElementById("idOferta").value.trim();
+  const semestre = document.getElementById("idSemestre").value.trim();
+  const grupo = document.getElementById("idGrupo").value.trim();
+  const turno = document.getElementById("turno").value.trim();
+  const claveCar = document.getElementById("claveCarrera").value.trim();
+  const claveMat = document.getElementById("claveMateria").value.trim();
+  const idP = document.getElementById("IdPeriod").value.trim();
+  const claveDoc = document.getElementById("claveDocente").value.trim();
+
+  // Validamos que todos los campos requeridos estén llenos
+  if (
+    !idOf ||
+    !semestre ||
+    !grupo ||
+    !turno ||
+    !claveCar ||
+    !claveMat ||
+    !idP ||
+    !claveDoc
+  ) {
+    mostrarFaltaDatos(
+      "Por favor, complete todos los campos obligatorios para continuar."
+    );
+    return;
+  }
+
+  // Construimos el objeto con los datos a enviar
+  let datos = {
+    idOferta: idOf,
+    semestre: semestre,
+    grupo: grupo,
+    turno: turno,
+    claveCarrera: claveCar,
+    claveMateria: claveMat,
+    idPeriodo: idP,
+    claveDocente: claveDoc,
+    Modificar: true,
+  };
+
+  let json = JSON.stringify(datos); // Convertimos a JSON
+  let url = "../../Controlador/Intermediarios/Oferta/ModificarOferta.php"; // URL del intermediario
+  console.log("Datos JSON enviados:", json);
+
+  // Enviamos la solicitud POST
+  $.post(
+    url,
+    json,
+    function (response, status) {
+      // Si la modificación fue exitosa, mostramos mensaje de éxito
+      if (response.success) {
+        mostrarDatosGuardados(response.mensaje, "");
+        option("oferta", ""); // Refrescamos o redirigimos según sea necesario
+      } else {
+        // Si hubo un error, lo mostramos al usuario
+        mostrarErrorCaptura(response.mensaje);
+      }
+    },
+    "json" // Indicamos que esperamos JSON como respuesta
+  ).fail(function (xhr, status, error) {
+    // Manejamos fallos de conexión o servidor
+    console.error(
+      "Error en la solicitud POST Modificar Oferta:",
+      xhr.responseText
+    );
+    mostrarErrorCaptura(
+      "No se pudo conectar con el servidor. Inténtelo más tarde."
+    );
+  });
+}
