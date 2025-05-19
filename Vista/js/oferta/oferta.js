@@ -766,7 +766,7 @@ function BuscarOferta(id) {
           response.datos.clave_periodo;
         document.getElementById("claveDocente").value =
           response.datos.clave_de_docente;
-        document.getElementById("perfil_Id").value = response.datos.estado;
+        document.getElementById("estado").value = response.datos.estado;
 
         //cargarNombresEnSelect("mod", response.datos.clave_de_carrera);
       } else {

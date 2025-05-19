@@ -545,4 +545,208 @@ class OfertaDAO
 
         return $resultado;
     }
+
+    /**
+     * Busca una carrera por su estado.
+     * Llama al procedimiento almacenado spBuscarCarreraByEstado.
+     *
+     * @param string $pestado estado de la carrera a buscar.
+     * @return array Retorna un array con el estado de la operación, mensaje y datos si se encuentra la carrera.
+     */
+    public function BuscarCarrerasActivas($pestado)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // Validar que el estado no esté vacío
+        if (empty($pestado)) {
+            $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
+            return $resultado;
+        }
+
+        try {
+            // Ejecutar procedimiento almacenado con parámetro de entrada y salida
+            $sp = $c->prepare("CALL spBuscarCarreraByEstado(:pestado, @mensaje)");
+            $sp->bindParam(':pestado', $pestado, PDO::PARAM_STR);
+            $sp->execute();
+
+            // Obtener datos devueltos por el SELECT del procedimiento
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar recursos del cursor
+
+            // Consultar el mensaje de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Evaluar mensaje de salida usando switch
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
+
+                case 'Error: No existe el registro con el Estado ':
+                    $resultado['mensaje'] = "Ocurrió un problema al obtener la información de las carreras activas. Por favor, intente de nuevo.";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Algo salió mal al intentar obtener la información de las carreras activas. Por favor, vuelva a intentarlo más tarde.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Registrar errores de la base de datos
+            error_log("Error en la base de datos (BuscarCarreraActiva): " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Busca todos los periodos con estado 'Abierto' o 'Pendiente'.
+     * Llama al procedimiento almacenado spMostrarPeriodos.
+     *
+     * @return array Retorna un array con el estado de la operación, mensaje y datos filtrados.
+     */
+    public function BuscarPeriodosActPen()
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        try {
+            // Ejecutar el procedimiento almacenado que devuelve todos los periodos
+            $sp = $c->prepare("CALL spMostrarPeriodos()");
+            $sp->execute();
+
+            // Obtener todos los registros como array
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar recursos del cursor
+
+            // Filtrar solo los periodos con estado 'Abierto' o 'Pendiente'
+            $filtrados = array_filter($datos, function ($periodo) {
+                return isset($periodo['estado']) &&
+                    ($periodo['estado'] === 'Abierto' || $periodo['estado'] === 'Pendiente');
+            });
+
+            // Verificar si se encontraron registros válidos
+            if (empty($filtrados)) {
+                $resultado['mensaje'] = "No se encontraron periodos con estado Abierto o Pendiente.";
+            } else {
+                $resultado['estado'] = "OK";
+                $resultado['datos'] = array_values($filtrados); // Reindexar el array
+            }
+        } catch (PDOException $e) {
+            // Registrar errores de la base de datos
+            error_log("Error en la base de datos (BuscarPeriodosActPen): " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Busca una materias por el id de una carrera.
+     * Llama al procedimiento almacenado spBuscarOfertaAllByID.
+     *
+     * @param string $pclave ID de la oferta a buscar.
+     * @return array Retorna un array con el estado de la operación, mensaje y datos si se encuentra la oferta.
+     */
+    public function BuscarMateriasporCarrera($pclave)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // Validar que el ID no esté vacío
+        if (empty($pclave)) {
+            $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
+            return $resultado;
+        }
+
+        try {
+            // Ejecutar procedimiento almacenado con parámetro de entrada y salida
+            $sp = $c->prepare("CALL spBuscarMateriasByIDCarrera(:pclave, @mensaje)");
+            $sp->bindParam(':pclave', $pclave, PDO::PARAM_INT);
+            $sp->execute();
+
+            // Obtener datos devueltos por el SELECT del procedimiento
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar recursos del cursor
+
+            // Consultar el mensaje de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Evaluar mensaje de salida usando switch
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Algo salió mal al intentar obtener la información de las materias. Por favor, vuelva a intentarlo más tarde.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Registrar errores de la base de datos
+            error_log("Error en la base de datos (BuscarMaterias): " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Obtiene solo los docentes activos desde el SP spMostrarDocentes.
+     *
+     * @return array Retorna un array con el estado de la operación, mensaje y datos filtrados.
+     */
+    public function BuscarDocentesActivos()
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        try {
+            // Ejecutar procedimiento almacenado (sin parámetros de entrada)
+            $sp = $c->prepare("CALL spMostrarDocentes(@mensaje)");
+            $sp->execute();
+
+            // Obtener todos los registros retornados
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor();
+
+            // Consultar el mensaje de salida
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Evaluar mensaje y filtrar los datos
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    // Filtrar los docentes que tengan estado = 'Activo'
+                    $activos = array_filter($datos, function ($docente) {
+                        return isset($docente['estado']) && $docente['estado'] === 'Activo';
+                    });
+
+                    $resultado['estado'] = 'OK';
+                    $resultado['datos'] = array_values($activos); // Reindexar el array
+                    break;
+
+                case 'Error: No hay registros':
+                    $resultado['mensaje'] = 'No hay docentes registrados.';
+                    break;
+
+                default:
+                    $resultado['mensaje'] = 'Ocurrió un problema al obtener los docentes.';
+                    break;
+            }
+        } catch (PDOException $e) {
+            error_log("Error en la base de datos (BuscarDocentesActivos): " . $e->getMessage());
+            $resultado['mensaje'] = 'Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.';
+        }
+
+        return $resultado;
+    }
 }
