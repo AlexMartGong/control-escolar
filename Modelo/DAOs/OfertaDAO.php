@@ -18,37 +18,36 @@ class OfertaDAO
      * @return int - El siguiente ID de periodo.
      * @throws PDOException - Si ocurre un error al ejecutar la consulta.
      */
-function obtenerSiguienteIDOferta()
-{
-    $c = $this->conector;
+    function obtenerSiguienteIDOferta()
+    {
+        $c = $this->conector;
 
-    try {
-        $sp = $c->prepare("CALL spMostrarSiguienteIDOferta(@mensaje)");
-        $sp->execute();
+        try {
+            $sp = $c->prepare("CALL spMostrarSiguienteIDOferta(@mensaje)");
+            $sp->execute();
 
-        $resultadoID = $sp->fetch(PDO::FETCH_ASSOC);
-        $siguienteID = $resultadoID['siguiente_id'] ?? null;
+            $resultadoID = $sp->fetch(PDO::FETCH_ASSOC);
+            $siguienteID = $resultadoID['siguiente_id'] ?? null;
 
-        $sp->closeCursor();
+            $sp->closeCursor();
 
-        if ($siguienteID === null) {
-            throw new Exception("El SP no devolvió un siguiente_id");
+            if ($siguienteID === null) {
+                throw new Exception("El SP no devolvió un siguiente_id");
+            }
+
+            // Obtener el mensaje (opcional)
+            $selectMensaje = $c->query("SELECT @mensaje AS mensaje");
+            $resultadoMensaje = $selectMensaje->fetch(PDO::FETCH_ASSOC);
+            $mensaje = $resultadoMensaje['mensaje'];
+
+            // Puedes usar esto para logging, pero no como criterio principal
+            return $siguienteID;
+        } catch (PDOException $e) {
+            die("Error al llamar spMostrarSiguienteIDOferta: " . $e->getMessage());
+        } catch (Exception $e) {
+            die("Error: " . $e->getMessage());
         }
-
-        // Obtener el mensaje (opcional)
-        $selectMensaje = $c->query("SELECT @mensaje AS mensaje");
-        $resultadoMensaje = $selectMensaje->fetch(PDO::FETCH_ASSOC);
-        $mensaje = $resultadoMensaje['mensaje'];
-
-        // Puedes usar esto para logging, pero no como criterio principal
-        return $siguienteID;
-
-    } catch (PDOException $e) {
-        die("Error al llamar spMostrarSiguienteIDOferta: " . $e->getMessage());
-    } catch (Exception $e) {
-        die("Error: " . $e->getMessage());
     }
-}
 
 
 
@@ -58,18 +57,18 @@ function obtenerSiguienteIDOferta()
      * @return array - Estado de la operación y mensaje.
      */
     public function AgregarOferta($datos)
-{
-    $clave = $datos->clave;
-    $semestre = $datos->semestre;
-    $grupo = $datos->grupo;
-    $turno = $datos->turno;
-    $claveCarrera = $datos->claveCarrera;
-    $claveMateria = $datos->claveMateria;
-    $idPeriodo = $datos->idPeriodo;
-    $claveDocente = $datos->claveDocente;
+    {
+        $clave = $datos->clave;
+        $semestre = $datos->semestre;
+        $grupo = $datos->grupo;
+        $turno = $datos->turno;
+        $claveCarrera = $datos->claveCarrera;
+        $claveMateria = $datos->claveMateria;
+        $idPeriodo = $datos->idPeriodo;
+        $claveDocente = $datos->claveDocente;
 
-    try {
-        $stmt = $this->conector->prepare("
+        try {
+            $stmt = $this->conector->prepare("
             CALL spAgregarOferta(
                 :clave,
                 :semestre, 
@@ -83,44 +82,44 @@ function obtenerSiguienteIDOferta()
             )
         ");
 
-        $stmt->bindParam(':clave', $clave, PDO::PARAM_STR);
-        $stmt->bindParam(':semestre', $semestre, PDO::PARAM_INT);
-        $stmt->bindParam(':grupo', $grupo, PDO::PARAM_STR);
-        $stmt->bindParam(':turno', $turno, PDO::PARAM_STR);
-        $stmt->bindParam(':claveCarrera', $claveCarrera, PDO::PARAM_STR);
-        $stmt->bindParam(':claveMateria', $claveMateria, PDO::PARAM_STR);
-        $stmt->bindParam(':idPeriodo', $idPeriodo, PDO::PARAM_INT);
-        $stmt->bindParam(':claveDocente', $claveDocente, PDO::PARAM_STR);
+            $stmt->bindParam(':clave', $clave, PDO::PARAM_STR);
+            $stmt->bindParam(':semestre', $semestre, PDO::PARAM_INT);
+            $stmt->bindParam(':grupo', $grupo, PDO::PARAM_STR);
+            $stmt->bindParam(':turno', $turno, PDO::PARAM_STR);
+            $stmt->bindParam(':claveCarrera', $claveCarrera, PDO::PARAM_STR);
+            $stmt->bindParam(':claveMateria', $claveMateria, PDO::PARAM_STR);
+            $stmt->bindParam(':idPeriodo', $idPeriodo, PDO::PARAM_INT);
+            $stmt->bindParam(':claveDocente', $claveDocente, PDO::PARAM_STR);
 
-        $stmt->execute();
+            $stmt->execute();
 
-        $select = $this->conector->query("SELECT @mensaje AS mensaje");
-        $resultado = $select->fetch(PDO::FETCH_ASSOC);
-        $mensaje = $resultado['mensaje'];
+            $select = $this->conector->query("SELECT @mensaje AS mensaje");
+            $resultado = $select->fetch(PDO::FETCH_ASSOC);
+            $mensaje = $resultado['mensaje'];
 
-        if (strpos($mensaje, 'Exito') !== false) {
-            return [
-                'estado' => 'OK',
-                'mensaje' => 'Registro guardado correctamente.'
-            ];
-        } else {
+            if (strpos($mensaje, 'Exito') !== false) {
+                return [
+                    'estado' => 'OK',
+                    'mensaje' => 'Registro guardado correctamente.'
+                ];
+            } else {
+                return [
+                    'estado' => 'ERROR',
+                    'mensaje' => $mensaje
+                ];
+            }
+        } catch (PDOException $e) {
             return [
                 'estado' => 'ERROR',
-                'mensaje' => $mensaje
+                'mensaje' => 'Excepción: ' . $e->getMessage()
             ];
         }
-    } catch (PDOException $e) {
-        return [
-            'estado' => 'ERROR',
-            'mensaje' => 'Excepción: ' . $e->getMessage()
-        ];
     }
-}
-//Funcion para verificar si ya hay una oferta con los mismos datos
-public function OfertaYaExiste($datos)
-{
-    try {
-        $sql = "SELECT COUNT(*) FROM oferta 
+    //Funcion para verificar si ya hay una oferta con los mismos datos
+    public function OfertaYaExiste($datos)
+    {
+        try {
+            $sql = "SELECT COUNT(*) FROM oferta 
                 WHERE semestre = :semestre 
                 AND grupo = :grupo 
                 AND turno = :turno 
@@ -129,21 +128,21 @@ public function OfertaYaExiste($datos)
                 AND idPeriodo = :idPeriodo 
                 AND claveDocente = :claveDocente";
 
-        $stmt = $this->conector->prepare($sql);
-        $stmt->bindParam(':semestre', $datos->semestre);
-        $stmt->bindParam(':grupo', $datos->grupo);
-        $stmt->bindParam(':turno', $datos->turno);
-        $stmt->bindParam(':claveCarrera', $datos->claveCarrera);
-        $stmt->bindParam(':claveMateria', $datos->claveMateria);
-        $stmt->bindParam(':idPeriodo', $datos->idPeriodo);
-        $stmt->bindParam(':claveDocente', $datos->claveDocente);
-        $stmt->execute();
+            $stmt = $this->conector->prepare($sql);
+            $stmt->bindParam(':semestre', $datos->semestre);
+            $stmt->bindParam(':grupo', $datos->grupo);
+            $stmt->bindParam(':turno', $datos->turno);
+            $stmt->bindParam(':claveCarrera', $datos->claveCarrera);
+            $stmt->bindParam(':claveMateria', $datos->claveMateria);
+            $stmt->bindParam(':idPeriodo', $datos->idPeriodo);
+            $stmt->bindParam(':claveDocente', $datos->claveDocente);
+            $stmt->execute();
 
-        return $stmt->fetchColumn() > 0;
-    } catch (PDOException $e) {
-        return false;
+            return $stmt->fetchColumn() > 0;
+        } catch (PDOException $e) {
+            return false;
+        }
     }
-}
 
 
     /**
@@ -308,6 +307,446 @@ public function OfertaYaExiste($datos)
         }
 
         // Devolver resultado final con estado y mensaje
+        return $resultado;
+    }
+
+    /**
+     * Busca una oferta por su ID.
+     * Llama al procedimiento almacenado spBuscarOfertaAllByID.
+     *
+     * @param string $id ID de la oferta a buscar.
+     * @return array Retorna un array con el estado de la operación, mensaje y datos si se encuentra la oferta.
+     */
+    public function BuscarOferta($id)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // Validar que el ID no esté vacío
+        if (empty($id)) {
+            $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
+            return $resultado;
+        }
+
+        try {
+            // Ejecutar procedimiento almacenado con parámetro de entrada y salida
+            $sp = $c->prepare("CALL spBuscarOfertaAllByID(:pid, @mensaje)");
+            $sp->bindParam(':pid', $id, PDO::PARAM_INT);
+            $sp->execute();
+
+            // Obtener datos devueltos por el SELECT del procedimiento
+            $datos = $sp->fetch(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar recursos del cursor
+
+            // Consultar el mensaje de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Evaluar mensaje de salida usando switch
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
+
+                case 'Error: No existen registros con el parámetro solicitado':
+                    $resultado['mensaje'] = "Ocurrió un problema al obtener la información de la oferta seleccionada. Por favor, intente de nuevo.";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Algo salió mal al intentar obtener la información de la oferta. Por favor, vuelva a intentarlo más tarde.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Registrar errores de la base de datos
+            error_log("Error en la base de datos (BuscarOferta): " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Modifica los datos de una oferta académica en la base de datos.
+     * 
+     * Este método realiza validaciones sobre los datos recibidos y llama al procedimiento almacenado 
+     * `spModificarOferta` para actualizar una oferta existente con los nuevos datos proporcionados.
+     * 
+     * Las validaciones incluyen:
+     *  - Verificar que todos los campos requeridos estén completos.
+     *  - Validar que los identificadores sean números enteros positivos.
+     *  - Comprobar que el semestre esté en el rango válido (1 a 12).
+     *  - Verificar el formato correcto de grupo, turno, clave de carrera, clave de materia y clave de docente.
+     *  - Validar que el periodo exista y que esté en estado 'Abierto' o 'Pendiente'.
+     *  - Verificar que la oferta a modificar no duplique datos existentes.
+     * 
+     * @param int $pidOferta Identificador único de la oferta a modificar.
+     * @param int $psemestre Número de semestre (1-12).
+     * @param string $pgrupo Letra que representa el grupo (una sola letra).
+     * @param string $pturno Turno de la oferta ('Matutino' o 'Vespertino').
+     * @param string $pclvCarrera Clave de la carrera con formato 'AAAA-0000-000'.
+     * @param string $pclvMateria Clave de la materia con formato 'AAA-0000'.
+     * @param int $pidPeriodo Identificador del periodo académico (debe existir y estar abierto o pendiente).
+     * @param string $pclvDocente Clave del docente con formato 'AAA-0000'.
+     * 
+     * @return array Arreglo asociativo con las claves:
+     *   - 'estado': 'OK' si la actualización fue exitosa, 'Error' en caso contrario.
+     *   - 'mensaje': Descripción del resultado o error ocurrido.
+     *   - 'respuestaSP' (solo se usa en este metodo): Mensaje retornado por el procedimiento almacenado.
+     */
+    public function ModificarOferta($pidOferta, $psemestre, $pgrupo, $pturno, $pclvCarrera, $pclvMateria, $pidPeriodo, $pclvDocente)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // -----------------------------------------
+        // Validaciones
+        // -----------------------------------------
+
+        // Validar que todos los campos requeridos estén presentes
+        if (empty($pidOferta) || empty($psemestre) || empty($pgrupo) || empty($pturno) || empty($pclvCarrera) || empty($pclvMateria) || empty($pidPeriodo) || empty($pclvDocente)) {
+            $resultado['mensaje'] = "Por favor, complete todos los campos obligatorios para continuar.";
+            return $resultado;
+        }
+
+        // Validar que el idOferta sea un número entero positivo
+        if (!filter_var($pidOferta, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]])) {
+            $resultado['mensaje'] = "El ID de la oferta debe ser un número entero positivo válido.";
+            return $resultado;
+        }
+
+        $datosOferta = (object)[
+            'semestre' => $psemestre,
+            'grupo' => $pgrupo,
+            'turno' => $pturno,
+            'claveCarrera' => $pclvCarrera,
+            'claveMateria' => $pclvMateria,
+            'idPeriodo' => $pidPeriodo,
+            'claveDocente' => $pclvDocente
+        ];
+
+        // Validar si ya existe la oferta con esos datos
+        if ($this->OfertaYaExiste($datosOferta)) {
+            $resultado['mensaje'] = "No se puede modificar el registro porque ya existe una oferta con los mismos datos.";
+            return $resultado;
+        }
+
+        // Validar que el semestre esté entre 1 y 12
+        if (!filter_var($psemestre, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 12]])) {
+            $resultado['mensaje'] = "El semestre debe ser un número entre 1 y 12.";
+            return $resultado;
+        }
+
+        // Validar que el grupo sea una sola letra
+        if (!preg_match('/^[A-Za-z]$/', $pgrupo)) {
+            $resultado['mensaje'] = "El grupo debe ser una sola letra (por ejemplo: A, B, C).";
+            return $resultado;
+        }
+
+        // Validar que el turno sea “Matutino” o “Vespertino”
+        if ($pturno !== "Matutino" && $pturno !== "Vespertino") {
+            $resultado['mensaje'] = "El turno debe ser 'Matutino' o 'Vespertino'.";
+            return $resultado;
+        }
+
+        // Validar formato de la clave de la carrera
+        if (!preg_match('/^[A-Za-z]{4}-\d{4}-\d{3}$/', $pclvCarrera)) {
+            $resultado['mensaje'] = "La clave de la carrera debe tener este formato: IINF-2010-220 (4 letras, guion, 4 números, guion, 3 números).";
+            return $resultado;
+        }
+
+        // Validar formato del ID de la materia
+        if (!preg_match('/^[A-Za-z]{3}-\d{4}$/', $pclvMateria)) {
+            $resultado['mensaje'] = "El ID de la materia debe seguir el formato: DAB-2302 (3 letras, guion, 4 números).";
+            return $resultado;
+        }
+
+        //Validar que el id del periodo se un número entero positivo
+        if (!filter_var($pidPeriodo, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]])) {
+            $resultado['mensaje'] = "El ID del periodo debe ser un número entero positivo válido.";
+            return $resultado;
+        }
+
+        $sp = $c->prepare("CALL spBuscarPeriodoByID(:pid)");
+        $sp->bindParam(':pid', $pidPeriodo, PDO::PARAM_INT);
+        $sp->execute();
+
+        $periodo = $sp->fetch(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        // Validar que el periodo exista y esté en estado Abierto o Pendiente
+        if (!$periodo) {
+            $resultado['mensaje'] = "El periodo ingresado no existe.";
+            return $resultado;
+        }
+
+        //Validar que el periodo sea Abierto o Pendiente
+        if ($periodo['estado'] !== 'Abierto' && $periodo['estado'] !== 'Pendiente') {
+            $resultado['mensaje'] = "El periodo debe estar en estado 'Abierto' o 'Pendiente' para realizar esta operación.";
+            return $resultado;
+        }
+
+        // Validar formato del ID del docente
+        if (!preg_match('/^[A-Za-z]{3}-\d{4}$/', $pclvDocente)) {
+            $resultado['mensaje'] = "El ID del docente debe tener este formato: ABC-1234 (3 letras, guion, 4 números).";
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Llamada al sp para hacer la funcionalidad
+        // -----------------------------------------
+
+        try {
+
+            // Preparar y ejecutar el procedimiento almacenado
+            $sp = $c->prepare("CALL spModificarOferta(:pidOferta, :psemestre, :pgrupo, :pturno, :pclvCarrera, :pclvMateria, :pidPeriodo, :pclvDocente, @mensaje)");
+            $sp->bindParam(':pidOferta', $pidOferta, PDO::PARAM_INT);
+            $sp->bindParam(':psemestre', $psemestre, PDO::PARAM_INT);
+            $sp->bindParam(':pgrupo', $pgrupo, PDO::PARAM_STR);
+            $sp->bindParam(':pturno', $pturno, PDO::PARAM_STR);
+            $sp->bindParam(':pclvCarrera', $pclvCarrera, PDO::PARAM_STR);
+            $sp->bindParam(':pclvMateria', $pclvMateria, PDO::PARAM_STR);
+            $sp->bindParam(':pidPeriodo', $pidPeriodo, PDO::PARAM_INT);
+            $sp->bindParam(':pclvDocente', $pclvDocente, PDO::PARAM_STR);
+            $sp->execute();
+            $sp->closeCursor();
+
+            // Recuperar el mensaje devuelto por el procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Interpretar el mensaje del SP y generar una respuesta adecuada
+            switch ($resultado['respuestaSP']) {
+
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['mensaje'] = "La información de la oferta se actualizó correctamente.";
+                    break;
+
+                case 'Error: No se pudo modificar el registro':
+                    $resultado['mensaje'] = "No fue posible guardar los cambios en la oferta seleccionada. Por favor, verifique la información o intente nuevamente más tarde.";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al actualizar la oferta. Si el problema continúa, contacte al personal encargado.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Registrar el error internamente
+            error_log("Error en la base de datos al modificar oferta: " . $e->getMessage());
+            error_log("Detalles del error: " . $e->getTraceAsString());
+
+            // Mensaje para el usuario final
+            $resultado['mensaje'] = "No se pudo completar la modificación por un problema interno. Intente nuevamente más tarde.";
+        }
+
+
+        return $resultado;
+    }
+
+    /**
+     * Busca una carrera por su estado.
+     * Llama al procedimiento almacenado spBuscarCarreraByEstado.
+     *
+     * @param string $pestado estado de la carrera a buscar.
+     * @return array Retorna un array con el estado de la operación, mensaje y datos si se encuentra la carrera.
+     */
+    public function BuscarCarrerasActivas($pestado)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // Validar que el estado no esté vacío
+        if (empty($pestado)) {
+            $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
+            return $resultado;
+        }
+
+        try {
+            // Ejecutar procedimiento almacenado con parámetro de entrada y salida
+            $sp = $c->prepare("CALL spBuscarCarreraByEstado(:pestado, @mensaje)");
+            $sp->bindParam(':pestado', $pestado, PDO::PARAM_STR);
+            $sp->execute();
+
+            // Obtener datos devueltos por el SELECT del procedimiento
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar recursos del cursor
+
+            // Consultar el mensaje de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Evaluar mensaje de salida usando switch
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
+
+                case 'Error: No existe el registro con el Estado ':
+                    $resultado['mensaje'] = "Ocurrió un problema al obtener la información de las carreras activas. Por favor, intente de nuevo.";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Algo salió mal al intentar obtener la información de las carreras activas. Por favor, vuelva a intentarlo más tarde.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Registrar errores de la base de datos
+            error_log("Error en la base de datos (BuscarCarreraActiva): " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Busca todos los periodos con estado 'Abierto' o 'Pendiente'.
+     * Llama al procedimiento almacenado spMostrarPeriodos.
+     *
+     * @return array Retorna un array con el estado de la operación, mensaje y datos filtrados.
+     */
+    public function BuscarPeriodosActPen()
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        try {
+            // Ejecutar el procedimiento almacenado que devuelve todos los periodos
+            $sp = $c->prepare("CALL spMostrarPeriodos()");
+            $sp->execute();
+
+            // Obtener todos los registros como array
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar recursos del cursor
+
+            // Filtrar solo los periodos con estado 'Abierto' o 'Pendiente'
+            $filtrados = array_filter($datos, function ($periodo) {
+                return isset($periodo['estado']) &&
+                    ($periodo['estado'] === 'Abierto' || $periodo['estado'] === 'Pendiente');
+            });
+
+            // Verificar si se encontraron registros válidos
+            if (empty($filtrados)) {
+                $resultado['mensaje'] = "No se encontraron periodos con estado Abierto o Pendiente.";
+            } else {
+                $resultado['estado'] = "OK";
+                $resultado['datos'] = array_values($filtrados); // Reindexar el array
+            }
+        } catch (PDOException $e) {
+            // Registrar errores de la base de datos
+            error_log("Error en la base de datos (BuscarPeriodosActPen): " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Busca una materias por el id de una carrera.
+     * Llama al procedimiento almacenado spBuscarOfertaAllByID.
+     *
+     * @param string $pclave ID de la oferta a buscar.
+     * @return array Retorna un array con el estado de la operación, mensaje y datos si se encuentra la oferta.
+     */
+    public function BuscarMateriasporCarrera($pclave)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // Validar que el ID no esté vacío
+        if (empty($pclave)) {
+            $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
+            return $resultado;
+        }
+
+        try {
+            // Ejecutar procedimiento almacenado con parámetro de entrada y salida
+            $sp = $c->prepare("CALL spBuscarMateriasByIDCarrera(:pclave, @mensaje)");
+            $sp->bindParam(':pclave', $pclave, PDO::PARAM_STR);
+            $sp->execute();
+            
+            // Obtener datos devueltos por el SELECT del procedimiento
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar recursos del cursor
+
+            // Consultar el mensaje de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Evaluar mensaje de salida usando switch
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Algo salió mal al intentar obtener la información de las materias. Por favor, vuelva a intentarlo más tarde.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Registrar errores de la base de datos
+            error_log("Error en la base de datos (BuscarMaterias): " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Obtiene solo los docentes activos desde el SP spMostrarDocentes.
+     *
+     * @return array Retorna un array con el estado de la operación, mensaje y datos filtrados.
+     */
+    public function BuscarDocentesActivos()
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        try {
+            // Ejecutar procedimiento almacenado (sin parámetros de entrada)
+            $sp = $c->prepare("CALL spMostrarDocentes(@mensaje)");
+            $sp->execute();
+
+            // Obtener todos los registros retornados
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor();
+
+            // Consultar el mensaje de salida
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Evaluar mensaje y filtrar los datos
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    // Filtrar los docentes que tengan estado = 'Activo'
+                    $activos = array_filter($datos, function ($docente) {
+                        return isset($docente['estado']) && $docente['estado'] === 'Activo';
+                    });
+
+                    $resultado['estado'] = 'OK';
+                    $resultado['datos'] = array_values($activos); // Reindexar el array
+                    break;
+
+                case 'Error: No hay registros':
+                    $resultado['mensaje'] = 'No hay docentes registrados.';
+                    break;
+
+                default:
+                    $resultado['mensaje'] = 'Ocurrió un problema al obtener los docentes.';
+                    break;
+            }
+        } catch (PDOException $e) {
+            error_log("Error en la base de datos (BuscarDocentesActivos): " . $e->getMessage());
+            $resultado['mensaje'] = 'Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.';
+        }
+
         return $resultado;
     }
 }
