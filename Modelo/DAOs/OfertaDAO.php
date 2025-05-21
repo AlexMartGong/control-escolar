@@ -13,9 +13,9 @@ class OfertaDAO
     }
 
     /**
-     * Función para obtener el siguiente ID de periodo.
-     * Llama al procedimiento almacenado spMostrarSiguienteIDPeriodo para obtener el siguiente ID.
-     * @return int - El siguiente ID de periodo.
+     * Función para obtener el siguiente ID de oferta.
+     * Llama al procedimiento almacenado spMostrarSiguienteIDOferta para obtener el siguiente ID.
+     * @return int - El siguiente ID de oferta.
      * @throws PDOException - Si ocurre un error al ejecutar la consulta.
      */
     function obtenerSiguienteIDOferta()
@@ -35,12 +35,11 @@ class OfertaDAO
                 throw new Exception("El SP no devolvió un siguiente_id");
             }
 
-            // Obtener el mensaje (opcional)
+            // Obtener el mensaje
             $selectMensaje = $c->query("SELECT @mensaje AS mensaje");
             $resultadoMensaje = $selectMensaje->fetch(PDO::FETCH_ASSOC);
             $mensaje = $resultadoMensaje['mensaje'];
 
-            // Puedes usar esto para logging, pero no como criterio principal
             return $siguienteID;
         } catch (PDOException $e) {
             die("Error al llamar spMostrarSiguienteIDOferta: " . $e->getMessage());

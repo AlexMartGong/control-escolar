@@ -10,18 +10,21 @@ $objOfDAO = new OfertaDAO($pdo);
 // Obtener siguiente ID
 $siguienteID = $objOfDAO->obtenerSiguienteIDOferta();
 
-// Consultas para llenar los selects
-$consultaCarrera = $pdo->query("SELECT claveCarrera, nombre FROM carrera");
-$carreras = $consultaCarrera->fetchAll(PDO::FETCH_ASSOC);
+//Obtener datos para los selects
+$Carreras = $objOfDAO->BuscarCarrerasActivas('Activo');
+$Periodos = $objOfDAO->BuscarPeriodosActPen();
 
-$consultaDocente = $pdo->query("SELECT claveDocente, nombre FROM docente");
-$docentes = $consultaDocente->fetchAll(PDO::FETCH_ASSOC);
+$pclaveCarrera = $_POST['claveCarrera'] ?? null;
 
-$consultaMateria = $pdo->query("SELECT claveMateria, nombre FROM materia");
-$materias = $consultaMateria->fetchAll(PDO::FETCH_ASSOC);
+/**if ($pclaveCarrera) {
+    $Materias = $objOfDAO->BuscarMateriasporCarrera($pclaveCarrera);
+    error_log("Respuesta de materias: " . print_r($Materias, true));
+}
+    */
+    $consultaMateria = $pdo->query("SELECT claveMateria, nombre FROM materia");
+    $Materias = $consultaMateria->fetchAll(PDO::FETCH_ASSOC);
 
-$consultaPeriodo = $pdo->query("SELECT idPeriodo, periodo FROM periodo");
-$periodos = $consultaPeriodo->fetchAll(PDO::FETCH_ASSOC);
+$Docentes = $objOfDAO->BuscarDocentesActivos()
 ?>
 
 <link rel="stylesheet" href="../css/styleInterno.css">
@@ -103,19 +106,13 @@ $periodos = $consultaPeriodo->fetchAll(PDO::FETCH_ASSOC);
                                                 <span class="input-group-text bg-blue-light"><i class="bi bi-mortarboard"></i></span>
                                                 <select id="listaCarrera" class="form-select listaDespliege " onchange="retrasoSelect('claveCarrera', 'btnAgregarOferta', 'oferta','mb-3' )">
                                                     <option disabled selected>Seleccione una carrera</option>
-                                                    <?php
-                                                    //este es solo un ejemplo de como se hara, todo esto se aplicara tambien para Docente,
-                                                    //Periodo y Materia
-                                                    //todo php es modificable a su gusto
-                                                    
-                                                /*  while ($d = mysql_fetch_row($ListEsp)) {
-                                                        // Suponiendo que $d[0] es la clave y $d[1] es el nombre de la carrera
-                                                        echo "<option value='$d[0]' data-clave='$d[0]'>$d[1]</option>";
-                                                    }*/
-                                                    ?>
-                                                    <?php foreach ($carreras as $c): ?>
-                                                    <option value="<?= $c['claveCarrera'] ?>"><?= $c['nombre'] ?></option>
-                                                    <?php endforeach; ?>
+                                                    <?php if (!empty($Carreras['datos'])): ?>
+                                                <?php foreach ($Carreras['datos'] as $carrera): ?>
+                                                    <option value="<?= $carrera['clave_de_carrera'] ?>">
+                                                        <?= $carrera['nombre_de_carrera'] ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
                                                    
                                                 </select>
                                                     <script>
@@ -162,9 +159,13 @@ $periodos = $consultaPeriodo->fetchAll(PDO::FETCH_ASSOC);
                                                         <select id="listaPeriodo" class="form-select listaDespliege " onchange="retrasoSelect('IdPeriod', 'btnAgregarOferta', 'oferta','mb-3' )">
                                                         <option disabled selected>Seleccione un Periodo</option>
                                                         <!--Aqui se inyectaran las opciones -->
-                                                        <?php foreach ($periodos as $c): ?>
-                                                        <option value="<?= $c['idPeriodo'] ?>"><?= $c['periodo'] ?></option>
-                                                        <?php endforeach; ?>
+                                                        <?php if (!empty($Periodos['datos'])): ?>
+                                                <?php foreach ($Periodos['datos'] as $periodo): ?>
+                                                    <option value="<?= $periodo['clave_periodo'] ?>">
+                                                        <?= $periodo['periodo'] ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
                                                         </select>
                                                         <script>
                                                                 // Inicializar Select2 Materia
@@ -254,7 +255,7 @@ $periodos = $consultaPeriodo->fetchAll(PDO::FETCH_ASSOC);
                                                         <select id="listaMateria" class="form-select listaDespliege" onchange="retrasoSelect('claveMateria', 'btnAgregarOferta', 'oferta','mb-3' )">
                                                             <option disabled selected>Seleccione una Materia</option>
                                                         <!-- aqui se inyectan las option-->
-                                                            <?php foreach ($materias as $m): ?>
+                                                            <?php foreach ($Materias as $m): ?>
                                                                 <option value="<?= $m['claveMateria'] ?>"><?= $m['nombre'] ?></option>
                                                             <?php endforeach; ?>
                                                             </select>
@@ -303,9 +304,13 @@ $periodos = $consultaPeriodo->fetchAll(PDO::FETCH_ASSOC);
                                                     <select id="listaDocente" class="form-select listaDespliege " onchange="retrasoSelect('claveDocente', 'btnAgregarOferta', 'oferta','mb-3' )">
                                                     <option disabled selected>Seleccione un docente</option>
                                                     <!--Aqui se inyectaran las opciones -->
-                                                        <?php foreach ($docentes as $d): ?>
-                                                            <option value="<?= $d['claveDocente'] ?>"><?= $d['nombre'] ?></option>
-                                                        <?php endforeach; ?>
+                                                        <?php if (!empty($Docentes['datos'])): ?>
+                                                <?php foreach ($Docentes['datos'] as $docente): ?>
+                                                    <option value="<?= $docente['clave_de_docente'] ?>">
+                                                        <?= $docente['docente'] ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
 
                                                     </select>
                                                 <script>
@@ -416,25 +421,40 @@ $periodos = $consultaPeriodo->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                 </div>
             </div>
-                <script>  $(document).ready(function() {
-                    $('#TablaDatosOferta').DataTable({
-                         language: {
+                <script>
+                    let idOfertaInicial = null;
+
+                    async function obtenerSiguienteID() {
+                        try {
+                        const response = await fetch("../../Controlador/Intermediarios/Oferta/ObtenerSiguienteID.php");
+                        const data = await response.json();
+                        idOfertaInicial = parseInt(data.siguiente_id);
+                        console.log("Siguiente ID inicial cargado:", siguienteID);
+                        } catch (error) {
+                        console.error("Error al obtener el siguiente ID:", error);
+                        }
+                    }
+
+                    $(document).ready(async function () {
+                        $('#TablaDatosOferta').DataTable({
+                        language: {
                             url: 'https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json',
                             paginate: {
-                                previous: "Anterior",
-                                next: "Siguiente"
+                            previous: "Anterior",
+                            next: "Siguiente"
                             }
                         },
                         responsive: true,
                         pageLength: 25,
-                        pagingType: "simple", 
-                      
+                        pagingType: "simple"
+                        });
+
+                        $('[data-toggle="tooltip"]').tooltip();
+
+                        await obtenerSiguienteID();
                     });
-                    
-                    
-                    $('[data-toggle="tooltip"]').tooltip();
-                    }); 
             </script>
+
         </div>
 <script>
   let siguienteID = <?= $siguienteID ?>;
