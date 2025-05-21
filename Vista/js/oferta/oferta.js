@@ -145,6 +145,7 @@ function validarfrmOferta(opc) {
         } else {
           //si no existe valores repetidos entonces ahora se agregar a la tabla
           agregarOfertaTabla();
+          cargarIdOferta();
         }
 
         deshabilitarboton(true, "btnAgregarOferta");
@@ -489,12 +490,29 @@ function agregarOfertaTabla() {
     $("#listaDocente").val("Seleccione un docente").trigger("change.select2");
   });
 }
-
+//Se modifico ligeramente para reorganizar los id's
 // funcion para eliminar la fila de la tabla
 function eliminarFila(boton) {
   const tabla = $("#TablaDatosOferta").DataTable();
+
+  // Eliminar la fila
   tabla.row($(boton).parents("tr")).remove().draw();
+
+  // Obtener todos los datos y reordenar los IDs desde idOfertaInicial
+  const todasLasFilas = tabla.rows().data().toArray();
+  todasLasFilas.sort((a, b) => a[0] - b[0]);
+
+  for (let i = 0; i < todasLasFilas.length; i++) {
+    todasLasFilas[i][0] = idOfertaInicial + i;
+    tabla.row(i).data(todasLasFilas[i]);
+  }
+
+  // Ajustar siguiente ID para futuras inserciones
+  siguienteID--;
+
+  tabla.draw();
   HayFilasEnTabla();
+  cargarIdOferta();
 }
 
 // funcion que limpia la tabla al aguardar datos, toda la tabla
@@ -703,6 +721,8 @@ function guardarNuevaOferta() {
       console.log("Respuesta:", respuesta);
       if (respuesta.estado === "OK") {
         mostrarDatosGuardados(respuesta.mensaje);
+        option("oferta", ""); //Refrescamos y redirigimos al main
+        option
       } else {
         mostrarErrorCaptura(respuesta.mensaje);
       }
@@ -712,6 +732,12 @@ function guardarNuevaOferta() {
       mostrarErrorCaptura("Error al guardar las ofertas.");
     });
 }
+function cargarIdOferta() {
+  
+      document.getElementById('idOferta').value = siguienteID;
+    
+}
+
 function verificarOfertaExiste(datos, callback) {
   $.ajax({
     url: "../../Controlador/Intermediarios/Oferta/VerificarOfertaExistente.php",
