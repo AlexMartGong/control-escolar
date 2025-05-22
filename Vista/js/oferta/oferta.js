@@ -32,11 +32,14 @@ function loadFormOferta(opc, id = "") {
             .fadeIn(500, function () {
 
               if (opc === "modOferta" && id !== "") {
-                BuscarOferta(id);
+                
+                cargarDatosYBuscarOferta(id); 
+
               } else {
                 console.warn(
                   "NO se llama BuscarOferta. Condición no cumplida."
                 );
+
               }
 
             })
@@ -761,52 +764,55 @@ function verificarOfertaExiste(datos, callback) {
  * Además, desactiva el campo de clave de materia para evitar su edición.
  */
 function BuscarOferta(id) {
-  let url = "../../Controlador/Intermediarios/Oferta/ModificarOferta.php"; // Ruta al intermediario PHP
+  let url = "../../Controlador/Intermediarios/Oferta/ModificarOferta.php";
+  let datos = { id: id, Buscar: true };
+  let json = JSON.stringify(datos);
 
-  let datos = { id: id, Buscar: true }; // Objeto con parámetros de búsqueda
-  let json = JSON.stringify(datos); // Convertimos a formato JSON
+  console.log("BuscarOferta llamada con id =", id);
 
-  // Enviamos la solicitud POST
-  $.post(
-    url,
-    json,
-    function (response, status) {
-      console.log("Respuesta del servidor:", response);
-      console.log("Datos enviados:", json);
+  $.post(url, json, function (response, status) {
+    console.log("Respuesta de ModificarOferta.php:", response);
 
-      // Validamos la respuesta del servidor
-      if (status === "success" && response.estado === "OK" && response.datos) {
-        console.log("Datos recibidos:", response.datos);
+    if (status === "success" && response.estado === "OK" && response.datos) {
+      const datos = response.datos;
 
-        // Rellenamos el formulario con los datos de la carrera
-        document.getElementById("idOferta").value =
-          response.datos.clave_de_oferta;
-        document.getElementById("idSemestre").value = response.datos.semestre;
-        document.getElementById("idGrupo").value = response.datos.grupo;
-        document.getElementById("turno").value = response.datos.turno;
-        document.getElementById("claveCarrera").value =
-          response.datos.clave_de_carrera;
-        document.getElementById("claveMateria").value =
-          response.datos.clave_de_materia;
-        document.getElementById("IdPeriod").value =
-          response.datos.clave_periodo;
-        document.getElementById("claveDocente").value =
-          response.datos.clave_de_docente;
-        document.getElementById("estado").value = response.datos.estado;
+      // Inputs
+      $("#idOferta").val(datos.clave_de_oferta);
+      $("#idSemestre").val(datos.semestre);
+      $("#idGrupo").val(datos.grupo);
+      $("#turno").val(datos.turno);
+      $("#claveCarrera").val(datos.clave_de_carrera);
+      $("#claveMateria").val(datos.clave_de_materia);
+      $("#IdPeriod").val(datos.clave_periodo);
+      $("#claveDocente").val(datos.clave_de_docente);
+      $("#estado").val(datos.estado);
 
-        //cargarNombresEnSelect("mod", response.datos.clave_de_carrera);
-      } else {
-        // Si no se encontró la materia, se muestra un mensaje
-        mostrarErrorCaptura(response.mensaje);
-      }
-    },
-    "json" // Especificamos que la respuesta esperada es JSON
-  ).fail(function (xhr, status, error) {
-    // Manejo de errores de conexión o servidor
+      // Selects cargados directamente
+      $("#listaCarrera").val(datos.clave_de_carrera).trigger("change");
+      $("#listaPeriodo").val(datos.clave_periodo).trigger("change");
+      $("#listaDocente").val(datos.clave_de_docente).trigger("change");
+
+      // 🟡 Cargar materias de la carrera antes de seleccionar
+      cargarMateriasPorCarrera(datos.clave_de_carrera)
+        .then(() => {
+          console.log("Materias cargadas, seleccionando materia:", datos.clave_de_materia);
+          $("#listaMateria").val(datos.clave_de_materia).trigger("change");
+        })
+        .catch((error) => {
+          console.error("Error cargando materias:", error);
+          mostrarErrorCaptura(error);
+        });
+
+    } else {
+      mostrarErrorCaptura(response.mensaje || "No se encontró la oferta.");
+    }
+  }, "json").fail(function (xhr, status, error) {
     console.error("Error en la solicitud POST:", xhr.responseText);
     mostrarErrorCaptura("Error al buscar la Oferta.");
   });
 }
+
+
 
 /*
  * Función para modificar los datos de una Oferta existente.
@@ -883,45 +889,116 @@ function ModificarOferta() {
   });
 }
 
-function cargarMateriasPorCarrera() {
-    const claveCarrera = document.getElementById('listaCarrera').value;
-    
-    fetch('../../Controlador/Intermediarios/Materia/BuscarMaterias.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'claveCarrera=' + encodeURIComponent(claveCarrera)
-    })
-    .then(response => {
-        
-        return response.text(); // Primero obtenemos el texto para debug
-    })
-    .then(text => {
-        
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            console.error('Error parseando JSON:', e);
-            throw e;
-        }
-        console.log('Datos parseados:', data);
+function cargarPeriodos() {
+  return fetch('../../Controlador/Intermediarios/Periodo/ObtenerPeriodos.php')
+    .then(response => response.json())  // cuando responde, parsea JSON
+    .then(data => {
+      const select = document.getElementById('listaPeriodo');
+      select.innerHTML = '<option disabled selected>Seleccione un periodo</option>'; // limpia opciones
 
-        const listaMateria = document.getElementById('listaMateria');
-        listaMateria.innerHTML = '<option disabled selected>Seleccione una Materia</option>';
-
-        if (data.estado === 'OK') {
-            data.datos.forEach(materia => {
-                const option = document.createElement('option');
-                option.value = materia.clave_de_materia;
-                option.textContent = materia.nombre_de_materia;
-                listaMateria.appendChild(option);
-            });
-        } else {
-            alert(data.mensaje || 'No se pudieron cargar las materias.');
-        }
+      if (data.datos && data.datos.length > 0) {
+        data.datos.forEach(periodo => {
+          const option = document.createElement('option');
+          option.value = periodo.clave_periodo;
+          option.textContent = periodo.periodo;
+          select.appendChild(option);
+        });
+      }
     })
     .catch(error => {
-        console.error('Error al cargar materias:', error);
+      console.error('Error cargando periodos:', error);
+      throw error; // para que se propague el error
     });
 }
+
+function cargarDocentes() {
+  return fetch('../../Controlador/Intermediarios/Docente/ObtenerDocenteActivos.php')
+    .then(response => response.json())
+    .then(data => {
+      const select = document.getElementById('listaDocente');
+      select.innerHTML = '<option disabled selected>Seleccione un docente</option>';
+
+      if (data.datos && data.datos.length > 0) {
+        data.datos.forEach(docente => {
+          const option = document.createElement('option');
+          option.value = docente.clave_de_docente;
+          option.textContent = docente.docente;
+          select.appendChild(option);
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error cargando docentes:', error);
+      throw error;
+    });
+}
+
+function cargarCarreras() {
+  return fetch('../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php')
+    .then(response => response.json())
+    .then(data => {
+      const select = document.getElementById('listaCarrera');
+      select.innerHTML = '<option disabled selected>Seleccione una carrera</option>';
+
+      if (data.datos && data.datos.length > 0) {
+        data.datos.forEach(carrera => {
+          const option = document.createElement('option');
+          option.value = carrera.clave_de_carrera;
+          option.textContent = carrera.nombre_de_carrera;
+          select.appendChild(option);
+        });
+      }
+
+      // Agregas el listener después de llenar el select
+      select.addEventListener('change', function () {
+        const claveCarrera = this.value;
+        cargarMateriasPorCarrera(claveCarrera);
+      });
+    })
+    .catch(error => {
+      console.error('Error cargando carreras:', error);
+      throw error;
+    });
+}
+
+function cargarDatosYBuscarOferta(id) {
+  Promise.all([cargarPeriodos(), cargarDocentes(), cargarCarreras()])
+    .then(() => {
+      // Aquí ya están cargados los selects
+      BuscarOferta(id);
+    })
+    .catch(error => {
+      console.error("Error cargando datos:", error);
+      // Puedes mostrar un error o manejarlo como quieras
+    });
+}
+
+function cargarMateriasPorCarrera(claveCarrera) {
+  return new Promise((resolve, reject) => {
+    console.log("cargarMateriasPorCarrera llamada con claveCarrera =", claveCarrera);
+
+    let url = "../../Controlador/Intermediarios/Materia/ObtenerMateriasPorCarrera.php";
+    let datos = { claveCarrera: claveCarrera };
+
+    $.post(url, JSON.stringify(datos), function (response, status) {
+      console.log("Respuesta de ObtenerMateriasPorCarrera:", response);
+
+      if (status === "success" && response.estado === "OK") {
+        let select = $("#listaMateria");
+        select.empty();
+        response.datos.forEach((materia) => {
+          select.append(new Option(materia.nombre, materia.clave));
+        });
+        resolve(); // Todo salió bien
+      } else {
+        reject("No se pudieron cargar las materias. Mensaje: " + (response.mensaje || "Sin mensaje"));
+      }
+    }, "json").fail((xhr, status, error) => {
+      reject("Error al cargar materias: " + error);
+    });
+  });
+}
+
+
+
 
