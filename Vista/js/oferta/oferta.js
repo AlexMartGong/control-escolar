@@ -794,7 +794,12 @@ function BuscarOferta(id) {
           response.datos.clave_de_docente;
         document.getElementById("estado").value = response.datos.estado;
 
-        //cargarNombresEnSelect("mod", response.datos.clave_de_carrera);
+        $('#listaCarrera').val(response.datos.clave_de_carrera).trigger('change');
+        $('#listaPeriodo').val(response.datos.clave_periodo).trigger('change');
+        $('#listaDocente').val(response.datos.clave_de_docente).trigger('change');
+
+        //document.getElementById("listaMateria").value = response.datos.clave_de_materia;
+
       } else {
         // Si no se encontró la materia, se muestra un mensaje
         mostrarErrorCaptura(response.mensaje);
@@ -883,45 +888,5 @@ function ModificarOferta() {
   });
 }
 
-function cargarMateriasPorCarrera() {
-    const claveCarrera = document.getElementById('listaCarrera').value;
-    
-    fetch('../../Controlador/Intermediarios/Materia/BuscarMaterias.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'claveCarrera=' + encodeURIComponent(claveCarrera)
-    })
-    .then(response => {
-        
-        return response.text(); // Primero obtenemos el texto para debug
-    })
-    .then(text => {
-        
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            console.error('Error parseando JSON:', e);
-            throw e;
-        }
-        console.log('Datos parseados:', data);
 
-        const listaMateria = document.getElementById('listaMateria');
-        listaMateria.innerHTML = '<option disabled selected>Seleccione una Materia</option>';
-
-        if (data.estado === 'OK') {
-            data.datos.forEach(materia => {
-                const option = document.createElement('option');
-                option.value = materia.clave_de_materia;
-                option.textContent = materia.nombre_de_materia;
-                listaMateria.appendChild(option);
-            });
-        } else {
-            alert(data.mensaje || 'No se pudieron cargar las materias.');
-        }
-    })
-    .catch(error => {
-        console.error('Error al cargar materias:', error);
-    });
-}
 

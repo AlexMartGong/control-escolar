@@ -311,7 +311,7 @@ class OfertaDAO
 
     /**
      * Busca una oferta por su ID.
-     * Llama al procedimiento almacenado spBuscarOfertaAllByID.
+     * Llama al procedimiento almacenado spBuscarOfertaByID.
      *
      * @param string $id ID de la oferta a buscar.
      * @return array Retorna un array con el estado de la operación, mensaje y datos si se encuentra la oferta.
@@ -329,7 +329,7 @@ class OfertaDAO
 
         try {
             // Ejecutar procedimiento almacenado con parámetro de entrada y salida
-            $sp = $c->prepare("CALL spBuscarOfertaAllByID(:pid, @mensaje)");
+            $sp = $c->prepare("CALL spBuscarOfertaByID(:pid, @mensaje)");
             $sp->bindParam(':pid', $id, PDO::PARAM_INT);
             $sp->execute();
 
@@ -371,14 +371,6 @@ class OfertaDAO
      * 
      * Este método realiza validaciones sobre los datos recibidos y llama al procedimiento almacenado 
      * `spModificarOferta` para actualizar una oferta existente con los nuevos datos proporcionados.
-     * 
-     * Las validaciones incluyen:
-     *  - Verificar que todos los campos requeridos estén completos.
-     *  - Validar que los identificadores sean números enteros positivos.
-     *  - Comprobar que el semestre esté en el rango válido (1 a 12).
-     *  - Verificar el formato correcto de grupo, turno, clave de carrera, clave de materia y clave de docente.
-     *  - Validar que el periodo exista y que esté en estado 'Abierto' o 'Pendiente'.
-     *  - Verificar que la oferta a modificar no duplique datos existentes.
      * 
      * @param int $pidOferta Identificador único de la oferta a modificar.
      * @param int $psemestre Número de semestre (1-12).
@@ -455,9 +447,47 @@ class OfertaDAO
             return $resultado;
         }
 
+        $sp = $c->prepare("CALL spBuscarCarreraByID(:pid)");
+        $sp->bindParam(':pid', $pclvCarrera, PDO::PARAM_STR);
+        $sp->execute();
+
+        $carrera = $sp->fetch(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        // Validar que la carrera exista
+        if (!$carrera) {
+            $resultado['mensaje'] = "La carrera ingresada no existe.";
+            return $resultado;
+        }
+
+        // Validar que la carrera tenga el estado de Activo
+        if ($carrera['estado'] !== 'Activo') {
+            $resultado['mensaje'] = "La carrera debe estar en estado 'Activo' para realizar esta operación.";
+            return $resultado;
+        }
+
         // Validar formato del ID de la materia
         if (!preg_match('/^[A-Za-z]{3}-\d{4}$/', $pclvMateria)) {
             $resultado['mensaje'] = "El ID de la materia debe seguir el formato: DAB-2302 (3 letras, guion, 4 números).";
+            return $resultado;
+        }
+
+        $sp = $c->prepare("CALL spBuscarMateriaByID(:pid)");
+        $sp->bindParam(':pid', $pclvMateria, PDO::PARAM_STR);
+        $sp->execute();
+
+        $materia = $sp->fetch(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        // Validar que la materia exista
+        if (!$materia) {
+            $resultado['mensaje'] = "La materia ingresada no existe.";
+            return $resultado;
+        }
+
+        // Validar que la materia tenga el estado de Activo
+        if ($materia['estado'] !== 'Activo') {
+            $resultado['mensaje'] = "La materia debe estar en estado 'Activo' para realizar esta operación.";
             return $resultado;
         }
 
@@ -489,6 +519,46 @@ class OfertaDAO
         // Validar formato del ID del docente
         if (!preg_match('/^[A-Za-z]{3}-\d{4}$/', $pclvDocente)) {
             $resultado['mensaje'] = "El ID del docente debe tener este formato: ABC-1234 (3 letras, guion, 4 números).";
+            return $resultado;
+        }
+
+        $sp = $c->prepare("CALL spBuscarDocenteByID(:pid)");
+        $sp->bindParam(':pid', $pclvDocente, PDO::PARAM_STR);
+        $sp->execute();
+
+        $docente = $sp->fetch(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        // Validar que el docente exista
+        if (!$docente) {
+            $resultado['mensaje'] = "El docente ingresado no existe.";
+            return $resultado;
+        }
+
+        // Validar que la docente tenga el estado de Activo
+        if ($docente['estado'] !== 'Activo') {
+            $resultado['mensaje'] = "El docente debe estar en estado 'Activo' para realizar esta operación.";
+            return $resultado;
+        }
+
+        // Verificar si los datos son iguales a los actuales
+        $sp = $c->prepare("CALL spBuscarOfertaByID(:pid)"); 
+        $sp->bindParam(':pid', $pidOferta, PDO::PARAM_INT);
+        $sp->execute();
+        $ofertaActual = $sp->fetch(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        if (
+            $ofertaActual &&
+            $ofertaActual['semestre'] == $psemestre &&
+            $ofertaActual['grupo'] == $pgrupo &&
+            $ofertaActual['turno'] == $pturno &&
+            $ofertaActual['clave_de_carrera'] == $pclvCarrera &&
+            $ofertaActual['clave_de_materia'] == $pclvMateria &&
+            $ofertaActual['clave_periodo'] == $pidPeriodo &&
+            $ofertaActual['clave_de_docente'] == $pclvDocente
+        ) {
+            $resultado['mensaje'] = "No se realizaron cambios porque la información ingresada es idéntica a la ya registrada para esta oferta.";
             return $resultado;
         }
 
@@ -667,7 +737,7 @@ class OfertaDAO
             $sp = $c->prepare("CALL spBuscarMateriasByIDCarrera(:pclave, @mensaje)");
             $sp->bindParam(':pclave', $pclave, PDO::PARAM_STR);
             $sp->execute();
-            
+
             // Obtener datos devueltos por el SELECT del procedimiento
             $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
             $sp->closeCursor(); // Liberar recursos del cursor

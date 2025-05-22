@@ -81,7 +81,7 @@ $res = $objOfDAO->MostrarOferta();
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="loadFormOferta('modOferta','<?= $fila['clave_de_oferta'] ?>')">
+                            onclick="loadFormOferta('modOferta','<?= $fila['clave_de_oferta'] ?>')" >
                         <i class="fas fa-edit me-1"></i>
                         <span>Editar</span>
                     </button>
