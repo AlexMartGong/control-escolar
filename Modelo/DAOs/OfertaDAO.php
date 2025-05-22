@@ -723,49 +723,51 @@ class OfertaDAO
      */
     public function BuscarMateriasporCarrera($pclave)
     {
-        $resultado = ['estado' => 'Error'];
-        $c = $this->conector;
+    $resultado = ['estado' => 'Error'];
+    $c = $this->conector;
 
-        // Validar que el ID no esté vacío
-        if (empty($pclave)) {
-            $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
-            return $resultado;
-        }
+    error_log("BuscarMateriasporCarrera llamado con pclave = $pclave");
 
-        try {
-            // Ejecutar procedimiento almacenado con parámetro de entrada y salida
-            $sp = $c->prepare("CALL spBuscarMateriasByIDCarrera(:pclave, @mensaje)");
-            $sp->bindParam(':pclave', $pclave, PDO::PARAM_STR);
-            $sp->execute();
-
-            // Obtener datos devueltos por el SELECT del procedimiento
-            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
-            $sp->closeCursor(); // Liberar recursos del cursor
-
-            // Consultar el mensaje de salida del procedimiento
-            $respuestaSP = $c->query("SELECT @mensaje");
-            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
-            $resultado['respuestaSP'] = $mensaje['@mensaje'];
-
-            // Evaluar mensaje de salida usando switch
-            switch ($resultado['respuestaSP']) {
-                case 'Estado: Exito':
-                    $resultado['estado'] = "OK";
-                    $resultado['datos'] = $datos;
-                    break;
-
-                default:
-                    $resultado['mensaje'] = "Algo salió mal al intentar obtener la información de las materias. Por favor, vuelva a intentarlo más tarde.";
-                    break;
-            }
-        } catch (PDOException $e) {
-            // Registrar errores de la base de datos
-            error_log("Error en la base de datos (BuscarMaterias): " . $e->getMessage());
-            $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
-        }
-
+    if (empty($pclave)) {
+        $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
+        error_log("pclave está vacío");
         return $resultado;
     }
+
+    try {
+        $sp = $c->prepare("CALL spBuscarMateriasByIDCarrera(:pclave, @mensaje)");
+        $sp->bindParam(':pclave', $pclave, PDO::PARAM_STR);
+        $sp->execute();
+
+        $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        error_log("Datos obtenidos del procedimiento almacenado: " . print_r($datos, true));
+
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        error_log("Mensaje del SP: " . $resultado['respuestaSP']);
+
+        switch ($resultado['respuestaSP']) {
+            case 'Estado: Exito':
+                $resultado['estado'] = "OK";
+                $resultado['datos'] = $datos;
+                break;
+            default:
+                $resultado['mensaje'] = "Algo salió mal al intentar obtener la información de las materias. Por favor, vuelva a intentarlo más tarde.";
+                error_log("Error en SP: mensaje inesperado");
+                break;
+        }
+    } catch (PDOException $e) {
+        error_log("Error en la base de datos (BuscarMaterias): " . $e->getMessage());
+        $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
+    }
+
+    return $resultado;
+    }
+
 
     /**
      * Obtiene solo los docentes activos desde el SP spMostrarDocentes.
