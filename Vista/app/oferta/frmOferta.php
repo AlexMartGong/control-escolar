@@ -126,8 +126,10 @@ $Docentes = $objOfDAO->BuscarDocentesActivos()
                                                         $('#listaCarrera').on('change', function () {
                                                             const clave = $(this).val(); 
                                                             $('#claveCarrera').val(clave);
+                                                            cargarMateriasPorCarrera(clave);
                                                         });
                                                     });
+
                                             </script>
                                             </div>
                                         </div> <!--termina campo-->
@@ -422,31 +424,38 @@ $Docentes = $objOfDAO->BuscarDocentesActivos()
                 </div>
             </div>
                 <script>
-                    let idOfertaInicial = null;
+                    // Declarar ambas variables globalmente sin redeclarar
+                    if (typeof window.idOfertaInicial === 'undefined') {
+                        window.idOfertaInicial = null;
+                    }
+
+                    if (typeof window.siguienteID === 'undefined') {
+                        window.siguienteID = <?= $siguienteID ?>;
+                    }
 
                     async function obtenerSiguienteID() {
                         try {
-                        const response = await fetch("../../Controlador/Intermediarios/Oferta/ObtenerSiguienteID.php");
-                        const data = await response.json();
-                        idOfertaInicial = parseInt(data.siguiente_id);
-                        console.log("Siguiente ID inicial cargado:", siguienteID);
+                            const response = await fetch("../../Controlador/Intermediarios/Oferta/ObtenerSiguienteID.php");
+                            const data = await response.json();
+                            window.idOfertaInicial = parseInt(data.siguiente_id);
+                            console.log("Siguiente ID inicial cargado:", window.idOfertaInicial);
                         } catch (error) {
-                        console.error("Error al obtener el siguiente ID:", error);
+                            console.error("Error al obtener el siguiente ID:", error);
                         }
                     }
 
                     $(document).ready(async function () {
                         $('#TablaDatosOferta').DataTable({
-                        language: {
-                            url: 'https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json',
-                            paginate: {
-                            previous: "Anterior",
-                            next: "Siguiente"
-                            }
-                        },
-                        responsive: true,
-                        pageLength: 25,
-                        pagingType: "simple"
+                            language: {
+                                url: 'https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json',
+                                paginate: {
+                                    previous: "Anterior",
+                                    next: "Siguiente"
+                                }
+                            },
+                            responsive: true,
+                            pageLength: 25,
+                            pagingType: "simple"
                         });
 
                         $('[data-toggle="tooltip"]').tooltip();
@@ -457,7 +466,6 @@ $Docentes = $objOfDAO->BuscarDocentesActivos()
 
         </div>
 <script>
-  let siguienteID = <?= $siguienteID ?>;
 </script>
 
 
