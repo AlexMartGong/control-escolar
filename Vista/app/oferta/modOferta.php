@@ -81,7 +81,7 @@
                                         <select id="listaCarrera" class="form-select listaDespliege" onchange="retrasoSelect('claveCarrera', 'btnGuardarJ', 'oferta','mb-3' )">
                                             <option disabled selected>Seleccione una carrera</option> 
                                         </select>
-
+    
                                         <script>
                                             // Inicializar Select2 Materia
                                             $(document).ready(function() {
@@ -123,7 +123,7 @@
                                     <label for="listaDocente" class="form-label">Periodo</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-blue-light"><i class="fas fa-calendar"></i></span>
-                                        <select id="listaPeriodo" class="form-select listaDespliege " onchange="retrasoSelect('IdPeriod', 'btnGuardarJ', 'oferta','mb-3' )">
+                                        <select id="listaPeriodo" class="form-select listaDespliege " "> //onchange="retrasoSelect('IdPeriod', 'btnGuardarJ', 'oferta','mb-3' )
                                             <option disabled selected>Seleccione un Periodo</option>
                                             
                                         </select>
@@ -193,7 +193,7 @@
                                     <label for="turno" class="form-label">Turno</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-blue-light"><i class="bi bi-clock"></i></span>
-                                        <select class="form-select listaDespliege" id="turno" onchange="retrasoSelect('turno', 'btnGuardarJ', 'oferta','col-md-4' )">
+                                        <select class="form-select listaDespliege" id="turno" "> //onchange="retrasoSelect('turno', 'btnGuardarJ', 'oferta','col-md-4' )
                                             <option disabled selected>Seleccione un turno</option>
                                             <option value="Matutino">Matutino</option>
                                             <option value="Vespertino">Vespertino</option>
@@ -258,7 +258,7 @@
                                     <div class="input-group">
 
                                         <span class="input-group-text bg-blue-light"><i class="fas fa-chalkboard-teacher"></i></span>
-                                        <select id="listaDocente" class="form-select listaDespliege " onchange="retrasoSelect('claveDocente', 'btnGuardarJ', 'oferta','mb-3' )">
+                                        <select id="listaDocente" class="form-select listaDespliege " "> //onchange="retrasoSelect('claveDocente', 'btnGuardarJ', 'oferta','mb-3' )
                                             <option disabled selected>Seleccione un docente</option>
 
                                         </select>

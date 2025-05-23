@@ -447,21 +447,24 @@ class OfertaDAO
             return $resultado;
         }
 
-        $sp = $c->prepare("CALL spBuscarCarreraByID(:pid)");
+        // Verificar si la carrera existe y se encuentra activa
+        $sp = $c->prepare("CALL spBuscarCarreraByID(:pid, @mensaje)");
         $sp->bindParam(':pid', $pclvCarrera, PDO::PARAM_STR);
         $sp->execute();
 
         $carrera = $sp->fetch(PDO::FETCH_ASSOC);
         $sp->closeCursor();
 
-        // Validar que la carrera exista
-        if (!$carrera) {
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        if ($mensaje['@mensaje'] === 'Error: No existen registros con el parámetro solicitado') {
             $resultado['mensaje'] = "La carrera ingresada no existe.";
             return $resultado;
         }
 
-        // Validar que la carrera tenga el estado de Activo
-        if ($carrera['estado'] !== 'Activo') {
+        if ($mensaje['@mensaje'] === 'Estado: Exito' && $carrera['estado'] !== 'Activo') {
             $resultado['mensaje'] = "La carrera debe estar en estado 'Activo' para realizar esta operación.";
             return $resultado;
         }
@@ -472,21 +475,24 @@ class OfertaDAO
             return $resultado;
         }
 
-        $sp = $c->prepare("CALL spBuscarMateriaByID(:pid)");
+        // Verificar si la materia existe y se encuentra activa
+        $sp = $c->prepare("CALL spBuscarMateriaByID(:pid, @mensaje)");
         $sp->bindParam(':pid', $pclvMateria, PDO::PARAM_STR);
         $sp->execute();
 
         $materia = $sp->fetch(PDO::FETCH_ASSOC);
         $sp->closeCursor();
 
-        // Validar que la materia exista
-        if (!$materia) {
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        if ($mensaje['@mensaje'] === 'Error: No existen registros con el parámetro solicitado') {
             $resultado['mensaje'] = "La materia ingresada no existe.";
             return $resultado;
         }
 
-        // Validar que la materia tenga el estado de Activo
-        if ($materia['estado'] !== 'Activo') {
+        if ($mensaje['@mensaje'] === 'Estado: Exito' && $materia['estado'] !== 'Activo') {
             $resultado['mensaje'] = "La materia debe estar en estado 'Activo' para realizar esta operación.";
             return $resultado;
         }
@@ -522,33 +528,41 @@ class OfertaDAO
             return $resultado;
         }
 
-        $sp = $c->prepare("CALL spBuscarDocenteByID(:pid)");
+        // Verificar si el docente existe y se encuentra activo
+        $sp = $c->prepare("CALL spBuscarDocenteByID(:pid, @mensaje)");
         $sp->bindParam(':pid', $pclvDocente, PDO::PARAM_STR);
         $sp->execute();
 
         $docente = $sp->fetch(PDO::FETCH_ASSOC);
         $sp->closeCursor();
 
-        // Validar que el docente exista
-        if (!$docente) {
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        if ($mensaje['@mensaje'] === 'Error: No existen registros con el parámetro solicitado') {
             $resultado['mensaje'] = "El docente ingresado no existe.";
             return $resultado;
         }
 
-        // Validar que la docente tenga el estado de Activo
-        if ($docente['estado'] !== 'Activo') {
+        if ($mensaje['@mensaje'] === 'Estado: Exito' && $docente['estado'] !== 'Activo') {
             $resultado['mensaje'] = "El docente debe estar en estado 'Activo' para realizar esta operación.";
             return $resultado;
         }
 
         // Verificar si los datos son iguales a los actuales
-        $sp = $c->prepare("CALL spBuscarOfertaByID(:pid)"); 
+        $sp = $c->prepare("CALL spBuscarOfertaByID(:pid, @mensaje)");
         $sp->bindParam(':pid', $pidOferta, PDO::PARAM_INT);
         $sp->execute();
         $ofertaActual = $sp->fetch(PDO::FETCH_ASSOC);
         $sp->closeCursor();
 
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
         if (
+            $mensaje['@mensaje'] === 'Estado: Exito' &&
             $ofertaActual &&
             $ofertaActual['semestre'] == $psemestre &&
             $ofertaActual['grupo'] == $pgrupo &&
@@ -561,6 +575,7 @@ class OfertaDAO
             $resultado['mensaje'] = "No se realizaron cambios porque la información ingresada es idéntica a la ya registrada para esta oferta.";
             return $resultado;
         }
+
 
         // -----------------------------------------
         // Llamada al sp para hacer la funcionalidad
@@ -723,49 +738,49 @@ class OfertaDAO
      */
     public function BuscarMateriasporCarrera($pclave)
     {
-    $resultado = ['estado' => 'Error'];
-    $c = $this->conector;
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
 
-    error_log("BuscarMateriasporCarrera llamado con pclave = $pclave");
+        error_log("BuscarMateriasporCarrera llamado con pclave = $pclave");
 
-    if (empty($pclave)) {
-        $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
-        error_log("pclave está vacío");
-        return $resultado;
-    }
-
-    try {
-        $sp = $c->prepare("CALL spBuscarMateriasByIDCarrera(:pclave, @mensaje)");
-        $sp->bindParam(':pclave', $pclave, PDO::PARAM_STR);
-        $sp->execute();
-
-        $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
-        $sp->closeCursor();
-
-        error_log("Datos obtenidos del procedimiento almacenado: " . print_r($datos, true));
-
-        $respuestaSP = $c->query("SELECT @mensaje");
-        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
-        $resultado['respuestaSP'] = $mensaje['@mensaje'];
-
-        error_log("Mensaje del SP: " . $resultado['respuestaSP']);
-
-        switch ($resultado['respuestaSP']) {
-            case 'Estado: Exito':
-                $resultado['estado'] = "OK";
-                $resultado['datos'] = $datos;
-                break;
-            default:
-                $resultado['mensaje'] = "Algo salió mal al intentar obtener la información de las materias. Por favor, vuelva a intentarlo más tarde.";
-                error_log("Error en SP: mensaje inesperado");
-                break;
+        if (empty($pclave)) {
+            $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
+            error_log("pclave está vacío");
+            return $resultado;
         }
-    } catch (PDOException $e) {
-        error_log("Error en la base de datos (BuscarMaterias): " . $e->getMessage());
-        $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
-    }
 
-    return $resultado;
+        try {
+            $sp = $c->prepare("CALL spBuscarMateriasByIDCarrera(:pclave, @mensaje)");
+            $sp->bindParam(':pclave', $pclave, PDO::PARAM_STR);
+            $sp->execute();
+
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor();
+
+            error_log("Datos obtenidos del procedimiento almacenado: " . print_r($datos, true));
+
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            error_log("Mensaje del SP: " . $resultado['respuestaSP']);
+
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
+                default:
+                    $resultado['mensaje'] = "Algo salió mal al intentar obtener la información de las materias. Por favor, vuelva a intentarlo más tarde.";
+                    error_log("Error en SP: mensaje inesperado");
+                    break;
+            }
+        } catch (PDOException $e) {
+            error_log("Error en la base de datos (BuscarMaterias): " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
+        }
+
+        return $resultado;
     }
 
 
