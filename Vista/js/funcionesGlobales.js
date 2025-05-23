@@ -100,6 +100,11 @@ function retrasoSelect(idetiqueta, idbtn, modulo, contenedor) {
         setTimeout(() => {
           verificarEntradasOferta(idetiqueta, idbtn, contenedor);
         }, 500);
+
+        let datos2 = new Object();
+        datos2.idc = document.getElementById('listaCarrera').value;
+        recuperaMateriasDeCarrera(datos2,"SIN ASIGNAR");
+
         break;
   }
 }
