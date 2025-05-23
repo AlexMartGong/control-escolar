@@ -213,8 +213,7 @@
                                     <label for="listaMateria" class="form-label">Nombre Materia</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-blue-light"><i class="fas fa-book"></i></span>
-                                        <select id="listaMateria" class="form-select listaDespliege" onchange="retrasoSelect('claveMateria', 'btnGuardarJ', 'oferta','mb-3' )">
-                                            <option disabled selected>Seleccione una Materia</option>
+                                        <select id="listaMateria" class="form-select listaDespliege" onchange="actualizaClaveMateria();">
                                             
                                         </select>
                                         <script>
