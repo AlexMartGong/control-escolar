@@ -45,7 +45,7 @@ $Docentes = $objOfDAO->BuscarDocentesActivos()
                             color: white;
                         }
                         .select2-container{
-                            border-radius 7px;
+                            border-radius: 7px;
                         }
                     </style>
 
