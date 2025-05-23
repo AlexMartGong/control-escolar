@@ -759,9 +759,9 @@ function verificarOfertaExiste(datos, callback) {
 }
 
 /*
- * Función para buscar una Oferta por su ID.
- * Envía una solicitud POST al servidor y, si tiene éxito, llena el formulario con los datos recibidos.
- * Además, desactiva el campo de clave de materia para evitar su edición.
+ * Busca una oferta por su ID.
+ * Envia una solicitud POST al intermediario PHP y, si tiene éxito, llena el formulario con los datos obtenidos.
+ * Además, carga la lista de materias correspondientes a la carrera asociada y selecciona la materia correcta.
  */
 function BuscarOferta(id) {
   let url = "../../Controlador/Intermediarios/Oferta/ModificarOferta.php";
@@ -770,13 +770,15 @@ function BuscarOferta(id) {
 
   console.log("BuscarOferta llamada con id =", id);
 
+  // Enviar solicitud al servidor para buscar la oferta
   $.post(url, json, function (response, status) {
-    console.log("Respuesta de ModificarOferta.php:", response);
+    console.log("Respuesta intermediario:", response);
 
+    // Validación de respuesta exitosa con datos
     if (status === "success" && response.estado === "OK" && response.datos) {
       const datos = response.datos;
 
-      // Inputs
+      // Llenado de inputs del formulario con los datos de la oferta
       $("#idOferta").val(datos.clave_de_oferta);
       $("#idSemestre").val(datos.semestre);
       $("#idGrupo").val(datos.grupo);
@@ -787,38 +789,79 @@ function BuscarOferta(id) {
       $("#claveDocente").val(datos.clave_de_docente);
       $("#estado").val(datos.estado);
 
-      // Selects cargados directamente
+      // Establecer valores seleccionados en listas desplegables
       $("#listaCarrera").val(datos.clave_de_carrera).trigger("change");
       $("#listaPeriodo").val(datos.clave_periodo).trigger("change");
       $("#listaDocente").val(datos.clave_de_docente).trigger("change");
 
-      // 🟡 Cargar materias de la carrera antes de seleccionar
-      cargarMateriasPorCarrera(datos.clave_de_carrera)
-        .then(() => {
-          console.log("Materias cargadas, seleccionando materia:", datos.clave_de_materia);
-          $("#listaMateria").val(datos.clave_de_materia).trigger("change");
-        })
-        .catch((error) => {
-          console.error("Error cargando materias:", error);
-          mostrarErrorCaptura(error);
-        });
+      // Crear objeto con clave de carrera para recuperar las materias relacionadas
+      let datos2 = new Object();
+      datos2.idc = datos.clave_de_carrera;
+
+      // Llamar a la función que recupera materias y selecciona la correcta
+      recuperaMateriasDeCarrera(datos2, datos.clave_de_materia);
 
     } else {
+      // Mostrar mensaje de error si la oferta no fue encontrada
       mostrarErrorCaptura(response.mensaje || "No se encontró la oferta.");
     }
   }, "json").fail(function (xhr, status, error) {
+    // Manejo de errores de conexión o ejecución
     console.error("Error en la solicitud POST:", xhr.responseText);
     mostrarErrorCaptura("Error al buscar la Oferta.");
   });
 }
 
+/*
+ * Recupera las materias asociadas a una carrera desde el servidor.
+ * Luego llena el select con las materias recibidas y selecciona una en caso de coincidencia.
+ */
+function recuperaMateriasDeCarrera(datos2, clave_de_materia) {
+  let json2 = JSON.stringify(datos2);
+  console.log(json2);
 
+  let url2 = "../../Controlador/Intermediarios/Materia/ObtenerMateriasPorCarrera.php";
+
+  // Enviar solicitud para obtener materias de la carrera
+  $.post(url2, json2, function (response, status) {
+    try {
+      // Validar respuesta exitosa y con datos
+      if (status === "success" && response.estado === "OK" && response.datos) {
+        // Limpiar y agregar opción por defecto en el select
+        document.getElementById("listaMateria").innerHTML = "<option>Seleccione una Materia</option>";
+
+        const datos2 = response.datos;
+
+        // Recorrer materias y agregarlas al select, marcando como seleccionada la correspondiente
+        datos2.forEach(materia => {
+          var extra = (clave_de_materia == materia.clave_de_materia) ? "selected" : "";
+          document.getElementById("listaMateria").innerHTML += `<option ${extra} value= "${materia.clave_de_materia}">${materia.nombre_de_materia}</option>`;
+        });
+
+        // Actualizar campo oculto con la materia seleccionada
+        actualizaClaveMateria();
+      }
+    } catch (error) {
+      // Error al procesar respuesta
+      console.error("Error al cargar materias:", error);
+    }
+  });
+}
 
 /*
- * Función para modificar los datos de una Oferta existente.
+ * Sincroniza el valor seleccionado del combo listaMateria
+ * con el campo oculto claveMateria, para reflejar la materia elegida.
+ */
+function actualizaClaveMateria() {
+  document.getElementById('claveMateria').value = document.getElementById("listaMateria").value;
+}
+
+
+/**
+ * Envía los datos del formulario para modificar una oferta educativa existente.
  */
 function ModificarOferta() {
-  // Capturamos y limpiamos los datos del formulario
+  // Obtener y limpiar los valores del formulario
   const idOf = document.getElementById("idOferta").value.trim();
   const semestre = document.getElementById("idSemestre").value.trim();
   const grupo = document.getElementById("idGrupo").value.trim();
@@ -828,25 +871,14 @@ function ModificarOferta() {
   const idP = document.getElementById("IdPeriod").value.trim();
   const claveDoc = document.getElementById("claveDocente").value.trim();
 
-  // Validamos que todos los campos requeridos estén llenos
-  if (
-    !idOf ||
-    !semestre ||
-    !grupo ||
-    !turno ||
-    !claveCar ||
-    !claveMat ||
-    !idP ||
-    !claveDoc
-  ) {
-    mostrarFaltaDatos(
-      "Por favor, complete todos los campos obligatorios para continuar."
-    );
+  // Validar que ningún campo obligatorio esté vacío
+  if (!idOf || !semestre || !grupo || !turno || !claveCar || !claveMat || !idP || !claveDoc) {
+    mostrarFaltaDatos("Por favor, complete todos los campos obligatorios para continuar.");
     return;
   }
 
-  // Construimos el objeto con los datos a enviar
-  let datos = {
+  // Construir objeto de datos para la solicitud
+  const datos = {
     idOferta: idOf,
     semestre: semestre,
     grupo: grupo,
@@ -855,46 +887,38 @@ function ModificarOferta() {
     claveMateria: claveMat,
     idPeriodo: idP,
     claveDocente: claveDoc,
-    Modificar: true,
+    Modificar: true
   };
 
-  let json = JSON.stringify(datos); // Convertimos a JSON
-  let url = "../../Controlador/Intermediarios/Oferta/ModificarOferta.php"; // URL del intermediario
+  const json = JSON.stringify(datos);
+  const url = "../../Controlador/Intermediarios/Oferta/ModificarOferta.php";
+
   console.log("Datos JSON enviados:", json);
 
-  // Enviamos la solicitud POST
-  $.post(
-    url,
-    json,
-    function (response, status) {
-      // Si la modificación fue exitosa, mostramos mensaje de éxito
-      if (response.success) {
-        mostrarDatosGuardados(response.mensaje, "");
-        option("oferta", ""); // Refrescamos o redirigimos según sea necesario
-      } else {
-        // Si hubo un error, lo mostramos al usuario
-        mostrarErrorCaptura(response.mensaje);
-      }
-    },
-    "json" // Indicamos que esperamos JSON como respuesta
-  ).fail(function (xhr, status, error) {
-    // Manejamos fallos de conexión o servidor
-    console.error(
-      "Error en la solicitud POST Modificar Oferta:",
-      xhr.responseText
-    );
-    mostrarErrorCaptura(
-      "No se pudo conectar con el servidor. Inténtelo más tarde."
-    );
+  // Enviar solicitud POST para modificar la oferta
+  $.post(url, json, function (response, status) {
+    if (response.success) {
+      mostrarDatosGuardados(response.mensaje, "");
+      option("oferta", ""); // Actualizar vista o recargar contenido
+    } else {
+      mostrarErrorCaptura(response.mensaje);
+    }
+  }, "json").fail(function (xhr, status, error) {
+    // Manejo de error de conexión o respuesta del servidor
+    console.error("Error en la solicitud POST Modificar Oferta:", xhr.responseText);
+    mostrarErrorCaptura("No se pudo conectar con el servidor. Inténtelo más tarde.");
   });
 }
 
+/**
+ * Carga la lista de periodos disponibles desde el servidor y los agrega al select correspondiente.
+ */
 function cargarPeriodos() {
   return fetch('../../Controlador/Intermediarios/Periodo/ObtenerPeriodos.php')
-    .then(response => response.json())  // cuando responde, parsea JSON
+    .then(response => response.json())
     .then(data => {
       const select = document.getElementById('listaPeriodo');
-      select.innerHTML = '<option disabled selected>Seleccione un periodo</option>'; // limpia opciones
+      select.innerHTML = '<option disabled selected>Seleccione un periodo</option>';
 
       if (data.datos && data.datos.length > 0) {
         data.datos.forEach(periodo => {
@@ -907,10 +931,13 @@ function cargarPeriodos() {
     })
     .catch(error => {
       console.error('Error cargando periodos:', error);
-      throw error; // para que se propague el error
+      throw error;
     });
 }
 
+/**
+ * Carga la lista de docentes activos y los inserta en el combo correspondiente.
+ */
 function cargarDocentes() {
   return fetch('../../Controlador/Intermediarios/Docente/ObtenerDocenteActivos.php')
     .then(response => response.json())
@@ -961,87 +988,21 @@ function cargarCarreras() {
     });
 }
 
+/**
+ * Carga los datos iniciales (periodos, docentes y carreras) y luego ejecuta la búsqueda de una oferta por ID.
+ * Garantiza que los selects estén listos antes de buscar los datos de la oferta.
+ */
 function cargarDatosYBuscarOferta(id) {
   Promise.all([cargarPeriodos(), cargarDocentes(), cargarCarreras()])
     .then(() => {
-      // Aquí ya están cargados los selects
       BuscarOferta(id);
     })
     .catch(error => {
       console.error("Error cargando datos:", error);
-      // Puedes mostrar un error o manejarlo como quieras
+      // Manejo adicional si falla la carga inicial
     });
 }
 
-function cargarMateriasPorCarrera(claveCarrera) {
-  return new Promise((resolve, reject) => {
-    console.log("cargarMateriasPorCarrera llamada con claveCarrera =", claveCarrera);
-
-    let url = "../../Controlador/Intermediarios/Materia/ObtenerMateriasPorCarrera.php";
-    let datos = { claveCarrera: claveCarrera };
-
-    $.post(url, JSON.stringify(datos), function (response, status) {
-      console.log("Respuesta de ObtenerMateriasPorCarrera:", response);
-
-      if (status === "success" && response.estado === "OK") {
-        let select = $("#listaMateria");
-        select.empty();
-        response.datos.forEach((materia) => {
-          select.append(new Option(materia.nombre, materia.clave));
-        });
-        resolve(); // Todo salió bien
-      } else {
-        reject("No se pudieron cargar las materias. Mensaje: " + (response.mensaje || "Sin mensaje"));
-      }
-    }, "json").fail((xhr, status, error) => {
-      reject("Error al cargar materias: " + error);
-    });
-  });
-}
-// Carga las materias correspondientes a la carrera seleccionada y las inserta en el select de materias
-function cargarMateriasPorCarrera(claveCarrera) {
-  const $selectMateria = $("#listaMateria");
-
-  $selectMateria
-    .prop("disabled", true)
-    .empty()
-    .append("<option disabled selected>Cargando materias...</option>");
-    
-  $("#claveMateria").val("");
-
- // console.log("Carrera recibida:", claveCarrera);
-
-  $.ajax({
-    url: '../../Controlador/Intermediarios/Oferta/getMateriaPorCarrera.php',
-    method: 'POST',
-    contentType: 'application/json',
-    data: JSON.stringify({ claveCarrera: claveCarrera }),
-    dataType: 'json',
-    success: function (materias) {
-    //  console.log("Materias recibidas:", materias);
-
-      $selectMateria.empty().append('<option disabled selected>Seleccione una Materia</option>');
-
-      materias.forEach(function (materia) {
-        $selectMateria.append(
-          `<option value="${materia.clave_de_materia}">${materia.nombre_de_materia}</option>`
-        );
-      });
-
-      $selectMateria.prop("disabled", false);
-      $("#listaMateria").val("Seleccione una Materia").trigger("change.select2");
-      $("#claveMateria").val('');
-    },
-    error: function () {
-      //console.warn("Error al comunicar con el backend");
-      $selectMateria
-        .prop("disabled", true)
-        .empty()
-        .append('<option disabled selected>Error al cargar materias</option>');
-      $("#claveMateria").val('');
-    }
-  });
-}
 
 
 
