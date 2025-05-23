@@ -758,6 +758,59 @@ function verificarOfertaExiste(datos, callback) {
   });
 }
 
+/**
+ * Envía los datos del formulario para modificar una oferta educativa existente.
+ */
+function ModificarOferta() {
+  // Obtener y limpiar los valores del formulario
+  const idOf = document.getElementById("idOferta").value.trim();
+  const semestre = document.getElementById("idSemestre").value.trim();
+  const grupo = document.getElementById("idGrupo").value.trim();
+  const turno = document.getElementById("turno").value.trim();
+  const claveCar = document.getElementById("claveCarrera").value.trim();
+  const claveMat = document.getElementById("claveMateria").value.trim();
+  const idP = document.getElementById("IdPeriod").value.trim();
+  const claveDoc = document.getElementById("claveDocente").value.trim();
+
+  // Validar que ningún campo obligatorio esté vacío
+  if (!idOf || !semestre || !grupo || !turno || !claveCar || !claveMat || !idP || !claveDoc) {
+    mostrarFaltaDatos("Por favor, complete todos los campos obligatorios para continuar.");
+    return;
+  }
+
+  // Construir objeto de datos para la solicitud
+  const datos = {
+    idOferta: idOf,
+    semestre: semestre,
+    grupo: grupo,
+    turno: turno,
+    claveCarrera: claveCar,
+    claveMateria: claveMat,
+    idPeriodo: idP,
+    claveDocente: claveDoc,
+    Modificar: true
+  };
+
+  const json = JSON.stringify(datos);
+  const url = "../../Controlador/Intermediarios/Oferta/ModificarOferta.php";
+
+  console.log("Datos JSON enviados:", json);
+
+  // Enviar solicitud POST para modificar la oferta
+  $.post(url, json, function (response, status) {
+    if (response.success) {
+      mostrarDatosGuardados(response.mensaje, "");
+      option("oferta", ""); // Actualizar vista o recargar contenido
+    } else {
+      mostrarErrorCaptura(response.mensaje);
+    }
+  }, "json").fail(function (xhr, status, error) {
+    // Manejo de error de conexión o respuesta del servidor
+    console.error("Error en la solicitud POST Modificar Oferta:", xhr.responseText);
+    mostrarErrorCaptura("No se pudo conectar con el servidor. Inténtelo más tarde.");
+  });
+}
+
 /*
  * Busca una oferta por su ID.
  * Envia una solicitud POST al intermediario PHP y, si tiene éxito, llena el formulario con los datos obtenidos.
@@ -812,6 +865,65 @@ function BuscarOferta(id) {
   });
 }
 
+/**
+ * Carga la lista de carreras activas y los inserta en el combo correspondiente.
+ */
+function cargarCarreras() {
+  // Realiza una solicitud HTTP GET al archivo PHP que devuelve las carreras activas
+  return fetch('../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php')
+    // Convierte la respuesta en un objeto JSON
+    .then(response => response.json())
+    // Una vez que se tiene el objeto JSON
+    .then(data => {
+      // Obtiene el elemento <select> donde se van a insertar las carreras
+      const select = document.getElementById('listaCarrera');
+      
+      // Limpia el <select> y agrega una opción por defecto deshabilitada y seleccionada
+      select.innerHTML = '<option disabled selected>Seleccione una Carrera</option>';
+
+      // Verifica si el arreglo 'datos' dentro del JSON contiene al menos una carrera
+      if (data.datos && data.datos.length > 0) {
+        // Recorre cada carrera y la agrega como una opción dentro del <select>
+        data.datos.forEach(carrera => {
+          const option = document.createElement('option'); // Crea una nueva opción
+          option.value = carrera.clave_de_carrera;         // Establece el valor (clave)
+          option.textContent = carrera.nombre_de_carrera;  // Establece el texto visible
+          select.appendChild(option);                      // Agrega la opción al <select>
+        });
+      }
+    })
+    // Captura cualquier error que ocurra en la solicitud o el procesamiento de datos
+    .catch(error => {
+      console.error('Error cargando Carreras:', error); // Muestra el error en la consola
+      throw error; // Propaga el error para que pueda ser manejado por quien llame esta función
+    });
+}
+
+/**
+ * Carga la lista de periodos disponibles desde el servidor y los agrega al select correspondiente.
+ */
+function cargarPeriodos() {
+  return fetch('../../Controlador/Intermediarios/Periodo/ObtenerPeriodos.php')
+    .then(response => response.json())
+    .then(data => {
+      const select = document.getElementById('listaPeriodo');
+      select.innerHTML = '<option disabled selected>Seleccione un periodo</option>';
+
+      if (data.datos && data.datos.length > 0) {
+        data.datos.forEach(periodo => {
+          const option = document.createElement('option');
+          option.value = periodo.clave_periodo;
+          option.textContent = periodo.periodo;
+          select.appendChild(option);
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error cargando periodos:', error);
+      throw error;
+    });
+}
+
 /*
  * Recupera las materias asociadas a una carrera desde el servidor.
  * Luego llena el select con las materias recibidas y selecciona una en caso de coincidencia.
@@ -856,85 +968,6 @@ function actualizaClaveMateria() {
   document.getElementById('claveMateria').value = document.getElementById("listaMateria").value;
 }
 
-
-/**
- * Envía los datos del formulario para modificar una oferta educativa existente.
- */
-function ModificarOferta() {
-  // Obtener y limpiar los valores del formulario
-  const idOf = document.getElementById("idOferta").value.trim();
-  const semestre = document.getElementById("idSemestre").value.trim();
-  const grupo = document.getElementById("idGrupo").value.trim();
-  const turno = document.getElementById("turno").value.trim();
-  const claveCar = document.getElementById("claveCarrera").value.trim();
-  const claveMat = document.getElementById("claveMateria").value.trim();
-  const idP = document.getElementById("IdPeriod").value.trim();
-  const claveDoc = document.getElementById("claveDocente").value.trim();
-
-  // Validar que ningún campo obligatorio esté vacío
-  if (!idOf || !semestre || !grupo || !turno || !claveCar || !claveMat || !idP || !claveDoc) {
-    mostrarFaltaDatos("Por favor, complete todos los campos obligatorios para continuar.");
-    return;
-  }
-
-  // Construir objeto de datos para la solicitud
-  const datos = {
-    idOferta: idOf,
-    semestre: semestre,
-    grupo: grupo,
-    turno: turno,
-    claveCarrera: claveCar,
-    claveMateria: claveMat,
-    idPeriodo: idP,
-    claveDocente: claveDoc,
-    Modificar: true
-  };
-
-  const json = JSON.stringify(datos);
-  const url = "../../Controlador/Intermediarios/Oferta/ModificarOferta.php";
-
-  console.log("Datos JSON enviados:", json);
-
-  // Enviar solicitud POST para modificar la oferta
-  $.post(url, json, function (response, status) {
-    if (response.success) {
-      mostrarDatosGuardados(response.mensaje, "");
-      option("oferta", ""); // Actualizar vista o recargar contenido
-    } else {
-      mostrarErrorCaptura(response.mensaje);
-    }
-  }, "json").fail(function (xhr, status, error) {
-    // Manejo de error de conexión o respuesta del servidor
-    console.error("Error en la solicitud POST Modificar Oferta:", xhr.responseText);
-    mostrarErrorCaptura("No se pudo conectar con el servidor. Inténtelo más tarde.");
-  });
-}
-
-/**
- * Carga la lista de periodos disponibles desde el servidor y los agrega al select correspondiente.
- */
-function cargarPeriodos() {
-  return fetch('../../Controlador/Intermediarios/Periodo/ObtenerPeriodos.php')
-    .then(response => response.json())
-    .then(data => {
-      const select = document.getElementById('listaPeriodo');
-      select.innerHTML = '<option disabled selected>Seleccione un periodo</option>';
-
-      if (data.datos && data.datos.length > 0) {
-        data.datos.forEach(periodo => {
-          const option = document.createElement('option');
-          option.value = periodo.clave_periodo;
-          option.textContent = periodo.periodo;
-          select.appendChild(option);
-        });
-      }
-    })
-    .catch(error => {
-      console.error('Error cargando periodos:', error);
-      throw error;
-    });
-}
-
 /**
  * Carga la lista de docentes activos y los inserta en el combo correspondiente.
  */
@@ -960,34 +993,6 @@ function cargarDocentes() {
     });
 }
 
-function cargarCarreras() {
-  return fetch('../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php')
-    .then(response => response.json())
-    .then(data => {
-      const select = document.getElementById('listaCarrera');
-      select.innerHTML = '<option disabled selected>Seleccione una carrera</option>';
-
-      if (data.datos && data.datos.length > 0) {
-        data.datos.forEach(carrera => {
-          const option = document.createElement('option');
-          option.value = carrera.clave_de_carrera;
-          option.textContent = carrera.nombre_de_carrera;
-          select.appendChild(option);
-        });
-      }
-
-      // Agregas el listener después de llenar el select
-      select.addEventListener('change', function () {
-        const claveCarrera = this.value;
-        cargarMateriasPorCarrera(claveCarrera);
-      });
-    })
-    .catch(error => {
-      console.error('Error cargando carreras:', error);
-      throw error;
-    });
-}
-
 /**
  * Carga los datos iniciales (periodos, docentes y carreras) y luego ejecuta la búsqueda de una oferta por ID.
  * Garantiza que los selects estén listos antes de buscar los datos de la oferta.
@@ -1002,8 +1007,3 @@ function cargarDatosYBuscarOferta(id) {
       // Manejo adicional si falla la carga inicial
     });
 }
-
-
-
-
-
