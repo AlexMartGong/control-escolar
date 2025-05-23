@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
-        
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Escolar - TecJalisco</title>
     <!-- CSS de Select2 -->
     <link rel="stylesheet" href="../select2/select2.min.css">
-     <!-- DataTables + Bootstrap 5 CSS -->
+    <!-- DataTables + Bootstrap 5 CSS -->
     <link rel="stylesheet" href="../DataTables/css/dataTables.bootstrap5.css">
     <!-- DataTables Responsive + Bootstrap 5 CSS -->
     <link rel="stylesheet" href="../DataTables/css/responsive.bootstrap5.css">
@@ -35,7 +35,7 @@
         <!-- Sidebar -->
         <div class="col-md-3 col-lg-2 px-0 sidebar" id="sidebar">
             <div class="logo">
-               <a href="index.php"> <img src="../img/logo-tecmm.png" alt="TecJalisco Logo" class="img-fluid"></a>
+                <a href="index.php"> <img src="../img/logo-tecmm.png" alt="TecJalisco Logo" class="img-fluid"></a>
             </div>
 
             <!-- Menú Datos -->
@@ -79,7 +79,8 @@
                 </h5>
                 <div class="submenu">
                     <!-- Enlaces directos sin submenús -->
-                    <a href="javascript:void(0);" onclick="option('oferta', '')" class="nav-link"><i class="fas fa-clipboard-list me-2"></i>Oferta</a>
+                    <a href="javascript:void(0);" onclick="option('oferta', '')" class="nav-link"><i
+                                class="fas fa-clipboard-list me-2"></i>Oferta</a>
                     <a href="javascript:void(0);" class="nav-link"><i class="fas fa-edit me-2"></i>Captura</a>
                     <a href="javascript:void(0);" class="nav-link"><i class="fas fa-clock me-2"></i>Horario</a>
                     <a href="javascript:void(0);" class="nav-link"><i class="fas fa-user-minus me-2"></i>Baja</a>
@@ -127,5 +128,6 @@
 <script src="../js/materia/materia.js"></script>
 <script src="../js/funcionesGlobales.js"></script>
 <script src="../js/oferta/oferta.js"></script>
+<script src="../js/alumno/alumno.js"></script>
 </body>
 </html>
