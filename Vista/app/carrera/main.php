@@ -27,7 +27,7 @@ $res = $objCaDAO->MostrarCarrera();
         </div>
     </div>
 
-    <table class="table table-hover" id="tableCarrera">
+    <table class="table table-hover table-responsive table-striped" id="tableCarrera">
         <thead>
         <tr class="table-dark text-center">
             <th>ID carrera</th>
@@ -57,8 +57,8 @@ $res = $objCaDAO->MostrarCarrera();
                             $badgeClass = "bg-danger";
                             break;
                     }
-            ?>
-        <tr class="<?=$rowClass?>">
+                        ?>
+                        <tr class="">
                         <td><?= $fila['clave_de_carrera'] ?></td>
                         <td><?= $fila['nombre_de_carrera'] ?></td>
                         <td><?= $fila['clave_de_jefe'] ?></td>

@@ -28,7 +28,7 @@ $res = $objPeDAO->MostrarPeriodos();
     </div>
 
 
-    <table class="table table-hover" id="tablePeriod">
+    <table class="table table-hover table-responsive table-striped" id="tablePeriod">
         <thead>
         <tr class="table-dark">
             <th>ID Periodo</th>
@@ -68,7 +68,7 @@ $res = $objPeDAO->MostrarPeriodos();
                 }
                 ?>
 
-                <tr class="<?= $rowClass ?>">
+                <tr class="">
                     <td><?= $fila['clave_periodo'] ?></td>
                     <td><?= $fila['periodo'] ?></td>
                     <td><?= $fila['fecha_de_inicio'] ?></td>

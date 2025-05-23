@@ -320,7 +320,7 @@ function verificarEntradasOferta(idetiqueta, idbtn, contenido) {
       break;
     case "claveDocente":
       if (estaVacio) {
-        mostrarError(input, "Este campo no puede estar vacío.", contenido);
+        mostrarError(input, "Seleccione un docente.", contenido);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormulariooferta(idbtn);
@@ -338,7 +338,7 @@ function verificarEntradasOferta(idetiqueta, idbtn, contenido) {
       break;
     case "claveMateria":
       if (estaVacio) {
-        mostrarError(input, "Este campo no puede estar vacío.", contenido);
+        mostrarError(input, "Seleccione una materia.", contenido);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormulariooferta(idbtn);

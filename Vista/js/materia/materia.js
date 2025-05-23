@@ -332,8 +332,8 @@ function verificarInputmateria(idetiqueta, idbtn, contenido) {
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioMateria(idbtn);
       }
-      if (valor <= 0) {
-        mostrarError(input, "No se permiten 0 o numeros negativos", contenido);
+      if (valor < 0 || valor > 5) {
+        mostrarError(input, "El rango de horas practicas es de Max 6 y Min 0 ", contenido);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioMateria(idbtn);
@@ -346,8 +346,8 @@ function verificarInputmateria(idetiqueta, idbtn, contenido) {
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioMateria(idbtn);
       }
-      if (valor <= 0) {
-        mostrarError(input, "No se permiten 0 o numeros negativos", contenido);
+      if (valor < 0 || valor > 6) {
+        mostrarError(input, "El rango de horas teoricas es de max 6 y min 0", contenido);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioMateria(idbtn);
@@ -360,8 +360,8 @@ function verificarInputmateria(idetiqueta, idbtn, contenido) {
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioMateria(idbtn);
       }
-      if (valor <= 0) {
-        mostrarError(input, "No se permiten 0 o numeros negativos", contenido);
+      if (valor < 0  || valor > 8) {
+        mostrarError(input, "El rango de unidades es de min 0 y max 8", contenido);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioMateria(idbtn);
@@ -374,8 +374,8 @@ function verificarInputmateria(idetiqueta, idbtn, contenido) {
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioMateria(idbtn);
       }
-      if (valor <= 0) {
-        mostrarError(input, "No se permiten 0 o numeros negativos", contenido);
+      if (valor < 0  || valor > 6) {
+        mostrarError(input, "El rango de Creditos max 6 y min 0", contenido);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioMateria(idbtn);

@@ -25,7 +25,7 @@ $res = $objMaDAO->MostrarMaterias();
         </div>
     </div> 
 
-    <table class="table table-hover" id="tableMateria">
+    <table class="table table-hover table-responsive table-striped" id="tableMateria">
         <thead>
         <tr class="table-dark text-center">
             <th>ID Materia</th>
@@ -40,7 +40,7 @@ $res = $objMaDAO->MostrarMaterias();
             <th>Opciones</th>
         </tr>
         </thead>
-        <tbody class="table-success">
+        <tbody >
         <?php
             if ($res['estado'] == 'OK' && $res['filas'] > 0) {
                 $cont = 1;

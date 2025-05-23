@@ -27,7 +27,7 @@ $res = $objDoDAO->MostrarDocente();
         </div>
     </div>
 
-    <table class="table table-hover" id="tableDocente">
+    <table class="table table-hover table-responsive table-striped" id="tableDocente">
         <thead>
             <tr class="table-dark text-center">
                 <th>ID Docente</th>
@@ -58,7 +58,7 @@ $res = $objDoDAO->MostrarDocente();
                     }
             ?>
 
-                    <tr class="<?= $rowClass ?>">
+                    <tr class="">
                         <td><?= $fila['clave_de_docente'] ?></td>
                         <td><?= $fila['docente'] ?></td>
                         <td><?= $fila['perfil_de_docente'] ?></td>

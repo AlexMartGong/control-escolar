@@ -1,0 +1,15 @@
+table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control::before,
+table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control::before {
+     content: "";
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: #ff6600;
+    mask: url('data:image/svg+xml;utf8,<svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1zm0 6H5v2h3v3h2V9h3V7H10V4H8v3z"/></svg>') no-repeat center;
+    -webkit-mask: url('data:image/svg+xml;utf8,<svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1zm0 6H5v2h3v3h2V9h3V7H10V4H8v3z"/></svg>') no-repeat center;
+    mask-size: contain;
+    -webkit-mask-size: contain;
+    vertical-align: middle;
+    margin-right: 8px;
+    text-align: center;
+}
