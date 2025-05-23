@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
-        <!-- Comentario Jeni -->
-          <!-- Comentario MIGUE -->
+        
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Escolar - TecJalisco</title>
     <!-- CSS de Select2 -->
     <link rel="stylesheet" href="../select2/select2.min.css">
+     <!-- DataTables + Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="../DataTables/css/dataTables.bootstrap5.css">
+    <!-- DataTables Responsive + Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="../DataTables/css/responsive.bootstrap5.css">
+    <!-- para cambiar el icono de DataTables -->
+    <link rel="stylesheet" href="../css/iconsDatatable.css">
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -92,20 +97,29 @@
     </div>
 </div>
 
-<!-- jQuery primero (necesario para Bootstrap y DataTables) -->
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-<!-- Bootstrap JS Bundle -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-<!-- Función personalizada JS (después de cargar jQuery) -->
-<script src="../js/function.js"></script>
-<!-- jQuery UI - needed for datepicker -->
+<!-- jQuery  -->
+<script src="../DataTables/js/jquery-3.7.1.js"></script>
+
+<!-- jQuery UI  -->
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="../DataTables/js/bootstrap.bundle.min.js"></script>
+
+<!-- DataTables núcleo -->
+<script src="../DataTables/js/dataTables.js"></script>
+
+<!-- DataTables integración con Bootstrap 5 -->
+<script src="../DataTables/js/dataTables.bootstrap5.js"></script>
+
+<!-- DataTables extensión Responsive -->
+<script src="../DataTables/js/dataTables.responsive.js"></script>
+<script src="../DataTables/js/responsive.bootstrap5.js"></script>
 <!-- JS de Select2 -->
 <script src="../select2/select2.min.js"></script>
 
-<!-- Funciones de js que son necesaria-->
+<!-- Scripts personalizados (después de librerías) -->
+<script src="../js/function.js"></script>
 <script src="../js/periodo/function_period.js"></script>
 <script src="../js/jefe_carrera/funciones.js"></script>
 <script src="../js/docente/docente.js"></script>

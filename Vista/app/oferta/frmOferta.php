@@ -254,7 +254,7 @@ $Docentes = $objOfDAO->BuscarDocentesActivos()
                                                         <label for="listaMateria" class="form-label">Nombre Materia</label>
                                                         <div class="input-group">
                                                          <span class="input-group-text bg-blue-light"><i class="fas fa-book"></i></span>
-                                                        <select id="listaMateria" class="form-select listaDespliege" onchange="retrasoSelect('claveMateria', 'btnAgregarOferta', 'oferta','mb-3' )">
+                                                        <select id="listaMateria" class="form-select listaDespliege" onchange="retrasoSelect('claveMateria', 'btnAgregarOferta', 'oferta','mb-3' )" disabled>
                                                             <option disabled selected>Seleccione una Materia</option>
                                                         <!-- aqui se inyectan las option-->
                                                             <?php foreach ($Materias as $m): ?>

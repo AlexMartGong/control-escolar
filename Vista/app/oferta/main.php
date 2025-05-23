@@ -25,16 +25,16 @@ $res = $objOfDAO->MostrarOferta();
         </div>
     </div>
 
-    <table class="table table-hover" id="tableOferta">
+    <table class="table table-hover table-responsive table-striped" id="tableOferta">
         <thead>
-        <tr class="table-dark text-center">
+        <tr class="table-dark">
             <th>ID Oferta</th>
+            <th>Nombre Materia</th>
+            <th>ID Materia</th>
             <th>Grado</th>
             <th>Grupo</th>
             <th>Turno</th>
             <th>Estado</th>
-            <th>ID Materia</th>
-            <th>Nombre Materia</th>
             <th>Hrs. Teoricas</th>
             <th>Hrs. Practicas</th>
             <th>Creditos</th>
@@ -44,7 +44,7 @@ $res = $objOfDAO->MostrarOferta();
             <th>Opciones</th>
         </tr>
         </thead>
-        <tbody class="table-success">
+        <tbody class="">
         <?php
             if ($res['estado'] == 'OK' && $res['filas'] > 0) {
                 $cont = 1;
@@ -64,14 +64,14 @@ $res = $objOfDAO->MostrarOferta();
                             break;
                     }
             ?>
-        <tr class="">
-                <td><?= $fila['clave_de_oferta'] ?></td>
+        <tr class="text-center">
+                        <td><?= $fila['clave_de_oferta'] ?></td>
+                        <td><?= $fila['nombre_de_materia'] ?></td>
+                        <td><?= $fila['clave_de_materia'] ?></td>
                         <td><?= $fila['semestre'] ?></td>
                         <td><?= $fila['grupo'] ?></td>
                         <td><?= $fila['turno'] ?></td>
                         <td><span class="badge <?= $badgeClass ?>"><?= $fila['estado'] ?></span></td>
-                        <td><?= $fila['clave_de_materia'] ?></td>
-                        <td><?= $fila['nombre_de_materia'] ?></td>
                         <td><?= $fila['horas_teoricas'] ?></td>
                         <td><?= $fila['horas_practicas'] ?></td>
                         <td><?= $fila['creditos'] ?></td>

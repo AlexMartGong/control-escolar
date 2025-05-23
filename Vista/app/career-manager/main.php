@@ -27,7 +27,7 @@ $res = $objJeDAO->MostrarJefesCarrera();
         </div>
     </div>
 
-    <table class="table table-hover" id="tableCareerManager">
+    <table class="table table-hover table-responsive table-striped" id="tableCareerManager">
         <thead>
             <tr class="table-dark text-center">
                 <th>ID Jefe carrera</th>
@@ -57,7 +57,7 @@ $res = $objJeDAO->MostrarJefesCarrera();
                             break;
                     }
             ?>
-                    <tr class="<?= $rowClass ?>">
+                    <tr class="">
                         <td><?= $fila['clave_de_jefe'] ?></td>
                         <td><?= $fila['jefe_de_carrera'] ?></td>
                         <td><span class="badge <?= $badgeClass ?>"><?= $fila['estado'] ?></span></td>
