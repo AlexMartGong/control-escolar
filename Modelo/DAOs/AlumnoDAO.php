@@ -108,18 +108,6 @@ class AlumnoDAO
             return $resultado;
         }
 
-        // Validar que los periodos en baja sean un número entre 0 y 3
-        if (!is_numeric($datos->periodosEnBaja) || $datos->periodosEnBaja < 0 || $datos->periodosEnBaja > 3) {
-            $resultado['mensaje'] = "El número de periodos en baja debe estar entre 0 y 3.";
-            return $resultado;
-        }
-
-        // Validar que el estado sea exactamente “Activo”
-        if ($datos->estado !== "Activo") {
-            $resultado['mensaje'] = "El estado del alumno debe ser 'Activo'.";
-            return $resultado;
-        }
-
         // Verificar si la carrera existe y se encuentra activa
         $sp = $c->prepare("CALL spBuscarCarreraByID(:pid, @mensaje)");
         $sp->bindParam(':pid', $pclaveCarrera, PDO::PARAM_STR);
@@ -164,7 +152,7 @@ class AlumnoDAO
 
         try {
             // Registrar en log el intento de ejecución del SP para trazabilidad
-            error_log("Ejecutando SP para agregar un Alumno con: " . $datos);
+            error_log("Ejecutando SP para agregar un Alumno con: " . json_encode($datos));
 
             // Preparar llamada al procedimiento almacenado con parámetros
             $sp = $c->prepare("CALL spAgregarAlumno(:pnoControl, :pnombre, :pgenero, :psemestre, :pgrupo, :pturno, :pclaveCarrera, @mensaje)");
