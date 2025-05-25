@@ -103,7 +103,7 @@
                                             <input type="number" class="form-control" id="periodosEnBaja"
                                                    min="0" max="3" value="0"
                                                    oninput="verificarInputAlumno('periodosEnBaja','btnGuardar')"
-                                                   placeholder="0">
+                                                   placeholder="0" disabled>
                                         </div>
                                         <div id="periodosEnBaja-error" class="error-message d-none"></div>
                                     </div>
@@ -172,7 +172,6 @@
                                     </span>
                                     <select id="listaCarrera" class="form-select listaDespliege"
                                             onchange="verificarSelectAlumno('listaCarrera','btnGuardar')">
-                                        <option value="" disabled selected>Seleccione una carrera</option>
                                     </select>
                                 </div>
                             </div>

@@ -100,7 +100,7 @@
                                             <input type="number" class="form-control" id="periodosEnBaja"
                                                    min="0" max="3" value="0"
                                                    oninput="verificarInputAlumno('periodosEnBaja','btnGuardar')"
-                                                   placeholder="0">
+                                                   placeholder="0" disabled>
                                         </div>
                                         <div id="periodosEnBaja-error" class="error-message d-none"></div>
                                     </div>
