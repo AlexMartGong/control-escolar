@@ -851,8 +851,10 @@ function BuscarOferta(id) {
       let datos2 = new Object();
       datos2.idc = datos.clave_de_carrera;
 
+      setTimeout(() => {
       // Llamar a la función que recupera materias y selecciona la correcta
       recuperaMateriasDeCarrera(datos2, datos.clave_de_materia);
+      }, 250);
 
     } else {
       // Mostrar mensaje de error si la oferta no fue encontrada

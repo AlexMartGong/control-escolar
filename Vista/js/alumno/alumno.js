@@ -22,6 +22,10 @@ function loadFormAlumno(opc, id = "") {
                         .fadeIn(500, function () {
                             // Si es edición, llamar a buscarDocente automáticamente
 
+                            if (opc === "frmalumno") {
+                                cargarCarrerasAlumno(); // <-- Aquí llamas a la función para cargar carreras
+                            }
+
                             if (opc === "modalumno" && id !== "") {
                             }
                         })
@@ -565,7 +569,7 @@ function deshabilitarBtnAlumno(estado, idBoton) {
 function intentarGuardarDatosAlumno(operacion) {
     try {
         if (operacion === "add") {
-            guardarNuevoAlumno();
+            AgregarAlumno();
         } else if (operacion === "mod") {
             modificarAlumno(); // Esta función se implementaría para modificaciones
         }
@@ -574,4 +578,199 @@ function intentarGuardarDatosAlumno(operacion) {
         mostrarErrorCaptura("Error inesperado al guardar los datos.");
         deshabilitarBtnAlumno(false, "btnGuardar"); // Reactivar botón en caso de error
     }
+}
+
+/**
+ * Funcion para guardar nueva carrera, toma los datos y los envia al intermediario correspondiente
+ */
+function AgregarAlumno() {
+  // Obtener y limpiar los valores de los campos del formulario
+  const nc  = document.getElementById("noControl").value.trim();
+  const nombre = document.getElementById("nombreAlumno").value.trim();
+  const genero = document.getElementById("genero").value.trim();
+  const semestre  = document.getElementById("grado").value.trim();
+  const grupo = document.getElementById("grupo").value.trim();
+  const turno = document.getElementById("turno").value.trim();
+  const claveC  = document.getElementById("claveCarrera").value.trim();
+
+  // Validación: asegurar que ambos campos estén completos
+  if (!nc || !nombre || !genero || !semestre|| !grupo || !turno|| !claveC) {
+    mostrarFaltaDatos("Por favor, llena todos los campos obligatorios.");
+  }
+  
+  // Construcción del objeto de datos a enviar
+  const datos = {
+    pnoControl: nc,
+    pnombre: nombre,
+    pgenero: genero,
+    psemestre: semestre,
+    pgrupo: grupo,
+    pturno: turno,
+    pclaveCarrera: claveC
+  };
+
+  // Convertir el objeto a JSON para el envío
+  const json = JSON.stringify(datos);
+  const url = "../../Controlador/Intermediarios/Alumno/AgregarAlumno.php";
+  console.log("Datos a enviarr:", json);
+
+  // Enviamos la solicitud POST
+  $.post(
+    url,
+    json,
+    function (response, status) {
+      // Si la modificación fue exitosa, mostramos mensaje de éxito
+      if (response.estado === "OK") {
+        mostrarDatosGuardados(response.mensaje, "");
+        option("student", ""); // Refrescamos o redirigimos según sea necesario
+      } else {
+        // Si hubo un error, lo mostramos al usuario
+        mostrarErrorCaptura(response.mensaje);
+      }
+    },
+    "json" // Indicamos que esperamos JSON como respuesta
+  ).fail(function (xhr, status, error) {
+    // Manejamos fallos de conexión o servidor
+    console.error("Error en la solicitud POST:", xhr.responseText);
+    mostrarErrorCaptura(
+      "No se pudo conectar con el servidor. Inténtelo más tarde."
+    );
+  });
+}
+
+/**
+ * Carga la lista de carreras activas desde el servidor y las inserta en el <select> correspondiente.
+ * Además, sincroniza el campo de texto con la clave de la carrera seleccionada.
+ *
+ */
+function cargarCarrerasAlumno() {
+  fetch('../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php')
+    .then(response => response.json())
+    .then(data => {
+      const select = document.getElementById('listaCarrera');
+      const inputClave = document.getElementById('claveCarrera');
+
+      select.innerHTML = '<option disabled selected>Seleccione una Carrera</option>';
+
+      if (data.datos && data.datos.length > 0) {
+        data.datos.forEach(carrera => {
+          const option = document.createElement('option');
+          option.value = carrera.clave_de_carrera;
+          option.textContent = carrera.nombre_de_carrera;
+          select.appendChild(option);
+        });
+      }
+
+      select.addEventListener('change', function() {
+        inputClave.value = this.value;
+      });
+    })
+    .catch(error => {
+      console.error('Error cargando Carreras:', error);
+    });
+}
+
+/**
+ * Busca un alumno en el servidor por su número de control (ID).
+ * 
+ * Envía una solicitud POST al script PHP intermediario para obtener los datos del alumno.
+ * Si la respuesta es exitosa, se llenan automáticamente los campos del formulario
+ * con la información recibida y se actualiza la lista de carreras correspondiente.
+ * 
+ * @param {string} id - Número de control del alumno a buscar.
+ */
+function BuscarAlumno(id) {
+  let url = "../../Controlador/Intermediarios/Alumno/ModificarAlumno.php";
+  let datos = { id: id, Buscar: true };
+  let json = JSON.stringify(datos);
+
+  console.log("[BuscarAlumno] Buscando alumno con ID:", id);
+
+  // Realizar la solicitud POST al servidor
+  $.post(url, json, function (response, status) {
+    console.log("[BuscarAlumno] Respuesta recibida:", response);
+
+    // Verificar si la respuesta fue exitosa y contiene datos
+    if (status === "success" && response.estado === "OK" && response.datos) {
+      const datos = response.datos;
+
+      // Llenar los campos del formulario con los datos del alumno
+      $("#noControl").val(datos.numero_de_control);
+      $("#nombreAlumno").val(datos.nombre_de_alumno);
+      $("#genero").val(datos.genero);
+      $("#grado").val(datos.semestre);
+      $("#grupo").val(datos.grupo);
+      $("#periodosEnBaja").val(datos.periodos_en_baja);
+      $("#estado").val(datos.estado);
+      $("#turno").val(datos.turno);
+      $("#claveCarrera").val(datos.clave_de_carrera);
+
+      // Seleccionar y cargar la carrera correspondiente
+      $("#listaCarrera").val(datos.clave_de_carrera).trigger("change");
+
+    } else {
+      // Mostrar mensaje de error si no se encontró el alumno
+      mostrarErrorCaptura(response.mensaje || "No se encontró el alumno solicitado.");
+    }
+  }, "json").fail(function (xhr, status, error) {
+    // Manejo de errores de red o del servidor
+    console.error("[BuscarAlumno] Error en la solicitud POST:", xhr.responseText);
+    mostrarErrorCaptura("No se pudo completar la búsqueda del alumno.");
+  });
+}
+
+/**
+ * Envía los datos del formulario para modificar los datos de un alumno existente.
+ * 
+ * Valida que todos los campos requeridos estén completos antes de enviar la información.
+ * Si la operación tiene éxito, muestra un mensaje de confirmación y actualiza la vista.
+ */
+function ModificarAlumno() {
+  // Obtener y limpiar los valores ingresados en el formulario
+  const nc = document.getElementById("noControl").value.trim();
+  const nombre = document.getElementById("nombreAlumno").value.trim();
+  const genero = document.getElementById("genero").value.trim();
+  const semestre = document.getElementById("grado").value.trim();
+  const grupo = document.getElementById("grupo").value.trim();
+  const turno = document.getElementById("turno").value.trim();
+  const claveC = document.getElementById("claveCarrera").value.trim();
+
+  // Validar que todos los campos requeridos tengan un valor
+  if (!nc || !nombre || !genero || !semestre || !grupo || !turno || !claveC) {
+    mostrarFaltaDatos("Por favor, complete todos los campos obligatorios para continuar.");
+    return;
+  }
+
+  // Construir el objeto con los datos a enviar al servidor
+  const datos = {
+    pnoControl: nc,
+    pnombre: nombre,
+    pgenero: genero,
+    psemestre: semestre,
+    pgrupo: grupo,
+    pturno: turno,
+    pclaveCarrera: claveC,
+    Modificar: true
+  };
+
+  const json = JSON.stringify(datos);
+  const url = "../../Controlador/Intermediarios/Alumno/ModificarAlumno.php";
+
+  // Mostrar en consola los datos enviados (útil para depuración)
+  console.log("[ModificarAlumno] Enviando datos JSON:", json);
+
+  // Enviar los datos mediante POST y procesar la respuesta del servidor
+  $.post(url, json, function (response, status) {
+    if (response.success) {
+      mostrarDatosGuardados(response.mensaje, "");
+      option("student", ""); // Recargar o actualizar la vista del estudiante
+    } else {
+      console.warn("[ModificarAlumno] Error en respuesta del servidor:", response.mensaje);
+      mostrarErrorCaptura(response.mensaje);
+    }
+  }, "json").fail(function (xhr, status, error) {
+    // Capturar errores de red o del servidor
+    console.error("[ModificarAlumno] Fallo en la solicitud POST:", xhr.responseText);
+    mostrarErrorCaptura("No se pudo conectar con el servidor. Inténtelo nuevamente más tarde.");
+  });
 }
