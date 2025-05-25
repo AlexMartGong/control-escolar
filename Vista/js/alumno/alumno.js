@@ -650,7 +650,7 @@ function cargarCarrerasAlumno() {
       const select = document.getElementById('listaCarrera');
       const inputClave = document.getElementById('claveCarrera');
 
-      select.innerHTML = '<option disabled selected>Seleccione una Carrera</option>';
+      select.innerHTML = '<option value="" disabled selected>Seleccione una Carrera</option>';
 
       if (data.datos && data.datos.length > 0) {
         data.datos.forEach(carrera => {
