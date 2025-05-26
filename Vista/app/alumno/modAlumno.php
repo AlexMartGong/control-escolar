@@ -154,8 +154,8 @@
                                             <select class="form-select listaDespliege" id="turno"
                                                     onchange="verificarSelectAlumno('turno','btnGuardar')" required>
                                                 <option value="" disabled selected>Seleccione un turno</option>
-                                                <option value="matutino">Matutino</option>
-                                                <option value="vespertino">Vespertino</option>
+                                                <option value="Matutino">Matutino</option>
+                                                <option value="Vespertino">Vespertino</option>
                                             </select>
                                         </div>
                                     </div>
