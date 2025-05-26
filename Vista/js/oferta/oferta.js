@@ -962,6 +962,51 @@ function recuperaMateriasDeCarrera(datos2, clave_de_materia) {
   });
 }
 
+// Carga las materias correspondientes a la carrera seleccionada y las inserta en el select de materias
+function cargarMateriasPorCarrera(claveCarrera) {
+  const $selectMateria = $("#listaMateria");
+
+  $selectMateria
+    .prop("disabled", true)
+    .empty()
+    .append("<option disabled selected>Cargando materias...</option>");
+    
+  $("#claveMateria").val("");
+
+ // console.log("Carrera recibida:", claveCarrera);
+
+  $.ajax({
+    url: '../../Controlador/Intermediarios/Oferta/getMateriaPorCarrera.php',
+    method: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify({ claveCarrera: claveCarrera }),
+    dataType: 'json',
+    success: function (materias) {
+    //  console.log("Materias recibidas:", materias);
+
+      $selectMateria.empty().append('<option disabled selected>Seleccione una Materia</option>');
+
+      materias.forEach(function (materia) {
+        $selectMateria.append(
+          `<option value="${materia.clave_de_materia}">${materia.nombre_de_materia}</option>`
+        );
+      });
+
+      $selectMateria.prop("disabled", false);
+      $("#listaMateria").val("Seleccione una Materia").trigger("change.select2");
+      $("#claveMateria").val('');
+    },
+    error: function () {
+      //console.warn("Error al comunicar con el backend");
+      $selectMateria
+        .prop("disabled", true)
+        .empty()
+        .append('<option disabled selected>Error al cargar materias</option>');
+      $("#claveMateria").val('');
+    }
+  });
+}
+
 /*
  * Sincroniza el valor seleccionado del combo listaMateria
  * con el campo oculto claveMateria, para reflejar la materia elegida.
