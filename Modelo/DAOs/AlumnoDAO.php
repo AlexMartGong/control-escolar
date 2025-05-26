@@ -456,4 +456,142 @@ class AlumnoDAO
 
         return $resultado;
     }
+
+    /**
+     * Función para mostrar todos los alumnos registradas en el sistema.
+     * Llama al procedimiento almacenado spMostrarAlumno.
+     * 
+     * @return array Retorna un array con el estado de la operación, mensaje, datos y cantidad de filas obtenidas.
+     */
+    public function MostrarAlumno()
+    {
+        // Inicializar estado como OK por defecto
+        $resultado['estado'] = "OK";
+        $c = $this->conector;
+
+        try {
+            // Preparar y ejecutar el procedimiento almacenado
+            $sp = $c->prepare("CALL spMostrarAlumno(@mensaje)");
+            $sp->execute();
+
+            // Obtener todos los datos retornados
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar resultado para permitir obtener @mensaje
+
+            // Consultar el mensaje de salida del procedimiento almacenado
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Registrar en log para depuración
+            error_log("Mensaje spAlumno: " . $resultado['respuestaSP']);
+
+            // Verificar si el procedimiento fue exitoso
+            if ($resultado['respuestaSP'] == 'Estado: Exito') {
+                $resultado['datos'] = $datos;              // Asignar datos recuperados
+                $resultado['filas'] = count($datos);       // Contar registros obtenidos
+            } else {
+                $resultado['filas'] = 0;
+                $resultado['estado'] = "Sin registros de alumno para mostrar";
+            }
+        } catch (PDOException $e) {
+            // Manejo de excepciones por errores en la base de datos
+            $resultado['estado'] = "Error Mostrar alumno: " . $e->getMessage();
+        }
+
+        return $resultado;
+    }
+
+    // Funcion para cambiar el estado de alumno con el sp spModificarEstadoAlumno
+    public function CambiarEstadoAlumno($datos)
+    {
+        // Inicializa el resultado con estado de error por defecto
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // Validar que el estado sea un valor aceptado
+        if (empty($datos->pclave) || empty($datos->pestado)) {
+            $resultado['mensaje'] = "Por favor, proporcione todos los campos requeridos: clave del alumno y estado del alumno";
+            return $resultado;
+        }
+
+        // Validar que el estado sea un valor aceptado
+        if ($datos->pestado !== "Activo" && $datos->pestado !== "Baja" & $datos->pestado !== "Baja Temporal" & $datos->pestado !== "Baja Definitiva") {
+            $resultado['mensaje'] = "El estado ingresado no es válido. Solo se permite 'Activo', 'Baja', 'Baja Temporal' o 'Baja Definitiva'.";
+            return $resultado;
+        }
+
+        // Validacion doble
+        $sp = $c->prepare("CALL spBuscarAlumnoByID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $datos->pclave, PDO::PARAM_INT);
+        $sp->execute();
+
+        // Obtener la fila del resultado
+        $oferta = $sp->fetch(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        // Obtener el mensaje del SP
+        $respuestaSPV = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSPV->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        // Verificar si el estado ingresado es igual al actual
+        if ($mensaje['@mensaje'] === 'Estado: Exito' && $oferta['estado'] === $datos->pestado) {
+            $resultado['mensaje'] = "No se realizó ningún cambio porque el estado ingresado es igual al actual.";
+            return $resultado;
+        }
+
+        // Verificar si ya existe un alumno con la misma clave (por ejemplo, al insertar)
+        if ($mensaje['@mensaje'] === 'Error: No existen registros con el parámetro solicitado') {
+            $resultado['mensaje'] = "El registro de alumno que se esta intentando modificar no existe, por favor intente con otro.";
+            return $resultado;
+        }
+
+
+        try {
+            // Registrar en log el intento de ejecución del SP para trazabilidad
+            error_log("Ejecutando SP para modificar el estado del alumno con ID: $datos->pclave y Estado: $datos->pestado");
+
+            // Preparar llamada al procedimiento almacenado con parámetros
+            $sp = $c->prepare("CALL spModificarEstadoAlumno(:pclave, :pestado, @mensaje)");
+            $sp->bindParam(':pclave', $datos->pclave, PDO::PARAM_INT);
+            $sp->bindParam(':pestado', $datos->pestado, PDO::PARAM_STR);
+            $sp->execute();
+            $sp->closeCursor(); // Cierra el cursor para liberar recursos antes de ejecutar otra consulta
+
+            // Recuperar el mensaje generado por el procedimiento almacenado
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Registrar en log el mensaje devuelto por el SP
+            error_log("Mensaje spModificarEstadoAlumno: " . $resultado['respuestaSP']);
+
+            // Interpretar el mensaje del SP y preparar la respuesta al usuario
+            switch ($resultado['respuestaSP']) {
+
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['mensaje'] = "El estado del registro fue actualizado exitosamente.";
+                    break;
+
+                case 'Error: No se pudo modificar el registro':
+                    $resultado['mensaje'] = "No fue posible el cambio de estado del alumno. Por favor, intente nuevamente más tarde.";
+                    break;
+
+                default:
+                    // Manejo de errores desconocidos devueltos por el SP
+                    $resultado['mensaje'] = "Ocurrió un error inesperado. Contacte al administrador si el problema persiste.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Registro detallado de errores para depuración en caso de excepción
+            error_log("Error en la base de datos: " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al cambiar el estado de la Oferta. Por favor, intente nuevamente más tarde.";
+        }
+
+        // Devolver resultado final con estado y mensaje
+        return $resultado;
+    }
 }
+    
