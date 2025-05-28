@@ -58,7 +58,7 @@ function verificarInputAlumno(idetiqueta, idbtn) {
   const iconerror = document.querySelector(`#${idetiqueta}`);
 
   // Expresiones regulares para validaciones específicas
-  const regexNoControl = /^[Cc]?[0-9]{8,10}$/; // Puede iniciar con C/c, seguido de 7-8 números
+  const regexNoControl = /^[Cc]?[0-9]{8,9}$/; // Puede iniciar con C/c, seguido de 8-9 números
   const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/; // Solo letras y espacios
   const soloNumeros = /^[0-9]+$/; // Solo números
 
