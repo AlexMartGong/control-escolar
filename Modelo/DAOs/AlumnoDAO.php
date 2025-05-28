@@ -593,5 +593,47 @@ class AlumnoDAO
         // Devolver resultado final con estado y mensaje
         return $resultado;
     }
-}
+
+    /**
+     * Verifica si un número de control de alumno ya existe en la base de datos.
+     *
+     * Este método utiliza el procedimiento almacenado `spBuscarAlumnoDuplicadoID`, que recibe
+     * el número de control como parámetro de entrada y retorna un mensaje por parámetro de salida
+     * indicando si el alumno ya está registrado.
+     *
+     * @param string $nc Número de control del alumno a verificar (clave primaria esperada).
+     *
+     * @return bool Retorna `true` si el número de control ya está registrado en la base de datos,
+     *              o `false` en caso contrario o si ocurre un error.
+     */
+    public function ExisteNC($nc)
+    {
+        $c = $this->conector;
+
+        // Validar que el número de control no esté vacío
+        if (empty($nc)) {
+            error_log("No llegó el nc correctamente: " . $nc);
+            return false;
+        }
+
+        try {
+            // Llamar al procedimiento almacenado con parámetro de entrada y salida
+            $sp = $c->prepare("CALL spBuscarAlumnoDuplicadoID(:pid, @mensaje)");
+            $sp->bindParam(':pid', $nc, PDO::PARAM_STR);
+            $sp->execute();
+            $sp->closeCursor(); // Importante cerrar antes de la segunda consulta
+
+            // Obtener el valor del parámetro de salida del procedimiento
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+
+            // Retornar true si el mensaje indica que el alumno existe
+            return isset($mensaje['@mensaje']) && $mensaje['@mensaje'] === 'Estado: Existe';
+        } catch (PDOException $e) {
+            // Registrar error en el log y retornar false
+            error_log("Error en la BD al verificar el NC: " . $e->getMessage());
+            return false;
+        }
+    }
     
+}

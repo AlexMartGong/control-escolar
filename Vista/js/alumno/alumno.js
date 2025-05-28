@@ -23,7 +23,7 @@ function loadFormAlumno(opc, id = "") {
               // Si es edición, llamar a buscarDocente automáticamente
 
               if (opc === "frmalumno") {
-                cargarCarrerasAlumno(); // <-- Aquí llamas a la función para cargar carreras
+                cargarCarrerasfrmAgr(); 
               }
 
               if (opc === "modalumno" && id !== "") {
@@ -79,14 +79,16 @@ function verificarInputAlumno(idetiqueta, idbtn) {
         mostrarError(input, "El número de control no puede estar vacío.");
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
-      } else if (!regexNoControl.test(valor)) {
+      } 
+      else if (!regexNoControl.test(valor)) {
         mostrarError(
           input,
           'Formato incorrecto. Debe tener 8 caracteres máximo, puede iniciar con "C". Ej: C1234567'
         );
         iconerror.classList.add("is-invalid");
         input.classList.add("entrada-error");
-      } else {
+      } 
+      else {
         // Verificar si el número de control ya existe
         verificarNoControlAlumno(valor, function (existe) {
           if (existe) {
@@ -225,21 +227,27 @@ function evaluarFormularioAlumno(idbtn) {
   btnGuardar.disabled = !formularioValido;
 }
 
-// Funciones auxiliares (deben implementarse)
 function verificarNoControlAlumno(noControl, callback) {
-  // AJAX para verificar si el número de control ya existe
   $.post(
-    "alumno/verificarNoControl.php",
+    "../../Controlador/Intermediarios/Alumno/VerificarExistenciaNC.php",
     JSON.stringify({ noControl: noControl }),
     function (response) {
-      const resultado = JSON.parse(response);
-      callback(resultado.existe);
+      // Validar si la respuesta ya es un objeto o aún es una cadena JSON
+      let resultado = typeof response === "string" ? JSON.parse(response) : response;
+
+      // Si 'existe' es true, entonces ya está registrado
+      if (resultado.existe) {
+        callback(true);  // Ya existe
+      } else {
+        callback(false); // No existe
+      }
     }
   ).fail(function () {
     console.error("Error al verificar número de control");
     callback(false);
   });
 }
+
 
 function claveExistenteAlumno(iconerror, input) {
   mostrarError(input, "Este número de control ya está registrado.");
@@ -629,18 +637,13 @@ function AgregarAlumno() {
 
 /**
  * Carga la lista de carreras activas desde el servidor y las inserta en el <select> correspondiente.
- * Además, sincroniza el campo de texto con la clave de la carrera seleccionada.
- *
  */
-function cargarCarrerasAlumno() {
+function cargarCarrerasfrmAgr() {
   fetch("../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php")
     .then((response) => response.json())
     .then((data) => {
       const select = document.getElementById("listaCarrera");
       const inputClave = document.getElementById("claveCarrera");
-
-      select.innerHTML =
-        '<option value="" disabled selected>Seleccione una Carrera</option>';
 
       if (data.datos && data.datos.length > 0) {
         data.datos.forEach((carrera) => {
@@ -699,7 +702,7 @@ function BuscarAlumno(id) {
         $("#claveCarrera").val(datos.clave_de_carrera);
 
         setTimeout(() => {
-          cargarCarrerasAlumno(datos.clave_de_carrera);
+          cargarCarrerasfrmMod(datos.clave_de_carrera);
         }, 250);
 
       } else {
@@ -796,7 +799,7 @@ function ModificarAlumno() {
  * Además, sincroniza el campo de texto con la clave de la carrera seleccionada.
  *
  */
-function cargarCarrerasAlumno(clave_de_carrera) {
+function cargarCarrerasfrmMod(clave_de_carrera) {
   fetch("../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php")
     .then((response) => response.json())
     .then((data) => {
