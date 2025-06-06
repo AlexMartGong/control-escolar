@@ -823,15 +823,12 @@ function BuscarOferta(id) {
 
   console.log("BuscarOferta llamada con id =", id);
 
-  // Enviar solicitud al servidor para buscar la oferta
   $.post(url, json, function (response, status) {
     console.log("Respuesta intermediario:", response);
 
-    // Validación de respuesta exitosa con datos
     if (status === "success" && response.estado === "OK" && response.datos) {
       const datos = response.datos;
 
-      // Llenado de inputs del formulario con los datos de la oferta
       $("#idOferta").val(datos.clave_de_oferta);
       $("#idSemestre").val(datos.semestre);
       $("#idGrupo").val(datos.grupo);
@@ -842,30 +839,31 @@ function BuscarOferta(id) {
       $("#claveDocente").val(datos.clave_de_docente);
       $("#estado").val(datos.estado);
 
-      // Establecer valores seleccionados en listas desplegables
       $("#listaCarrera").val(datos.clave_de_carrera).trigger("change");
       $("#listaPeriodo").val(datos.clave_periodo).trigger("change");
       $("#listaDocente").val(datos.clave_de_docente).trigger("change");
 
-      // Crear objeto con clave de carrera para recuperar las materias relacionadas
-      let datos2 = new Object();
-      datos2.idc = datos.clave_de_carrera;
+      let datos2 = { idc: datos.clave_de_carrera };
 
-      setTimeout(() => {
-      // Llamar a la función que recupera materias y selecciona la correcta
-      recuperaMateriasDeCarrera(datos2, datos.clave_de_materia);
-      }, 250);
+      // Usar promesa para esperar a que se carguen las materias
+      recuperaMateriasDeCarrera(datos2, datos.clave_de_materia)
+        .then(() => {
+          console.log("Materias cargadas y seleccionadas correctamente.");
+        })
+        .catch((err) => {
+          console.error("Error al recuperar materias:", err);
+          mostrarErrorCaptura("No se pudieron cargar las materias.");
+        });
 
     } else {
-      // Mostrar mensaje de error si la oferta no fue encontrada
       mostrarErrorCaptura(response.mensaje || "No se encontró la oferta.");
     }
   }, "json").fail(function (xhr, status, error) {
-    // Manejo de errores de conexión o ejecución
     console.error("Error en la solicitud POST:", xhr.responseText);
     mostrarErrorCaptura("Error al buscar la Oferta.");
   });
 }
+
 
 /**
  * Carga la lista de carreras activas y los inserta en el combo correspondiente.
@@ -931,36 +929,40 @@ function cargarPeriodos() {
  * Luego llena el select con las materias recibidas y selecciona una en caso de coincidencia.
  */
 function recuperaMateriasDeCarrera(datos2, clave_de_materia) {
-  let json2 = JSON.stringify(datos2);
-  console.log(json2);
+  return new Promise((resolve, reject) => {
+    let json2 = JSON.stringify(datos2);
+    console.log(json2);
 
-  let url2 = "../../Controlador/Intermediarios/Materia/ObtenerMateriasPorCarrera.php";
+    let url2 = "../../Controlador/Intermediarios/Materia/ObtenerMateriasPorCarrera.php";
 
-  // Enviar solicitud para obtener materias de la carrera
-  $.post(url2, json2, function (response, status) {
-    try {
-      // Validar respuesta exitosa y con datos
-      if (status === "success" && response.estado === "OK" && response.datos) {
-        // Limpiar y agregar opción por defecto en el select
-        document.getElementById("listaMateria").innerHTML = "<option>Seleccione una Materia</option>";
+    $.post(url2, json2, function (response, status) {
+      try {
+        if (status === "success" && response.estado === "OK" && response.datos) {
+          document.getElementById("listaMateria").innerHTML = "<option>Seleccione una Materia</option>";
 
-        const datos2 = response.datos;
+          const datos2 = response.datos;
 
-        // Recorrer materias y agregarlas al select, marcando como seleccionada la correspondiente
-        datos2.forEach(materia => {
-          var extra = (clave_de_materia == materia.clave_de_materia) ? "selected" : "";
-          document.getElementById("listaMateria").innerHTML += `<option ${extra} value= "${materia.clave_de_materia}">${materia.nombre_de_materia}</option>`;
-        });
+          datos2.forEach(materia => {
+            var extra = (clave_de_materia == materia.clave_de_materia) ? "selected" : "";
+            document.getElementById("listaMateria").innerHTML += `<option ${extra} value="${materia.clave_de_materia}">${materia.nombre_de_materia}</option>`;
+          });
 
-        // Actualizar campo oculto con la materia seleccionada
-        actualizaClaveMateria();
+          actualizaClaveMateria();
+          resolve(); 
+        } else {
+          reject("No se encontraron materias o respuesta inválida.");
+        }
+      } catch (error) {
+        console.error("Error al procesar materias:", error);
+        reject(error); 
       }
-    } catch (error) {
-      // Error al procesar respuesta
-      console.error("Error al cargar materias:", error);
-    }
+    }).fail(function (xhr, status, error) {
+      console.error("Fallo en POST:", error);
+      reject(error); 
+    });
   });
 }
+
 
 // Carga las materias correspondientes a la carrera seleccionada y las inserta en el select de materias
 function cargarMateriasPorCarrera(claveCarrera) {

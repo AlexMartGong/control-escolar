@@ -23,6 +23,7 @@ $res = $objOfDAO->MostrarOferta();
                 <i class="fas fa-plus-circle"></i> Nueva oferta
             </button>
         </div>
+        
     </div>
 
     <table class="table table-hover table-responsive table-striped" id="tableOferta">

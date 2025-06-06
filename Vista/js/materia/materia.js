@@ -10,23 +10,22 @@ Calquier duda consultar con el autor
 
 // Esta funcion que permite cargar los formularios de agregar Docente y modificarlo, no desde function.js
 function loadFormJMateria(opc, id = "") {
-    console.log("Llamando a loadFormJMateria con opc:", opc, "id:", id);
+  console.log("Llamando a loadFormJMateria con opc:", opc, "id:", id);
   let url = "";
+
   if (opc === "frmMateria") {
     url = "materia/frmMateria.php";
   } else if (opc === "modMateria") {
     url = "materia/modMateria.php";
   }
+
   console.log("URL seleccionada:", url);
-
   let datas = { id: id };
-
   let container = $("#frmArea");
 
   container.fadeOut(300, function () {
-    
     clearArea("frmArea");
-      console.log("Datos enviados al formulario:", datas);
+    console.log("Datos enviados al formulario:", datas);
 
     $.post(url, JSON.stringify(datas), function (responseText, status) {
       try {
@@ -34,38 +33,46 @@ function loadFormJMateria(opc, id = "") {
           container
             .html(responseText)
             .hide()
-            .fadeIn(500, function () {
-                console.log("Formulario cargado en pantalla, opc:", opc, "id:", id);
+            .fadeIn(500)
+            .promise() // Espera a que termine fadeIn
+            .then(() => {
+              console.log("Formulario cargado en pantalla, opc:", opc, "id:", id);
 
-              // Si es edición, llamar a buscarMateria automáticamente
               if (opc === "modMateria" && id !== "") {
-                    console.log("Llamando BuscarMateria con id:", id);
-
+                console.log("Llamando BuscarMateria con id:", id);
                 BuscarMateria(id);
-              }else{
-                    console.warn("NO se llama BuscarMateria. Condición no cumplida.");
+              }
 
+              if (opc === "frmMateria") {
+                return cargaRetrasadaDeDatos("add", '', "materia");
               }
             })
-            .css("transform", "translateY(-10px)")
-            .animate(
-              {
-                opacity: 1,
-                transform: "translateY(0px)",
-              },
-              300
-            );
+            .then(() => {
+              console.log("Carga retrasada completada.");
+            })
+            .catch((error) => {
+              console.error("Error durante la carga:", error);
+              mostrarErrorCaptura("No se pudo cargar correctamente el formulario.");
+            });
+
+          // Animación de entrada suave
+          container.css("transform", "translateY(-10px)").animate(
+            {
+              opacity: 1,
+              transform: "translateY(0px)",
+            },
+            300
+          );
         }
       } catch (e) {
         mostrarErrorCaptura("Error al cargar el formulario: " + e);
       }
     }).fail(function (jqXHR, textStatus, errorThrown) {
-      mostrarErrorCaptura(
-        "Error de conexión: " + textStatus + " - " + errorThrown
-      );
+      mostrarErrorCaptura("Error de conexión: " + textStatus + " - " + errorThrown);
     });
   });
 }
+
 
 //funcion que permite realizar validaciones de los campoos correspondientes
 //al momento de insertar o actualizar datos
@@ -308,10 +315,10 @@ function verificarInputmateria(idetiqueta, idbtn, contenido) {
     case "claveCarrera":
       const Clavecarrera = /^[A-Z]{4}-\d{4}-\d{3}$/;
       if (estaVacio) {
-        mostrarErrorCarrera(input, "Este campo no puede estar vacío.");
+        mostrarError(input, "Este campo no puede estar vacío." , contenido);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
-        return evaluarEstadoFormulariocarrera(idbtn);
+        return evaluarEstadoFormularioMateria(idbtn);
       }
       if (!Clavecarrera.test(valor)) {
         mostrarError(
@@ -443,7 +450,7 @@ function cargarNombresMateria(opc, idcarrera) {
         type: "GET",
         dataType: "json",
         success: function (respuesta) {
-          const select = $("#listaNombres");
+          const select = $("#listaNombresMaterias");
           select.empty();
           select.append(
             "<option disabled selected>Seleccione un nombre</option>"
@@ -476,7 +483,7 @@ function cargarNombresMateria(opc, idcarrera) {
         type: "GET",
         dataType: "json",
         success: function (respuesta) {
-          const select = $("#listaNombres");
+          const select = $("#listaNombresMaterias");
           select.empty();
 
           let claveSeleccionada = "";
@@ -775,7 +782,8 @@ function BuscarMateria(id) {
           response.datos.creditos;       
         document.getElementById("statusId").value = response.datos.estado;
 
-        cargarNombresEnSelect("mod", response.datos.clave_de_carrera);
+        cargarNombresMateria("mod", response.datos.clave_de_carrera);
+        console.log('La calve esperada de ', response.datos.clave_de_carrera)
       } else {
         // Si no se encontró la materia, se muestra un mensaje
         sinres("Materia no encontrada.");

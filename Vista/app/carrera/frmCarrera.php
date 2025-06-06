@@ -56,7 +56,7 @@
                                             <select id="listaNombres" class="form-select listaDespliege" onchange="retrasoSelect('clavejefe', 'btnGuardarJ', 'carrera' )">
                                             <!--Aqui se inyectaran las opciones -->
                                             </select>
-                                    </div>
+                                    </div> 
                                 </div>
                                 <div class="col-12 col-sm-6 mb-2 mb-sm-0">
                                     <label for="clavejefe" class="form-label">Clave</label>

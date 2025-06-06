@@ -21,11 +21,11 @@
                                 <label for="noControl" class="form-label">No. Control</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
-                                    <input type="text" maxlength="9"
+                                    <input type="text" maxlength="10"
                                            class="form-control" id="noControl"
                                            placeholder="Ej: 12345678"
                                            oninput="verificarInputAlumno('noControl', 'btnGuardar')"
-                                           title="9 caracteres máximo, puede iniciar con 'C'"
+                                           title="10 caracteres máximo, puede iniciar con 'C'"
                                            required>
                                 </div>
                                 <div id="noControl-error" class="error-message d-none"></div>

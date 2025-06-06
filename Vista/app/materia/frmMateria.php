@@ -112,10 +112,10 @@
                             <label class="form-label">Carrera</label>
                             <div class="row g-2">
                                 <div class="col-12 col-sm-6 mb-2 mb-sm-0">
-                                    <label for="listaNombres" class="form-label">Nombre</label>
+                                    <label for="listaNombresMaterias" class="form-label">Nombre</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-blue-light"><i class="bi bi-mortarboard"></i></span>
-                                        <select id="listaNombres" class="form-select listaDespliege " onchange="retrasoSelect('claveCarrera', 'btnGuardarJ', 'materia','col-12' )">
+                                        <select id="listaNombresMaterias" class="form-select listaDespliege " onchange="retrasoSelect('claveCarrera', 'btnGuardarJ', 'materia','col-12' )">
                                         <option disabled selected>Seleccione una carrera</option>
                                             <!--Aqui se inyectaran las opciones -->
                                         </select>
