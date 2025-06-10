@@ -49,7 +49,7 @@
                             <label for="clavejefe" class="form-label">Jefe de carrera</label>
                                 <div class="col-12 col-sm-6 mb-2 mb-sm-0">
                                 <label for="clavejefe" class="form-label">Nombre</label>
-                                    <div class="input-group">
+                                    <div class="input-group"> 
                                         <span class="input-group-text bg-blue-light"><i class="fas fa-user-tie me-2"></i></span>
                                         <select id="listaNombres" class="form-select listaDespliege" onchange="retrasoSelect('clavejefe', 'btnGuardarJ', 'carrera' )">
                                             <!--Aqui se inyectaran las opciones -->

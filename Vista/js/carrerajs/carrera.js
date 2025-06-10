@@ -18,10 +18,9 @@ function loadFormJCarrera(opc, id = "") {
   }
 
   let datas = { id: id };
-
   let container = $("#frmArea");
 
-  container.fadeOut(300, function () {
+  container.fadeOut(300, function () { 
     clearArea("frmArea");
 
     $.post(url, JSON.stringify(datas), function (responseText, status) {
@@ -30,32 +29,41 @@ function loadFormJCarrera(opc, id = "") {
           container
             .html(responseText)
             .hide()
-            .fadeIn(500, function () {
-              // Si es edición, llamar a buscarDocente automáticamente
-
+            .fadeIn(500)
+            .promise() // Esperar a que termine la animación fadeIn
+            .then(() => {
               if (opc === "modcarrera" && id !== "") {
-                BuscarCarrera(id);
+                BuscarCarrera(id); // Buscar datos si es modificación
+              }
+
+              if (opc === "fmrcarrera") {
+                return cargaRetrasadaDeDatos('add',"",'carrera');
               }
             })
-            .css("transform", "translateY(-10px)")
-            .animate(
-              {
-                opacity: 1,
-                transform: "translateY(0px)",
-              },
-              300
-            );
+            
+            .catch((error) => {
+              console.error("Error durante la carga del formulario:", error);
+              mostrarErrorCaptura("Ocurrió un error al cargar los datos.");
+            });
+
+          // Animación secundaria (opcional)
+          container.css("transform", "translateY(-10px)").animate(
+            {
+              opacity: 1,
+              transform: "translateY(0px)",
+            },
+            300
+          );
         }
       } catch (e) {
         mostrarErrorCaptura("Error al cargar el formulario: " + e);
       }
     }).fail(function (jqXHR, textStatus, errorThrown) {
-      mostrarErrorCaptura(
-        "Error de conexión: " + textStatus + " - " + errorThrown
-      );
+      mostrarErrorCaptura("Error de conexión: " + textStatus + " - " + errorThrown);
     });
   });
 }
+
 
 //Funcion que permite evaluar los campos antes de aguardar a una carrera
 function validarcamposCarrera(opc) {

@@ -19,7 +19,7 @@ $res = $objMaDAO->MostrarMaterias();
                 <i class="fas fa-arrow-circle-left"></i> Regresar
             </button>
             <button type="button" class="btn" style="background-color: #009475; border-color: #009475; color: white;"
-                     onclick="loadFormJMateria('frmMateria',''); cargaRetrasadaDeDatos('add','','materia');">
+                     onclick="loadFormJMateria('frmMateria',''); ">
                 <i class="fas fa-plus-circle"></i> Nueva materia
             </button>
         </div>

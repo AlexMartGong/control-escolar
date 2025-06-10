@@ -58,7 +58,7 @@ function verificarInputAlumno(idetiqueta, idbtn) {
   const iconerror = document.querySelector(`#${idetiqueta}`);
 
   // Expresiones regulares para validaciones específicas
-  const regexNoControl = /^[Cc]?[0-9]{8,9}$/; // Puede iniciar con C/c, seguido de 8-9 números
+  const regexNoControl = /^[Cc]?[0-9]{8,10}$/; // Puede iniciar con C/c, seguido de 7-8 números
   const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/; // Solo letras y espacios
   const soloNumeros = /^[0-9]+$/; // Solo números
 
@@ -679,49 +679,40 @@ function BuscarAlumno(id) {
 
   console.log("[BuscarAlumno] Buscando alumno con ID:", id);
 
-  // Realizar la solicitud POST al servidor
-  $.post(
-    url,
-    json,
-    function (response, status) {
-      console.log("[BuscarAlumno] Respuesta recibida:", response);
+  $.post(url, json, function (response, status) {
+    console.log("[BuscarAlumno] Respuesta recibida:", response);
 
-      // Verificar si la respuesta fue exitosa y contiene datos
-      if (status === "success" && response.estado === "OK" && response.datos) {
-        const datos = response.datos;
+    if (status === "success" && response.estado === "OK" && response.datos) {
+      const datos = response.datos;
 
-        // Llenar los campos del formulario con los datos del alumno
-        $("#noControl").val(datos.numero_de_control);
-        $("#nombreAlumno").val(datos.nombre_de_alumno);
-        $("#genero").val(datos.genero);
-        $("#grado").val(datos.semestre);
-        $("#grupo").val(datos.grupo);
-        $("#periodosEnBaja").val(datos.periodos_en_baja);
-        $("#estado").val(datos.estado);
-        $("#turno").val(datos.turno);
-        $("#claveCarrera").val(datos.clave_de_carrera);
+      $("#noControl").val(datos.numero_de_control);
+      $("#nombreAlumno").val(datos.nombre_de_alumno);
+      $("#genero").val(datos.genero);
+      $("#grado").val(datos.semestre);
+      $("#grupo").val(datos.grupo);
+      $("#periodosEnBaja").val(datos.periodos_en_baja);
+      $("#estado").val(datos.estado);
+      $("#turno").val(datos.turno);
+      $("#claveCarrera").val(datos.clave_de_carrera);
 
-        setTimeout(() => {
-          cargarCarrerasfrmMod(datos.clave_de_carrera);
-        }, 250);
+      cargarCarrerasfrmMod(datos.clave_de_carrera)
+        .then(() => {
+          console.log("[BuscarAlumno] Carrera cargada correctamente.");
+        })
+        .catch((error) => {
+          console.error("[BuscarAlumno] Error al cargar carrera:", error);
+          mostrarErrorCaptura("No se pudo cargar la carrera del alumno.");
+        });
 
-      } else {
-        // Mostrar mensaje de error si no se encontró el alumno
-        mostrarErrorCaptura(
-          response.mensaje || "No se encontró el alumno solicitado."
-        );
-      }
-    },
-    "json"
-  ).fail(function (xhr, status, error) {
-    // Manejo de errores de red o del servidor
-    console.error(
-      "[BuscarAlumno] Error en la solicitud POST:",
-      xhr.responseText
-    );
+    } else {
+      mostrarErrorCaptura(response.mensaje || "No se encontró el alumno solicitado.");
+    }
+  }, "json").fail(function (xhr, status, error) {
+    console.error("[BuscarAlumno] Error en la solicitud POST:", xhr.responseText);
     mostrarErrorCaptura("No se pudo completar la búsqueda del alumno.");
   });
 }
+
 
 /**
  * Envía los datos del formulario para modificar los datos de un alumno existente.
@@ -800,40 +791,52 @@ function ModificarAlumno() {
  *
  */
 function cargarCarrerasfrmMod(clave_de_carrera) {
-  fetch("../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php")
-    .then((response) => response.json())
-    .then((data) => {
-      const select = document.getElementById("listaCarrera");
-      const inputClave = document.getElementById("claveCarrera");
+  return new Promise((resolve, reject) => {
+    fetch("../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Respuesta de red no OK");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const select = document.getElementById("listaCarrera");
+        const inputClave = document.getElementById("claveCarrera");
 
-      if (!select) {
-        console.error("No se encontró el select 'listaCarrera'");
-        return;
-      }
+        if (!select) {
+          console.error("No se encontró el select 'listaCarrera'");
+          reject("Elemento select no encontrado");
+          return;
+        }
 
-      select.innerHTML =
-        '<option value="" disabled>Seleccione una Carrera</option>';
+        select.innerHTML =
+          '<option value="" disabled>Seleccione una Carrera</option>';
 
-      if (data.datos && data.datos.length > 0) {
-        data.datos.forEach((carrera) => {
-          const option = document.createElement("option");
-          option.value = carrera.clave_de_carrera;
-          option.textContent = carrera.nombre_de_carrera;
+        if (data.datos && data.datos.length > 0) {
+          data.datos.forEach((carrera) => {
+            const option = document.createElement("option");
+            option.value = carrera.clave_de_carrera;
+            option.textContent = carrera.nombre_de_carrera;
 
-          if (carrera.clave_de_carrera === clave_de_carrera) {
-            option.selected = true;
-            inputClave.value = carrera.clave_de_carrera;
-          }
+            if (carrera.clave_de_carrera === clave_de_carrera) {
+              option.selected = true;
+              inputClave.value = carrera.clave_de_carrera;
+            }
 
-          select.appendChild(option);
+            select.appendChild(option);
+          });
+        }
+
+        select.addEventListener("change", function () {
+          inputClave.value = this.value;
         });
-      }
 
-      select.addEventListener("change", function () {
-        inputClave.value = this.value;
+        resolve(); 
+      })
+      .catch((error) => {
+        console.error("Error cargando Carreras:", error);
+        reject(error); 
       });
-    })
-    .catch((error) => {
-      console.error("Error cargando Carreras:", error);
-    });
+  });
 }
+

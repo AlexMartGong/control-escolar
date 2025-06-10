@@ -79,7 +79,7 @@ function limpiarErrores(clase, clase2) {
   elementos.forEach((el) => el.classList.remove(clase));
   elementos2.forEach((el) => el.classList.remove(clase2));
 }
-
+ 
 // Esta funcion permite generar simulaciones para inyectar opciones en un <select>
 //se tiene que cambiar los id delo getElementById
 
@@ -115,15 +115,11 @@ function cargaRetrasadaDeDatos(opc, id, modulo) {
   //No tocar este
   switch (modulo) {
     case "carrera":
-      setTimeout(() => {
         cargarNombresEnSelect(opc, id);
-      }, 1000);
       break;
     //Aqui se agregara la funcion que permite insertar las opciones de carrera en materia
     case "materia":
-      setTimeout(() => {
         cargarNombresMateria(opc, id) // esta es la opcion correcta el id se usa para la  carrera
-      }, 1000);
       break;
   }
 }
