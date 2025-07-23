@@ -82,7 +82,7 @@
                     <a href="javascript:void(0);" onclick="option('oferta', '')" class="nav-link"><i
                                 class="fas fa-clipboard-list me-2"></i>Oferta</a>
                     <a href="javascript:void(0);" class="nav-link"><i class="fas fa-edit me-2"></i>Captura</a>
-                    <a href="javascript:void(0);" class="nav-link"><i class="fas fa-clock me-2"></i>Horario</a>
+                    <a href="javascript:void(0);" onclick="option('horario', '')" class="nav-link"><i class="fas fa-clock me-2"></i>Horario</a>
                     <a href="javascript:void(0);" class="nav-link"><i class="fas fa-user-minus me-2"></i>Baja</a>
                 </div>
             </div>
@@ -129,5 +129,6 @@
 <script src="../js/funcionesGlobales.js"></script>
 <script src="../js/oferta/oferta.js"></script>
 <script src="../js/alumno/alumno.js"></script>
+<script src="../js/horario/horario.js"></script>
 </body>
 </html>
