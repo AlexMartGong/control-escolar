@@ -46,7 +46,7 @@
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="">
+                            onclick="loadFormHorario('modHorario', '');">
                         <i class="fas fa-edit me-1"></i>
                         <span>Editar</span>
                     </button>
@@ -64,7 +64,6 @@
                 </div>
             </td>
         </tr>
-
         </tbody>
     </table>
 </div>
