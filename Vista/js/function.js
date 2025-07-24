@@ -43,6 +43,9 @@ function option(opc, filter) {
       case "student":
         url = "alumno/main.php";
         break;
+        case "horario":
+        url = "horario/main.php";
+        break;
       default:
         mainContent.html(
           '<div class="alert alert-warning">Opción no válida</div>'
@@ -195,6 +198,19 @@ function option(opc, filter) {
                     ],
                   });
                 }
+                if (opc === "horario" && $("#tableHorario").length) {
+                  $("#tableHorario").DataTable({
+                    ...commonConfig,
+                      language: {
+                        url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
+                        emptyTable: "No hay registros por el momento de Horarios para Mostrar",
+                      },
+                    columnDefs: [
+                      { searchable: true, targets: [0, 1, 2, 3, 4] },
+                      { searchable: false, targets: "_all" },
+                    ],
+                    });
+                  }
 
                 $("table.dataTable")
                   .not("#tableCareer, #tableCareerManager, #tablePeriod")
