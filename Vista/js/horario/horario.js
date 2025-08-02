@@ -130,6 +130,16 @@ function configurarEventListenersHorario() {
         }
     });
 
+    // Event listener para cambio de turno
+    $("#turno").off('change').on('change', function () {
+        limpiarErrores();
+        if (validarSeleccionCompleta()) {
+            cargarDatosGrupo();
+        } else {
+            limpiarTablas();
+        }
+    });
+
     // Event listener para botón guardar
     $("#btnGuardarHorario").off('click').on('click', function () {
         guardarHorarios();
@@ -146,8 +156,9 @@ function validarSeleccionCompleta() {
     const carrera = $("#claveCarrera").val();
     const semestre = $("#semestre").val();
     const grupo = $("#grupo").val();
+    const turno = $("#turno").val();
 
-    return carrera !== "" && semestre !== "" && grupo !== "";
+    return carrera !== "" && semestre !== "" && grupo !== "" && turno !== "";
 }
 
 // Función para cargar datos del grupo (alumnos y ofertas)
@@ -423,6 +434,11 @@ function validarFormulario() {
         valido = false;
     }
 
+    if ($("#turno").val() === "") {
+        mostrarError("turno", "Debe seleccionar un turno");
+        valido = false;
+    }
+
     const cantidadAlumnos = parseInt($("#contadorAlumnos").text());
     const cantidadOfertas = parseInt($("#contadorOfertas").text());
 
@@ -482,6 +498,7 @@ function cancelarFormulario() {
     $("#claveCarrera").val("");
     $("#semestre").val("");
     $("#grupo").val("");
+    $("#turno").val("");
 
     // Limpiar errores
     limpiarErrores();
@@ -544,6 +561,16 @@ function configurarEventListenersModificarHorario() {
     });
 
     $("#grupo").off('change').on('change', function () {
+        limpiarErrores();
+        if (validarSeleccionCompleta()) {
+            cargarDatosGrupoModificacion();
+        } else {
+            limpiarTablasModificacion();
+        }
+    });
+
+    // Event listener para cambio de turno
+    $("#turno").off('change').on('change', function () {
         limpiarErrores();
         if (validarSeleccionCompleta()) {
             cargarDatosGrupoModificacion();
@@ -1071,6 +1098,11 @@ function validarFormularioModificacion() {
 
     if ($("#grupo").val() === "") {
         mostrarError("grupo", "Debe seleccionar un grupo");
+        valido = false;
+    }
+
+    if ($("#turno").val() === "") {
+        mostrarError("turno", "Debe seleccionar un turno");
         valido = false;
     }
 
