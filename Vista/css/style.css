@@ -194,15 +194,18 @@
 }
 
 @media (max-width: 768px) {
-    .btnpequeno{
+    .btnpequeno {
         width: 100%;
         font-size: 18px;
         padding: 5px;
     }
 }
 
-.bg-bonito{
-    background-color: #aab7b8 ;
+.bg-bonito {
+    background-color: #aab7b8;
 }
 
-
+table.table thead > tr > th {
+    background-color: #0033A0 !important;
+    color: #fff !important;
+}
