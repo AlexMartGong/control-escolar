@@ -9,7 +9,7 @@ $c = new ConexionBD($DatosBD);
 $pdo = $c->Conectar();
 $objDao = new HorarioDAO($pdo);
 
-$resultado = $objDao->BuscarPeriodoAbierto('Abierto');
+$resultado = $objDao->BuscarPeriodoValido();
 
 echo json_encode($resultado);
 ?>

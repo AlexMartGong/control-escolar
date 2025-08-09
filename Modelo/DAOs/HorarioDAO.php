@@ -15,9 +15,9 @@ class HorarioDAO
     }
 
     /**
-     * Busca los periodos que coinciden con un estado específico.
+     * Busca el periodo que este entre el rango de fechas valido para modificar horarios.
      *
-     * Este método ejecuta el procedimiento almacenado `spBuscarPeriodoByEstado`
+     * Este método ejecuta el procedimiento almacenado `spBuscarPeriodoValido`
      * que devuelve los periodos cuyo estado coincide con el parámetro recibido.
      * Valida que el parámetro no esté vacío antes de realizar la consulta y maneja
      * errores de base de datos con mensajes adecuados.
@@ -26,33 +26,24 @@ class HorarioDAO
      *
      * @return array Arreglo con los periodos encontrados o un arreglo con 'estado' => 'Error' y mensaje.
      */
-    public function BuscarPeriodoAbierto($pestado)
+    public function BuscarPeriodoValido()
     {
         $resultado = ['estado' => 'Error'];
         $c = $this->conector;
 
-        // Validar que el estado no esté vacío
-        if (empty($pestado)) {
-            $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
-            return $resultado;
-        }
-
         try {
             // Preparar y ejecutar el procedimiento almacenado con el parámetro estado
-            $sp = $c->prepare("CALL spBuscarPeriodoByEstado(:pestado)");
-            $sp->bindParam(':pestado', $pestado, PDO::PARAM_STR);
+            $sp = $c->prepare("CALL spBuscarPeriodoValido(@mensaje)");
             $sp->execute();
 
             // Obtener todos los registros devueltos por el procedimiento
             $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
-            $sp->closeCursor(); // Liberar recursos del cursor
-
-            // Devolver los datos obtenidos
-            $resultado = ['estado' => 'OK', 'datos' => $datos];
+            
+            $resultado['datos'] = $datos;
 
         } catch (PDOException $e) {
             // Registrar el error para fines de depuración interna
-            error_log("Error en la base de datos (BuscarPeriodoAbierto): " . $e->getMessage());
+            error_log("Error en la base de datos (BuscarPeriodoValido): " . $e->getMessage());
             $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
         }
 

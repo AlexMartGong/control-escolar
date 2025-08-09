@@ -197,13 +197,13 @@ function inicializarFormularioHorario() {
 
 // Función para cargar información del período activo
 function cargarPeriodoActivo() {
-    fetch('../../Controlador/Intermediarios/Periodo/ObtenerPeriodoAbierto.php')
+     fetch('../../Controlador/Intermediarios/Periodo/ObtenerPeriodoValido.php')
     .then(response => response.json())
     .then(data => {
       const spanPeriodo = document.getElementById('periodoInfo');
 
-      if (Array.isArray(data) && data.length > 0) {
-        const periodo = data[0];
+      if (Array.isArray(data.datos) && data.datos.length > 0) {
+        const periodo = data.datos[0];
         const texto = `${periodo.periodo} (Estado: ${periodo.estado}, Ajustes hasta: ${periodo.fecha_de_termino_ajustes})`;
         spanPeriodo.textContent = texto;
       } else {
