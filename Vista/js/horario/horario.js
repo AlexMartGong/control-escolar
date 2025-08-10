@@ -197,26 +197,54 @@ function inicializarFormularioHorario() {
 
 // Función para cargar información del período activo
 function cargarPeriodoActivo() {
-    // Aquí harías la llamada al backend para obtener el período activo
-    // Por ahora simulo la información
-    $("#periodoInfo").text('ENE-JUN 2024 (Estado: Activo, Ajustes hasta: 15/02/2024)');
+     fetch('../../Controlador/Intermediarios/Periodo/ObtenerPeriodoValido.php')
+    .then(response => response.json())
+    .then(data => {
+      const spanPeriodo = document.getElementById('periodoInfo');
+
+      if (Array.isArray(data.datos) && data.datos.length > 0) {
+        const periodo = data.datos[0];
+        const texto = `${periodo.periodo} (Estado: ${periodo.estado}, Ajustes hasta: ${periodo.fecha_de_termino_ajustes})`;
+        spanPeriodo.textContent = texto;
+      } else {
+        spanPeriodo.textContent = 'No hay periodo activo disponible.';
+      }
+    })
+    .catch(error => {
+      console.error('Error cargando el periodo activo:', error);
+      document.getElementById('periodoInfo').textContent = 'Error al cargar la información del periodo.';
+    });
 }
 
 // Función para cargar carreras en el formulario de agregar horario
 function cargarCarrerasfrmAgr() {
-    // Limpiar select
-    $("#claveCarrera").empty().append('<option value="">Seleccione una carrera...</option>');
+    // Realiza una solicitud HTTP GET al archivo PHP que devuelve las carreras activas
+  return fetch('../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php')
+    // Convierte la respuesta en un objeto JSON
+    .then(response => response.json())
+    // Una vez que se tiene el objeto JSON
+    .then(data => {
+      // Obtiene el elemento <select> donde se van a insertar las carreras
+      const select = document.getElementById('claveCarrera');
+      
+      // Limpia el <select> y agrega una opción por defecto deshabilitada y seleccionada
+      select.innerHTML = '<option disabled selected>Seleccione una Carrera</option>';
 
-    // Aquí harías la llamada al backend para obtener las carreras
-    // Por ahora simulo algunas carreras
-    const carreras = [
-        {value: 'IINF-2010-220', text: 'IINF-2010-220 - Ingeniería Informática'},
-        {value: 'IIND-2010-221', text: 'IIND-2010-221 - Ingeniería Industrial'},
-        {value: 'IELC-2010-222', text: 'IELC-2010-222 - Ingeniería Electrónica'}
-    ];
-
-    carreras.forEach(carrera => {
-        $("#claveCarrera").append(`<option value="${carrera.value}">${carrera.text}</option>`);
+      // Verifica si el arreglo 'datos' dentro del JSON contiene al menos una carrera
+      if (data.datos && data.datos.length > 0) {
+        // Recorre cada carrera y la agrega como una opción dentro del <select>
+        data.datos.forEach(carrera => {
+          const option = document.createElement('option'); // Crea una nueva opción
+          option.value = carrera.clave_de_carrera;         // Establece el valor (clave)
+          option.textContent = `${carrera.clave_de_carrera} - ${carrera.nombre_de_carrera}`;  // Establece el texto visible
+          select.appendChild(option);                      // Agrega la opción al <select>
+        });
+      }
+    })
+    // Captura cualquier error que ocurra en la solicitud o el procesamiento de datos
+    .catch(error => {
+      console.error('Error cargando Carreras:', error); // Muestra el error en la consola
+      throw error; // Propaga el error para que pueda ser manejado por quien llame esta función
     });
 }
 
@@ -288,7 +316,8 @@ function cargarDatosGrupo() {
     const carrera = $("#claveCarrera").val();
     const semestre = $("#semestre").val();
     const grupo = $("#grupo").val();
-
+    const turno = $("#turno").val();
+    
     if (!validarSeleccionCompleta()) {
         return;
     }
@@ -298,69 +327,97 @@ function cargarDatosGrupo() {
     mostrarCargandoOfertas();
 
     // Cargar alumnos
-    cargarAlumnosGrupo(carrera, semestre, grupo);
+    cargarAlumnosGrupo(carrera, semestre, grupo, turno);
 
     // Cargar ofertas
-    cargarOfertasGrupo(carrera, semestre, grupo);
+    cargarOfertasGrupo(carrera, semestre, grupo, turno);
 }
 
-// Función para cargar alumnos del grupo
-function cargarAlumnosGrupo(carrera, semestre, grupo) {
-    // Aquí harías la llamada al backend
-    // Por ahora simulo datos
-    setTimeout(() => {
-        const alumnos = [
-            {numeroControl: '20240001', nombre: 'García López, Juan Carlos', semestre: semestre, estado: 'Activo'},
-            {
-                numeroControl: '20240002',
-                nombre: 'Martínez Rodríguez, María Elena',
-                semestre: semestre,
-                estado: 'Activo'
-            },
-            {numeroControl: '20240003', nombre: 'Hernández Pérez, Luis Miguel', semestre: semestre, estado: 'Activo'}
-        ];
+function cargarAlumnosGrupo(carrera, semestre, grupo, turno) {
+  // Validar que los parámetros estén definidos y no vacíos
+  if (!carrera || !semestre || !grupo || !turno) {
+    console.error("Faltan parámetros para cargar alumnos.");
+    mostrarAlumnos([]); // Mostrar vacío o mensaje si quieres
+    return;
+  }
 
-        mostrarAlumnos(alumnos);
-    }, 500);
+  // Construir el objeto con los datos para enviar
+  const datos = {
+    claveCarrera: carrera,
+    semestre: semestre,
+    grupo: grupo,
+    turno: turno
+  };
+
+  // Llamar al intermediario con fetch y POST
+  fetch('../../Controlador/Intermediarios/Horario/BuscarAlumnosHorarioGrupal.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(datos)
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('Error en la respuesta del servidor');
+      return response.json();
+    })
+    .then(data => {
+         console.log("Respuesta del servidor:", data);
+      if (data.estado === "OK") {
+        mostrarAlumnos(data.datos);
+      } else {
+        console.warn("No se encontraron alumnos o hubo error:", data.mensaje);
+        mostrarAlumnos([]);
+      }
+    })
+    .catch(error => {
+      console.error("Error al cargar alumnos del grupo:", error);
+      mostrarAlumnos([]);
+    });
 }
 
 // Función para cargar ofertas del grupo
-function cargarOfertasGrupo(carrera, semestre, grupo) {
-    // Aquí harías la llamada al backend
-    // Por ahora simulo datos
-    setTimeout(() => {
-        const ofertas = [
-            {
-                idOferta: '001',
-                claveMateria: 'SCC-1008',
-                nombreMateria: 'Sistemas de Base de Datos',
-                docente: 'Dr. Roberto Sánchez',
-                semestre: semestre,
-                grupo: grupo,
-                turno: 'M'
-            },
-            {
-                idOferta: '002',
-                claveMateria: 'SCC-1010',
-                nombreMateria: 'Programación Orientada a Objetos',
-                docente: 'Ing. Ana María Flores',
-                semestre: semestre,
-                grupo: grupo,
-                turno: 'M'
-            },
-            {
-                idOferta: '003',
-                claveMateria: 'ACF-0901',
-                nombreMateria: 'Cálculo Diferencial',
-                docente: 'M.C. José Luis Torres',
-                semestre: semestre,
-                grupo: grupo,
-                turno: 'M'
-            }
-        ];
+function cargarOfertasGrupo(carrera, semestre, grupo, turno) {
+     // Validar que los parámetros estén definidos y no vacíos
+  if (!carrera || !semestre || !grupo || !turno) {
+    console.error("Faltan parámetros para cargar alumnos.");
+    mostrarOfertas([]); // Mostrar vacío o mensaje si quieres
+    return;
+  }
 
-        mostrarOfertas(ofertas);
-    }, 500);
+  // Construir el objeto con los datos para enviar
+  const datos = {
+    claveCarrera: carrera,
+    semestre: semestre,
+    grupo: grupo,
+    turno: turno
+  };
+
+  // Llamar al intermediario con fetch y POST
+  fetch('../../Controlador/Intermediarios/Horario/BuscarOfertasHorarioGrupal.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(datos)
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('Error en la respuesta del servidor');
+      return response.json();
+    })
+    .then(data => {
+         console.log("Respuesta del servidor:", data);
+      if (data.estado === "OK") {
+        mostrarOfertas(data.datos);
+      } else {
+        console.warn("No se encontraron Ofertas o hubo error:", data.mensaje);
+        mostrarOfertas([]);
+      }
+    })
+    .catch(error => {
+      console.error("Error al cargar alumnos del grupo:", error);
+      mostrarOfertas([]);
+    });
 }
 
 // Función para mostrar indicador de carga en alumnos
@@ -408,8 +465,8 @@ function mostrarAlumnos(alumnos) {
 
             html += `
                 <tr>
-                    <td>${alumno.numeroControl}</td>
-                    <td>${alumno.nombre}</td>
+                    <td>${alumno.numero_de_control}</td>
+                    <td>${alumno.nombre_de_alumno}</td>
                     <td>${alumno.semestre}°</td>
                     <td>${estadoBadge}</td>
                 </tr>
@@ -439,10 +496,10 @@ function mostrarOfertas(ofertas) {
         ofertas.forEach(oferta => {
             html += `
                 <tr>
-                    <td>${oferta.idOferta}</td>
-                    <td>${oferta.claveMateria}</td>
-                    <td>${oferta.nombreMateria}</td>
-                    <td>${oferta.docente}</td>
+                    <td>${oferta.clave_de_oferta}</td>
+                    <td>${oferta.clave_de_materia}</td>
+                    <td>${oferta.nombre_de_materia}</td>
+                    <td>${oferta.clave_de_docente}</td>
                     <td>${oferta.semestre}°</td>
                     <td>${oferta.grupo}</td>
                     <td>${oferta.turno}</td>
@@ -513,27 +570,58 @@ function mostrarError(campo, mensaje) {
 
 // Función para guardar horarios
 function guardarHorarios() {
-    if (!validarFormulario()) {
-        return;
-    }
+    // Validar formulario antes de continuar
+  if (!validarFormulario()) {
+    return;
+  }
 
-    const datos = {
-        carrera: $("#claveCarrera").val(),
-        semestre: $("#semestre").val(),
-        grupo: $("#grupo").val(),
-        alumnos: obtenerAlumnosTabla(),
-        ofertas: obtenerOfertasTabla()
-    };
+  // Obtener datos del formulario
+  const carrera = document.getElementById("claveCarrera").value.trim();
+  const semestre = document.getElementById("semestre").value.trim();
+  const grupo = document.getElementById("grupo").value.trim();
+  const turno = document.getElementById("turno").value.trim();
 
-    // Deshabilitar botón mientras se procesa
-    $("#btnGuardarHorario").prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
+  // Validar que se hayan obtenido datos
+  if (!carrera || !semestre || !grupo || !turno) {
+    mostrarFaltaDatos("Por favor, complete todos los campos y asegúrese de haber generado los horarios.");
+    return;
+  }
 
-    mostrarDatosGuardados(
-        `Horarios guardados correctamente para la carrera ${datos.carrera}, semestre ${datos.semestre}, grupo ${datos.grupo}.`,
+  // Armar el objeto que se enviará
+  const datos = {
+    claveCarrera: carrera,
+    semestre: semestre,
+    grupo: grupo,
+    turno: turno,
+  };
+
+  const json = JSON.stringify(datos);
+  const url = "../../Controlador/Intermediarios/Horario/AgregarHorario.php";
+
+  // Deshabilitar botón mientras se procesa
+  $("#btnGuardarHorario").prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
+
+  console.log("Datos JSON enviados:", json); 
+
+  // Enviar solicitud POST
+  $.post(url, json, function (response, status) {
+    if (response.success) {
+      mostrarDatosGuardados(
+        `Horarios guardados correctamente para la carrera ${carrera}, semestre ${semestre}, grupo ${grupo}, turno ${turno}.`,
         function () {
-            option("horario", "");
+          option("horario", ""); // Recarga la vista o redirige
         }
-    );
+      );
+    } else {
+      mostrarErrorCaptura(response.mensaje);
+      $("#btnGuardarHorario").prop('disabled', false).html('Guardar');
+    }
+  }, "json").fail(function (xhr, status, error) {
+    console.error("Error en la solicitud POST Guardar Horario:", xhr.responseText);
+    mostrarErrorCaptura("No se pudo conectar con el servidor. Inténtelo más tarde.");
+    $("#btnGuardarHorario").prop('disabled', false).html('Guardar');
+  });
+
 }
 
 // Función para validar el formulario antes de guardar
