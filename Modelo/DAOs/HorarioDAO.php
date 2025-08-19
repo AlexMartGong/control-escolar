@@ -500,7 +500,7 @@ public function buscarAlumnos($carrera, $semestre, $grupo, $turno) {
     ];
 }
 
-
+// funcion para buscar ofertas asignadas
 public function buscarOfertasAsignadas($carrera, $semestre, $grupo, $turno) {
     $c = $this->conector;
 
@@ -522,6 +522,14 @@ public function buscarOfertasAsignadas($carrera, $semestre, $grupo, $turno) {
     ];
 }
 
+/**
+ * Función para modificar el estado de una oferta.
+ * Llama al SP `spModificarEstadoOferta(idOferta, estado, OUT mensaje)` para poner la oferta en 'Asignada' o 'No asignada'.
+ * Si el SP reporta 0 filas afectadas pero la oferta ya tenía ese estado, se considera éxito "sin cambios".
+ * @param string $idOferta  ID de la oferta
+ * @param string $estado    'Asignada' | 'No asignada'
+ * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
+ */
 public function modificarEstadoOferta(string $idOferta, string $estado): array {
     $c = $this->conector;
 
@@ -547,6 +555,15 @@ public function modificarEstadoOferta(string $idOferta, string $estado): array {
     return ['estado' => 'OK', 'mensaje' => $msg];
 }
 
+/**
+ * Función para registrar una baja parcial de oferta (bitácora).
+ * Llama al SP `spAgregarHBajaParcialOferta(noControl, semestre, idOferta, OUT mensaje)` e inserta en historial.
+ * No modifica el horario; solo guarda el evento para auditoría.
+ * @param string $noControl Número de control del alumno
+ * @param int    $semestre  Semestre del registro
+ * @param string $idOferta  ID de la oferta dada de baja parcial
+ * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
+ */
 public function agregarHBajaParcialOferta(string $noControl, int $semestre, string $idOferta): array {
     $c = $this->conector;
 
@@ -560,6 +577,16 @@ public function agregarHBajaParcialOferta(string $noControl, int $semestre, stri
     return ['estado' => ($msg === 'Estado: Exito' ? 'OK' : 'Error'), 'mensaje' => ($msg ?: 'Error en bitácora')];
 }
 
+/**
+ * Función para reconstruir el horario grupal desde BD.
+ * Llama al SP `spModificarHorarioGrupal(carrera, semestre, grupo, turno, OUT mensaje)`,
+ * que elimina los horarios actuales del grupo y vuelve a insertar según las ofertas marcadas como 'Asignada'.
+ * @param string $carrera
+ * @param int    $semestre
+ * @param string $grupo
+ * @param string $turno
+ * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
+ */
 public function reconstruirHorarioGrupal(string $carrera, int $semestre, string $grupo, string $turno): array {
     $c = $this->conector;
 
@@ -573,12 +600,22 @@ public function reconstruirHorarioGrupal(string $carrera, int $semestre, string 
     return ['estado' => ($msg === 'Estado: Exito' ? 'OK' : 'Error'), 'mensaje' => ($msg ?: 'Error al reconstruir')];
 }
 
+/**
+ * Función para aplicar la modificación grupal completa
+ * @param string $carrera
+ * @param int    $semestre
+ * @param string $grupo
+ * @param string $turno
+ * @param array  $alumnos   Array de noControl
+ * @param array  $finales   Array de objetos con idOferta (quedan asignadas)
+ * @param array  $quitadas  Array de objetos con idOferta (se desasignan)
+ * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
+ */
 public function aplicarModificacionGrupal(
     string $carrera, int $semestre, string $grupo, string $turno,
     array $alumnos, array $finales, array $quitadas
 ): array {
 
-    // 1) Marcar estados (finales → Asignada)
     foreach ($finales as $o) {
         $id = (string)($o['idOferta'] ?? $o['clave_oferta'] ?? '');
         if ($id === '') continue;
@@ -596,6 +633,7 @@ public function aplicarModificacionGrupal(
             return ['estado'=>'Error', 'mensaje'=>"No se pudo marcar oferta $id como No asignada: ".$r['mensaje']];
         }
     }
+
     $r = $this->reconstruirHorarioGrupal($carrera, $semestre, $grupo, $turno);
     if ($r['estado'] !== 'OK') {
         return ['estado'=>'Error', 'mensaje'=>$r['mensaje'] ?: 'Error reconstruyendo horarios'];
@@ -611,7 +649,6 @@ public function aplicarModificacionGrupal(
 
     return ['estado'=>'OK', 'mensaje'=>'Estado: Exito'];
 }
-
 
 }
 

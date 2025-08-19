@@ -865,7 +865,7 @@ function cargarAlumnosConHorarios(carrera, semestre, grupo, turno) {
 }
 
 let ofertasAsignadasInicialKeys = [];
-
+// funcion para cargar ofertas asignadas a los alumnos de la primera tabla
 function cargarOfertasAsignadas(carrera, semestre, grupo, turno) {
     fetch('../../Controlador/Intermediarios/Horario/ObtenerOfertasAsignadas.php', {
         method: 'POST',
@@ -906,7 +906,7 @@ function cargarOfertasAsignadas(carrera, semestre, grupo, turno) {
     });
 }
 
-
+// funcion para cargar las ofertas que se pueden agregar
 function cargarOfertasDisponiblesParaAgregar(claveCarrera, semestre, grupo, turno) {
     fetch('../../Controlador/Intermediarios/Horario/BuscarOfertasHorarioGrupal.php', {
         method: 'POST',
@@ -933,9 +933,6 @@ function cargarOfertasDisponiblesParaAgregar(claveCarrera, semestre, grupo, turn
         mostrarOfertasDisponibles([]);
     });
 }
-
-
-
 
 // Función para mostrar indicadores de carga
 function mostrarCargandoAlumnosConHorarios() {
@@ -971,6 +968,7 @@ function mostrarCargandoOfertasDisponibles() {
     `);
 }
 
+// función para normalizar una oferta del backend a un objeto consistente
 function normalizarOferta(raw) {
     const id = raw?.idOferta ?? raw?.clave_de_oferta ?? raw?.id_oferta ?? raw?.id ?? raw?.clave;
 
@@ -1156,7 +1154,7 @@ function verificarHabilitarGuardarModificacion() {
     $("#btnGuardarModificacion").prop('disabled', !habilitar);
 }
 
-// Agregar (Disponibles -> Asignadas)
+// Agrega las ofertas
 function agregarOfertasSeleccionadas() {
     const keys = $("#tablaOfertasDisponibles tbody input[type='checkbox']:checked")
         .map(function(){ return String($(this).val()); })
@@ -1171,7 +1169,7 @@ function agregarOfertasSeleccionadas() {
     mostrarMensajeExito(`${ofertasSeleccionadas.length} oferta(s) agregada(s) temporalmente`);
 }
 
-// Quitar (Asignadas -> Disponibles)
+// Quita las ofertas
 function quitarOfertasSeleccionadas() {
     const keys = $("#tablaOfertasAsignadas tbody input[type='checkbox']:checked")
         .map(function(){ return String($(this).val()); })
@@ -1190,7 +1188,7 @@ function quitarOfertasSeleccionadas() {
 let ofertasAsignadas = [];
 let ofertasDisponibles = [];
 
-// Disponibles -> Asignadas
+//Funcion para mover las ofertas de disponibles a asignadas
 function moverOfertasAAsignadas(ofertas) {
     ofertas.forEach(oferta => {
         const i = ofertasDisponibles.findIndex(o => o.uniqueKey === oferta.uniqueKey);
@@ -1208,7 +1206,7 @@ function moverOfertasAAsignadas(ofertas) {
     actualizarBadgeOfertasEnAlumnos(window.totalOfertasAsignadas || 0);
 }
 
-// Asignadas -> Disponibles
+//Funcion para mover las ofertas de asignadas a disponibles
 function moverOfertasADisponibles(ofertas) {
     ofertas.forEach(oferta => {
         const i = ofertasAsignadas.findIndex(o => o.uniqueKey === oferta.uniqueKey);
@@ -1240,7 +1238,7 @@ function getDeltasOfertas() {
   return { agregadas, quitadas };
 }
 
-
+// funcion para guardar la modificacion de los horarios
 async function guardarModificacionHorarios() {
   if (!validarFormularioModificacion()) return;
 
