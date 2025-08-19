@@ -1402,41 +1402,33 @@ function limpiarTablasModificacion() {
 }
 /*
  * Función para buscar un Horario por ID.
- * Llenará los campos del formulario con sus datos y deshabilitará el campo ID.
+ * Llenará los campos del formulario con sus datos
  */
-function BuscarHorario(id) {
-    let url = "../../Controlador/Intermediarios/Horario/BuscarHorario.php";
+async function BuscarHorario(id) {
+  const url  = "../../Controlador/Intermediarios/Horario/BuscarHorario.php";
+  const json = JSON.stringify({ id, Buscar: true });
 
-    let datos = { id: id, Buscar: true };
-    let json = JSON.stringify(datos);
+  try {
+    const response = await $.post(url, json, null, "json");
+    console.log("Respuesta del servidor:", response);
+    if (response?.estado === "OK" && response?.datos) {
+      const { clave_de_carrera, semestre, grupo, turno } = response.datos;
 
-    $.post(
-        url,
-        json,
-        function (response, status) {
-            console.log("Respuesta del servidor:", response);
-            console.log("Datos enviados:", json);
+      await cargarCarrerasfrmAgr();
+      $("#claveCarrera").val(clave_de_carrera);
+      $("#semestre").val(semestre);
+      $("#grupo").val(grupo);
+      $("#turno").val(turno);
 
-            if (status === "success" && response.estado === "OK" && response.datos) {
-                console.log("Datos recibidos:", response.datos);
-
-                // Ajustar según los nombres de columnas devueltos por spBuscarHorarioByID
-                cargarCarrerasfrmAgr().then(() => {
-                    document.getElementById("claveCarrera").value = response.datos.clave_de_carrera;
-                });
-                document.getElementById("semestre").value = response.datos.semestre;
-                document.getElementById("grupo").value = response.datos.grupo;
-                document.getElementById("turno").value = response.datos.turno;
-                cargarDatosGrupoModificacion();
-
-            } else {
-                sinres("Horario no encontrado.");
-            }
-        },
-        "json"
-    ).fail(function (xhr, status, error) {
-        console.error("Error en la solicitud POST:", xhr.responseText);
-        mostrarErrorCaptura("Error al buscar el Horario.");
-    });
+      cargarDatosGrupoModificacion();
+    } else {
+      sinres("Horario no encontrado.");
+    }
+  } catch (e) {
+    console.error("Error en BuscarHorario:", e);
+    mostrarErrorCaptura("Error al buscar el Horario.");
+  }
 }
+
+
 
