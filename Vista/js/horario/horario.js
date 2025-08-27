@@ -8,7 +8,7 @@ function loadFormHorario(opc, id = "") {
         url = "horario/modalumno.html";
     }
 
-    let datas = {id: id};
+    let datas = { id: id };
 
     let container = $("#frmArea");
 
@@ -22,8 +22,7 @@ function loadFormHorario(opc, id = "") {
                         .html(responseText)
                         .hide()
                         .fadeIn(500, function () {
-                            // Si es edición, llamar a buscarDocente automáticamente
-
+                            // Si es edición, llamar a buscarHorario automáticamente
                             if (opc === "frmHorario") {
                                 cargarCarrerasfrmAgr();
                                 inicializarFormularioHorario();
@@ -32,6 +31,7 @@ function loadFormHorario(opc, id = "") {
                             if (opc === "modHorario") {
                                 cargarCarrerasfrmAgr();
                                 inicializarFormularioModificarHorario();
+                                BuscarHorario(id)
                             }
 
                             if (opc === "modalumno" && id !== "") {
@@ -197,55 +197,55 @@ function inicializarFormularioHorario() {
 
 // Función para cargar información del período activo
 function cargarPeriodoActivo() {
-     fetch('../../Controlador/Intermediarios/Periodo/ObtenerPeriodoValido.php')
-    .then(response => response.json())
-    .then(data => {
-      const spanPeriodo = document.getElementById('periodoInfo');
+    fetch('../../Controlador/Intermediarios/Periodo/ObtenerPeriodoValido.php')
+        .then(response => response.json())
+        .then(data => {
+            const spanPeriodo = document.getElementById('periodoInfo');
 
-      if (Array.isArray(data.datos) && data.datos.length > 0) {
-        const periodo = data.datos[0];
-        const texto = `${periodo.periodo} (Estado: ${periodo.estado}, Ajustes hasta: ${periodo.fecha_de_termino_ajustes})`;
-        spanPeriodo.textContent = texto;
-      } else {
-        spanPeriodo.textContent = 'No hay periodo activo disponible.';
-      }
-    })
-    .catch(error => {
-      console.error('Error cargando el periodo activo:', error);
-      document.getElementById('periodoInfo').textContent = 'Error al cargar la información del periodo.';
-    });
+            if (Array.isArray(data.datos) && data.datos.length > 0) {
+                const periodo = data.datos[0];
+                const texto = `${periodo.periodo} (Estado: ${periodo.estado}, Ajustes hasta: ${periodo.fecha_de_termino_ajustes})`;
+                spanPeriodo.textContent = texto;
+            } else {
+                spanPeriodo.textContent = 'No hay periodo activo disponible.';
+            }
+        })
+        .catch(error => {
+            console.error('Error cargando el periodo activo:', error);
+            document.getElementById('periodoInfo').textContent = 'Error al cargar la información del periodo.';
+        });
 }
 
 // Función para cargar carreras en el formulario de agregar horario
 function cargarCarrerasfrmAgr() {
     // Realiza una solicitud HTTP GET al archivo PHP que devuelve las carreras activas
-  return fetch('../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php')
-    // Convierte la respuesta en un objeto JSON
-    .then(response => response.json())
-    // Una vez que se tiene el objeto JSON
-    .then(data => {
-      // Obtiene el elemento <select> donde se van a insertar las carreras
-      const select = document.getElementById('claveCarrera');
-      
-      // Limpia el <select> y agrega una opción por defecto deshabilitada y seleccionada
-      select.innerHTML = '<option disabled selected>Seleccione una Carrera</option>';
+    return fetch('../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php')
+        // Convierte la respuesta en un objeto JSON
+        .then(response => response.json())
+        // Una vez que se tiene el objeto JSON
+        .then(data => {
+            // Obtiene el elemento <select> donde se van a insertar las carreras
+            const select = document.getElementById('claveCarrera');
 
-      // Verifica si el arreglo 'datos' dentro del JSON contiene al menos una carrera
-      if (data.datos && data.datos.length > 0) {
-        // Recorre cada carrera y la agrega como una opción dentro del <select>
-        data.datos.forEach(carrera => {
-          const option = document.createElement('option'); // Crea una nueva opción
-          option.value = carrera.clave_de_carrera;         // Establece el valor (clave)
-          option.textContent = `${carrera.clave_de_carrera} - ${carrera.nombre_de_carrera}`;  // Establece el texto visible
-          select.appendChild(option);                      // Agrega la opción al <select>
+            // Limpia el <select> y agrega una opción por defecto deshabilitada y seleccionada
+            select.innerHTML = '<option disabled selected>Seleccione una Carrera</option>';
+
+            // Verifica si el arreglo 'datos' dentro del JSON contiene al menos una carrera
+            if (data.datos && data.datos.length > 0) {
+                // Recorre cada carrera y la agrega como una opción dentro del <select>
+                data.datos.forEach(carrera => {
+                    const option = document.createElement('option'); // Crea una nueva opción
+                    option.value = carrera.clave_de_carrera;         // Establece el valor (clave)
+                    option.textContent = `${carrera.clave_de_carrera} - ${carrera.nombre_de_carrera}`;  // Establece el texto visible
+                    select.appendChild(option);                      // Agrega la opción al <select>
+                });
+            }
+        })
+        // Captura cualquier error que ocurra en la solicitud o el procesamiento de datos
+        .catch(error => {
+            console.error('Error cargando Carreras:', error); // Muestra el error en la consola
+            throw error; // Propaga el error para que pueda ser manejado por quien llame esta función
         });
-      }
-    })
-    // Captura cualquier error que ocurra en la solicitud o el procesamiento de datos
-    .catch(error => {
-      console.error('Error cargando Carreras:', error); // Muestra el error en la consola
-      throw error; // Propaga el error para que pueda ser manejado por quien llame esta función
-    });
 }
 
 // Función para configurar los event listeners del formulario
@@ -317,7 +317,7 @@ function cargarDatosGrupo() {
     const semestre = $("#semestre").val();
     const grupo = $("#grupo").val();
     const turno = $("#turno").val();
-    
+
     if (!validarSeleccionCompleta()) {
         return;
     }
@@ -334,90 +334,90 @@ function cargarDatosGrupo() {
 }
 
 function cargarAlumnosGrupo(carrera, semestre, grupo, turno) {
-  // Validar que los parámetros estén definidos y no vacíos
-  if (!carrera || !semestre || !grupo || !turno) {
-    console.error("Faltan parámetros para cargar alumnos.");
-    mostrarAlumnos([]); // Mostrar vacío o mensaje si quieres
-    return;
-  }
+    // Validar que los parámetros estén definidos y no vacíos
+    if (!carrera || !semestre || !grupo || !turno) {
+        console.error("Faltan parámetros para cargar alumnos.");
+        mostrarAlumnos([]); // Mostrar vacío o mensaje si quieres
+        return;
+    }
 
-  // Construir el objeto con los datos para enviar
-  const datos = {
-    claveCarrera: carrera,
-    semestre: semestre,
-    grupo: grupo,
-    turno: turno
-  };
+    // Construir el objeto con los datos para enviar
+    const datos = {
+        claveCarrera: carrera,
+        semestre: semestre,
+        grupo: grupo,
+        turno: turno
+    };
 
-  // Llamar al intermediario con fetch y POST
-  fetch('../../Controlador/Intermediarios/Horario/BuscarAlumnosHorarioGrupal.php', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(datos)
-  })
-    .then(response => {
-      if (!response.ok) throw new Error('Error en la respuesta del servidor');
-      return response.json();
+    // Llamar al intermediario con fetch y POST
+    fetch('../../Controlador/Intermediarios/Horario/BuscarAlumnosHorarioGrupal.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(datos)
     })
-    .then(data => {
-         console.log("Respuesta del servidor:", data);
-      if (data.estado === "OK") {
-        mostrarAlumnos(data.datos);
-      } else {
-        console.warn("No se encontraron alumnos o hubo error:", data.mensaje);
-        mostrarAlumnos([]);
-      }
-    })
-    .catch(error => {
-      console.error("Error al cargar alumnos del grupo:", error);
-      mostrarAlumnos([]);
-    });
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            return response.json();
+        })
+        .then(data => {
+            console.log("Respuesta del servidor:", data);
+            if (data.estado === "OK") {
+                mostrarAlumnos(data.datos);
+            } else {
+                console.warn("No se encontraron alumnos o hubo error:", data.mensaje);
+                mostrarAlumnos([]);
+            }
+        })
+        .catch(error => {
+            console.error("Error al cargar alumnos del grupo:", error);
+            mostrarAlumnos([]);
+        });
 }
 
 // Función para cargar ofertas del grupo
 function cargarOfertasGrupo(carrera, semestre, grupo, turno) {
-     // Validar que los parámetros estén definidos y no vacíos
-  if (!carrera || !semestre || !grupo || !turno) {
-    console.error("Faltan parámetros para cargar alumnos.");
-    mostrarOfertas([]); // Mostrar vacío o mensaje si quieres
-    return;
-  }
+    // Validar que los parámetros estén definidos y no vacíos
+    if (!carrera || !semestre || !grupo || !turno) {
+        console.error("Faltan parámetros para cargar alumnos.");
+        mostrarOfertas([]); // Mostrar vacío o mensaje si quieres
+        return;
+    }
 
-  // Construir el objeto con los datos para enviar
-  const datos = {
-    claveCarrera: carrera,
-    semestre: semestre,
-    grupo: grupo,
-    turno: turno
-  };
+    // Construir el objeto con los datos para enviar
+    const datos = {
+        claveCarrera: carrera,
+        semestre: semestre,
+        grupo: grupo,
+        turno: turno
+    };
 
-  // Llamar al intermediario con fetch y POST
-  fetch('../../Controlador/Intermediarios/Horario/BuscarOfertasHorarioGrupal.php', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(datos)
-  })
-    .then(response => {
-      if (!response.ok) throw new Error('Error en la respuesta del servidor');
-      return response.json();
+    // Llamar al intermediario con fetch y POST
+    fetch('../../Controlador/Intermediarios/Horario/BuscarOfertasHorarioGrupal.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(datos)
     })
-    .then(data => {
-         console.log("Respuesta del servidor:", data);
-      if (data.estado === "OK") {
-        mostrarOfertas(data.datos);
-      } else {
-        console.warn("No se encontraron Ofertas o hubo error:", data.mensaje);
-        mostrarOfertas([]);
-      }
-    })
-    .catch(error => {
-      console.error("Error al cargar alumnos del grupo:", error);
-      mostrarOfertas([]);
-    });
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            return response.json();
+        })
+        .then(data => {
+            console.log("Respuesta del servidor:", data);
+            if (data.estado === "OK") {
+                mostrarOfertas(data.datos);
+            } else {
+                console.warn("No se encontraron Ofertas o hubo error:", data.mensaje);
+                mostrarOfertas([]);
+            }
+        })
+        .catch(error => {
+            console.error("Error al cargar alumnos del grupo:", error);
+            mostrarOfertas([]);
+        });
 }
 
 // Función para mostrar indicador de carga en alumnos
@@ -571,56 +571,56 @@ function mostrarError(campo, mensaje) {
 // Función para guardar horarios
 function guardarHorarios() {
     // Validar formulario antes de continuar
-  if (!validarFormulario()) {
-    return;
-  }
-
-  // Obtener datos del formulario
-  const carrera = document.getElementById("claveCarrera").value.trim();
-  const semestre = document.getElementById("semestre").value.trim();
-  const grupo = document.getElementById("grupo").value.trim();
-  const turno = document.getElementById("turno").value.trim();
-
-  // Validar que se hayan obtenido datos
-  if (!carrera || !semestre || !grupo || !turno) {
-    mostrarFaltaDatos("Por favor, complete todos los campos y asegúrese de haber generado los horarios.");
-    return;
-  }
-
-  // Armar el objeto que se enviará
-  const datos = {
-    claveCarrera: carrera,
-    semestre: semestre,
-    grupo: grupo,
-    turno: turno,
-  };
-
-  const json = JSON.stringify(datos);
-  const url = "../../Controlador/Intermediarios/Horario/AgregarHorario.php";
-
-  // Deshabilitar botón mientras se procesa
-  $("#btnGuardarHorario").prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
-
-  console.log("Datos JSON enviados:", json); 
-
-  // Enviar solicitud POST
-  $.post(url, json, function (response, status) {
-    if (response.success) {
-      mostrarDatosGuardados(
-        `Horarios guardados correctamente para la carrera ${carrera}, semestre ${semestre}, grupo ${grupo}, turno ${turno}.`,
-        function () {
-          option("horario", ""); // Recarga la vista o redirige
-        }
-      );
-    } else {
-      mostrarErrorCaptura(response.mensaje);
-      $("#btnGuardarHorario").prop('disabled', false).html('Guardar');
+    if (!validarFormulario()) {
+        return;
     }
-  }, "json").fail(function (xhr, status, error) {
-    console.error("Error en la solicitud POST Guardar Horario:", xhr.responseText);
-    mostrarErrorCaptura("No se pudo conectar con el servidor. Inténtelo más tarde.");
-    $("#btnGuardarHorario").prop('disabled', false).html('Guardar');
-  });
+
+    // Obtener datos del formulario
+    const carrera = document.getElementById("claveCarrera").value.trim();
+    const semestre = document.getElementById("semestre").value.trim();
+    const grupo = document.getElementById("grupo").value.trim();
+    const turno = document.getElementById("turno").value.trim();
+
+    // Validar que se hayan obtenido datos
+    if (!carrera || !semestre || !grupo || !turno) {
+        mostrarFaltaDatos("Por favor, complete todos los campos y asegúrese de haber generado los horarios.");
+        return;
+    }
+
+    // Armar el objeto que se enviará
+    const datos = {
+        claveCarrera: carrera,
+        semestre: semestre,
+        grupo: grupo,
+        turno: turno,
+    };
+
+    const json = JSON.stringify(datos);
+    const url = "../../Controlador/Intermediarios/Horario/AgregarHorario.php";
+
+    // Deshabilitar botón mientras se procesa
+    $("#btnGuardarHorario").prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
+
+    console.log("Datos JSON enviados:", json);
+
+    // Enviar solicitud POST
+    $.post(url, json, function (response, status) {
+        if (response.success) {
+            mostrarDatosGuardados(
+                `Horarios guardados correctamente para la carrera ${carrera}, semestre ${semestre}, grupo ${grupo}, turno ${turno}.`,
+                function () {
+                    option("horario", ""); // Recarga la vista o redirige
+                }
+            );
+        } else {
+            mostrarErrorCaptura(response.mensaje);
+            $("#btnGuardarHorario").prop('disabled', false).html('Guardar');
+        }
+    }, "json").fail(function (xhr, status, error) {
+        console.error("Error en la solicitud POST Guardar Horario:", xhr.responseText);
+        mostrarErrorCaptura("No se pudo conectar con el servidor. Inténtelo más tarde.");
+        $("#btnGuardarHorario").prop('disabled', false).html('Guardar');
+    });
 
 }
 
@@ -832,6 +832,7 @@ function cargarDatosGrupoModificacion() {
     const carrera = $("#claveCarrera").val();
     const semestre = $("#semestre").val();
     const grupo = $("#grupo").val();
+    const turno = $("#turno").val();
 
     if (!validarSeleccionCompleta()) {
         return;
@@ -843,111 +844,94 @@ function cargarDatosGrupoModificacion() {
     mostrarCargandoOfertasDisponibles();
 
     // Cargar datos
-    cargarAlumnosConHorarios(carrera, semestre, grupo);
-    cargarOfertasAsignadas(carrera, semestre, grupo);
-    cargarOfertasDisponiblesParaAgregar(carrera, semestre, grupo);
+    cargarOfertasAsignadas(carrera, semestre, grupo, turno);
+    cargarAlumnosConHorarios(carrera, semestre, grupo, turno);
+    cargarOfertasDisponiblesParaAgregar(carrera, semestre, grupo, turno);
 }
 
 // Función para cargar alumnos que tienen horarios registrados
-function cargarAlumnosConHorarios(carrera, semestre, grupo) {
-    // Aquí harías la llamada al backend
-    // Por ahora simulo datos
-    setTimeout(() => {
-        const alumnos = [
-            {
-                numeroControl: '20240001',
-                nombre: 'García López, Juan Carlos',
-                semestre: semestre,
-                ofertasAsignadas: 5,
-                estado: 'Activo'
-            },
-            {
-                numeroControl: '20240002',
-                nombre: 'Martínez Rodríguez, María Elena',
-                semestre: semestre,
-                ofertasAsignadas: 5,
-                estado: 'Activo'
-            },
-            {
-                numeroControl: '20240003',
-                nombre: 'Hernández Pérez, Luis Miguel',
-                semestre: semestre,
-                ofertasAsignadas: 5,
-                estado: 'Activo'
-            }
-        ];
-
-        mostrarAlumnosConHorarios(alumnos);
-    }, 500);
+function cargarAlumnosConHorarios(carrera, semestre, grupo, turno) {
+    fetch('../../Controlador/Intermediarios/Horario/ObtenerAlumnosConHorario.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ carrera, semestre, grupo, turno })
+    })
+        .then(response => response.json())
+        .then(respuesta => {
+            console.log("Respuesta alumnos:", respuesta);
+            mostrarAlumnosConHorarios(respuesta.alumnos);
+        })
+        .catch(error => console.error('Error cargando alumnos:', error));
 }
 
-// Función para cargar ofertas ya asignadas en horarios
-function cargarOfertasAsignadas(carrera, semestre, grupo) {
-    // Aquí harías la llamada al backend
-    // Por ahora simulo datos
-    setTimeout(() => {
-        const ofertas = [
-            {
-                idOferta: '001',
-                claveMateria: 'SCC-1008',
-                nombreMateria: 'Sistemas de Base de Datos',
-                docente: 'Dr. Roberto Sánchez',
-                semestre: semestre,
-                grupo: grupo,
-                turno: 'M'
-            },
-            {
-                idOferta: '002',
-                claveMateria: 'SCC-1010',
-                nombreMateria: 'Programación Orientada a Objetos',
-                docente: 'Ing. Ana María Flores',
-                semestre: semestre,
-                grupo: grupo,
-                turno: 'M'
-            },
-            {
-                idOferta: '003',
-                claveMateria: 'ACF-0901',
-                nombreMateria: 'Cálculo Diferencial',
-                docente: 'M.C. José Luis Torres',
-                semestre: semestre,
-                grupo: grupo,
-                turno: 'M'
-            }
-        ];
+let ofertasAsignadasInicialKeys = [];
+// funcion para cargar ofertas asignadas a los alumnos de la primera tabla
+function cargarOfertasAsignadas(carrera, semestre, grupo, turno) {
+    fetch('../../Controlador/Intermediarios/Horario/ObtenerOfertasAsignadas.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ carrera, semestre, grupo, turno })
+    })
+    .then(response => {
+        console.log("HTTP status:", response.status);
+        return response.text();
+    })
+    .then(texto => {
+        console.log("Texto recibido del servidor:", texto);
+        try {
+            const respuesta = JSON.parse(texto);
+            console.log("JSON parseado:", respuesta);
 
-        mostrarOfertasAsignadas(ofertas);
-    }, 700);
+            const crudas = respuesta?.data
+                ? (Array.isArray(respuesta.data) ? respuesta.data : Object.values(respuesta.data))
+                : [];
+
+            //Normalizamos y guardamos global
+            ofertasAsignadas = crudas.map(normalizarOferta).filter(o => o.idOferta);
+
+            // Pintamos con datos ya normalizados
+            mostrarOfertasAsignadas(ofertasAsignadas);
+
+            ofertasAsignadasInicialKeys = (ofertasAsignadas || []).map(o => o.uniqueKey);
+        } catch (e) {
+            console.error("Error parseando JSON:", e);
+            ofertasAsignadas = [];
+            mostrarOfertasAsignadas([]);
+        }
+    })
+    .catch(error => {
+        console.error('Error fetch:', error);
+        ofertasAsignadas = [];
+        mostrarOfertasAsignadas([]);
+    });
 }
 
-// Función para cargar ofertas disponibles para agregar
-function cargarOfertasDisponiblesParaAgregar(carrera, semestre, grupo) {
-    // Aquí harías la llamada al backend
-    // Por ahora simulo datos
-    setTimeout(() => {
-        const ofertas = [
-            {
-                idOferta: '004',
-                claveMateria: 'SCD-1011',
-                nombreMateria: 'Estructura de Datos',
-                docente: 'Ing. Carmen Díaz',
-                semestre: semestre,
-                grupo: grupo,
-                turno: 'M'
-            },
-            {
-                idOferta: '005',
-                claveMateria: 'MAC-1105',
-                nombreMateria: 'Álgebra Lineal',
-                docente: 'M.C. Fernando Ruiz',
-                semestre: semestre,
-                grupo: grupo,
-                turno: 'V'
-            }
-        ];
+// funcion para cargar las ofertas que se pueden agregar
+function cargarOfertasDisponiblesParaAgregar(claveCarrera, semestre, grupo, turno) {
+    fetch('../../Controlador/Intermediarios/Horario/BuscarOfertasHorarioGrupal.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claveCarrera, semestre, grupo, turno })
+    })
+    .then(response => response.json())
+    .then(respuesta => {
+        console.log("Respuesta ofertas disponibles:", respuesta);
 
-        mostrarOfertasDisponibles(ofertas);
-    }, 900);
+        const crudas = respuesta?.datos ?? [];
+        const normalizadas = crudas.map(normalizarOferta).filter(o => o.idOferta);
+
+        // Quitar las que ya están asignadas (comparando por uniqueKey)
+        const keysAsignadas = new Set((ofertasAsignadas || []).map(o => o.uniqueKey));
+        ofertasDisponibles = normalizadas.filter(o => !keysAsignadas.has(o.uniqueKey));
+
+
+        mostrarOfertasDisponibles(ofertasDisponibles);
+    })
+    .catch(error => {
+        console.error('Error cargando ofertas disponibles:', error);
+        ofertasDisponibles = [];
+        mostrarOfertasDisponibles([]);
+    });
 }
 
 // Función para mostrar indicadores de carga
@@ -984,6 +968,44 @@ function mostrarCargandoOfertasDisponibles() {
     `);
 }
 
+// función para normalizar una oferta del backend a un objeto consistente
+function normalizarOferta(raw) {
+    const id = raw?.idOferta ?? raw?.clave_de_oferta ?? raw?.id_oferta ?? raw?.id ?? raw?.clave;
+
+    const clave_de_oferta   = String(raw?.clave_de_oferta ?? id ?? "").trim();
+    const clave_de_materia  = String(raw?.clave_de_materia ?? raw?.claveMateria ?? "").trim();
+    const nombre_de_materia = String(raw?.nombre_de_materia ?? raw?.nombreMateria ?? "").trim();
+    const docente           = String(raw?.docente ?? raw?.clave_de_docente ?? raw?.docenteNombre ?? "").trim();
+    const grupo             = String(raw?.grupo ?? "").trim();
+    const turno             = String(raw?.turno ?? "").trim();
+
+    //clave única
+    const uniqueKey = [
+        clave_de_oferta, grupo, turno, clave_de_materia, docente
+    ].map(s => s.replaceAll('|', '¦')).join('|'); // evita colisiones por separador
+
+    return {
+        idOferta: id != null ? String(id).trim() : "",
+        clave_de_oferta,
+        clave_de_materia,
+        nombre_de_materia,
+        docente,
+        grupo,
+        turno,
+        uniqueKey
+    };
+}
+
+function actualizarBadgeOfertasEnAlumnos(cantidad) {
+  $("#tablaAlumnos tbody tr").each(function () {
+    const fila = $(this);
+    if (!fila.find('.empty-state').length) {
+      fila.find('td:eq(3)').html(`<span class="badge bg-info">${cantidad}</span>`);
+    }
+  });
+}
+
+
 // Función para mostrar alumnos con horarios
 function mostrarAlumnosConHorarios(alumnos) {
     let html = '';
@@ -999,16 +1021,17 @@ function mostrarAlumnosConHorarios(alumnos) {
         `;
     } else {
         alumnos.forEach(alumno => {
+            console.log(alumno);
             const estadoBadge = alumno.estado === 'Activo'
                 ? '<span class="badge bg-success">Activo</span>'
                 : '<span class="badge bg-danger">Inactivo</span>';
 
             html += `
                 <tr>
-                    <td>${alumno.numeroControl}</td>
-                    <td>${alumno.nombre}</td>
+                    <td>${alumno.numero_de_control}</td>
+                    <td>${alumno.nombre_de_alumno}</td>
                     <td>${alumno.semestre}°</td>
-                    <td><span class="badge bg-info">${alumno.ofertasAsignadas}</span></td>
+                    <td><span class="badge bg-info">${window.totalOfertasAsignadas ?? 0}</span></td>
                     <td>${estadoBadge}</td>
                 </tr>
             `;
@@ -1016,12 +1039,15 @@ function mostrarAlumnosConHorarios(alumnos) {
     }
 
     $("#cuerpoAlumnos").html(html);
-    actualizarContadoresModificacion(alumnos.length, null, null);
+    actualizarContadoresModificacion(alumnos.length, null);
     verificarHabilitarGuardarModificacion();
 }
 
 // Función para mostrar ofertas asignadas
 function mostrarOfertasAsignadas(ofertas) {
+    // Validar que ofertas sea un arreglo
+    ofertas = Array.isArray(ofertas) ? ofertas : [];
+
     let html = '';
 
     if (ofertas.length === 0) {
@@ -1037,10 +1063,10 @@ function mostrarOfertasAsignadas(ofertas) {
         ofertas.forEach(oferta => {
             html += `
                 <tr>
-                    <td><input type="checkbox" class="form-check-input" value="${oferta.idOferta}"></td>
-                    <td>${oferta.idOferta}</td>
-                    <td>${oferta.claveMateria}</td>
-                    <td>${oferta.nombreMateria}</td>
+                    <td><input type="checkbox" class="form-check-input" value="${oferta.uniqueKey}"></td>
+                    <td>${oferta.clave_de_oferta}</td>
+                    <td>${oferta.clave_de_materia}</td>
+                    <td>${oferta.nombre_de_materia}</td>
                     <td>${oferta.docente}</td>
                     <td>${oferta.grupo}</td>
                     <td>${oferta.turno}</td>
@@ -1051,13 +1077,18 @@ function mostrarOfertasAsignadas(ofertas) {
 
     $("#cuerpoOfertasAsignadas").html(html);
     $("#selectAllAsignadas").prop('checked', false);
+    window.totalOfertasAsignadas = ofertas.length;
     actualizarContadoresModificacion(null, ofertas.length, null);
-    verificarHabilitarGuardarModificacion();
-    verificarBotonesModificacion();
+    actualizarBadgeOfertasEnAlumnos(window.totalOfertasAsignadas);
+
 }
+
 
 // Función para mostrar ofertas disponibles
 function mostrarOfertasDisponibles(ofertas) {
+    // Validar que ofertas sea un arreglo, si no lo es, inicializar vacío
+    ofertas = Array.isArray(ofertas) ? ofertas : [];
+
     let html = '';
 
     if (ofertas.length === 0) {
@@ -1073,10 +1104,10 @@ function mostrarOfertasDisponibles(ofertas) {
         ofertas.forEach(oferta => {
             html += `
                 <tr>
-                    <td><input type="checkbox" class="form-check-input" value="${oferta.idOferta}"></td>
-                    <td>${oferta.idOferta}</td>
-                    <td>${oferta.claveMateria}</td>
-                    <td>${oferta.nombreMateria}</td>
+                    <td><input type="checkbox" class="form-check-input" value="${oferta.uniqueKey}"></td>
+                    <td>${oferta.clave_de_oferta}</td>
+                    <td>${oferta.clave_de_materia}</td>
+                    <td>${oferta.nombre_de_materia}</td>
                     <td>${oferta.docente}</td>
                     <td>${oferta.grupo}</td>
                     <td>${oferta.turno}</td>
@@ -1090,6 +1121,7 @@ function mostrarOfertasDisponibles(ofertas) {
     actualizarContadoresModificacion(null, null, ofertas.length);
     verificarBotonesModificacion();
 }
+
 
 // Función para actualizar contadores de modificación
 function actualizarContadoresModificacion(alumnos = null, ofertasAsignadas = null, ofertasDisponibles = null) {
@@ -1122,173 +1154,137 @@ function verificarHabilitarGuardarModificacion() {
     $("#btnGuardarModificacion").prop('disabled', !habilitar);
 }
 
-// Función para agregar ofertas seleccionadas
+// Agrega las ofertas
 function agregarOfertasSeleccionadas() {
-    const ofertasSeleccionadas = [];
-    $("#tablaOfertasDisponibles tbody input[type='checkbox']:checked").each(function () {
-        const fila = $(this).closest('tr');
-        ofertasSeleccionadas.push({
-            idOferta: $(this).val(),
-            claveMateria: fila.find('td:eq(2)').text(),
-            nombreMateria: fila.find('td:eq(3)').text(),
-            docente: fila.find('td:eq(4)').text(),
-            grupo: fila.find('td:eq(5)').text(),
-            turno: fila.find('td:eq(6)').text()
-        });
-    });
+    const keys = $("#tablaOfertasDisponibles tbody input[type='checkbox']:checked")
+        .map(function(){ return String($(this).val()); })
+        .get();
 
-    if (ofertasSeleccionadas.length === 0) {
-        mostrarMensajeExito("No hay ofertas seleccionadas para agregar");
-        return;
-    }
+    const ofertasSeleccionadas = keys
+        .map(k => ofertasDisponibles.find(o => o.uniqueKey === k))
+        .filter(Boolean);
 
-    // Mover ofertas de disponibles a asignadas
     moverOfertasAAsignadas(ofertasSeleccionadas);
-
+    $("#selectAllDisponibles").prop('checked', false);
     mostrarMensajeExito(`${ofertasSeleccionadas.length} oferta(s) agregada(s) temporalmente`);
 }
 
-// Función para quitar ofertas seleccionadas
+// Quita las ofertas
 function quitarOfertasSeleccionadas() {
-    const ofertasSeleccionadas = [];
-    $("#tablaOfertasAsignadas tbody input[type='checkbox']:checked").each(function () {
-        const fila = $(this).closest('tr');
-        ofertasSeleccionadas.push({
-            idOferta: $(this).val(),
-            claveMateria: fila.find('td:eq(2)').text(),
-            nombreMateria: fila.find('td:eq(3)').text(),
-            docente: fila.find('td:eq(4)').text(),
-            grupo: fila.find('td:eq(5)').text(),
-            turno: fila.find('td:eq(6)').text()
-        });
-    });
+    const keys = $("#tablaOfertasAsignadas tbody input[type='checkbox']:checked")
+        .map(function(){ return String($(this).val()); })
+        .get();
 
-    if (ofertasSeleccionadas.length === 0) {
-        mostrarMensajeExito("No hay ofertas seleccionadas para quitar");
-        return;
-    }
+    const ofertasSeleccionadas = keys
+        .map(k => ofertasAsignadas.find(o => o.uniqueKey === k))
+        .filter(Boolean);
 
-    // Mover ofertas de asignadas a disponibles
     moverOfertasADisponibles(ofertasSeleccionadas);
-
-    mostrarMensajeExito(`${ofertasSeleccionadas.length} oferta(s) quitada(s) temporalmente`);
+    $("#selectAllAsignadas").prop('checked', false);
+     mostrarMensajeExito(`${ofertasSeleccionadas.length} oferta(s) agregada(s) temporalmente`);
 }
 
-// Función para mover ofertas a asignadas
+
+let ofertasAsignadas = [];
+let ofertasDisponibles = [];
+
+//Funcion para mover las ofertas de disponibles a asignadas
 function moverOfertasAAsignadas(ofertas) {
     ofertas.forEach(oferta => {
-        // Agregar a tabla asignadas
-        const nuevoHtml = `
-            <tr>
-                <td><input type="checkbox" class="form-check-input" value="${oferta.idOferta}"></td>
-                <td>${oferta.idOferta}</td>
-                <td>${oferta.claveMateria}</td>
-                <td>${oferta.nombreMateria}</td>
-                <td>${oferta.docente}</td>
-                <td>${oferta.grupo}</td>
-                <td>${oferta.turno}</td>
-            </tr>
-        `;
-
-        if ($("#tablaOfertasAsignadas tbody .empty-state").length > 0) {
-            $("#cuerpoOfertasAsignadas").html(nuevoHtml);
-        } else {
-            $("#cuerpoOfertasAsignadas").append(nuevoHtml);
+        const i = ofertasDisponibles.findIndex(o => o.uniqueKey === oferta.uniqueKey);
+        if (i !== -1) {
+            const [movida] = ofertasDisponibles.splice(i, 1);
+            if (!ofertasAsignadas.some(o => o.uniqueKey === movida.uniqueKey)) {
+                ofertasAsignadas.push(movida);
+            }
         }
-
-        // Quitar de tabla disponibles
-        $(`#tablaOfertasDisponibles tbody input[value="${oferta.idOferta}"]`).closest('tr').remove();
     });
-
-    // Actualizar contadores
-    const nuevasAsignadas = $("#tablaOfertasAsignadas tbody tr").not('.empty-state').length;
-    const nuevasDisponibles = $("#tablaOfertasDisponibles tbody tr").not('.empty-state').length;
-
-    if (nuevasDisponibles === 0) {
-        $("#cuerpoOfertasDisponibles").html(`
-            <tr>
-                <td colspan="7" class="empty-state">
-                    <i class="fas fa-search fa-2x mb-2"></i>
-                    <p class="mb-0">No hay ofertas disponibles para agregar</p>
-                </td>
-            </tr>
-        `);
-    }
-
-    actualizarContadoresModificacion(null, nuevasAsignadas, nuevasDisponibles);
+    mostrarOfertasDisponibles(ofertasDisponibles);
+    mostrarOfertasAsignadas(ofertasAsignadas);
     verificarBotonesModificacion();
     verificarHabilitarGuardarModificacion();
+    actualizarBadgeOfertasEnAlumnos(window.totalOfertasAsignadas || 0);
 }
 
-// Función para mover ofertas a disponibles
+//Funcion para mover las ofertas de asignadas a disponibles
 function moverOfertasADisponibles(ofertas) {
     ofertas.forEach(oferta => {
-        // Agregar a tabla disponibles
-        const nuevoHtml = `
-            <tr>
-                <td><input type="checkbox" class="form-check-input" value="${oferta.idOferta}"></td>
-                <td>${oferta.idOferta}</td>
-                <td>${oferta.claveMateria}</td>
-                <td>${oferta.nombreMateria}</td>
-                <td>${oferta.docente}</td>
-                <td>${oferta.grupo}</td>
-                <td>${oferta.turno}</td>
-            </tr>
-        `;
-
-        if ($("#tablaOfertasDisponibles tbody .empty-state").length > 0) {
-            $("#cuerpoOfertasDisponibles").html(nuevoHtml);
-        } else {
-            $("#cuerpoOfertasDisponibles").append(nuevoHtml);
+        const i = ofertasAsignadas.findIndex(o => o.uniqueKey === oferta.uniqueKey);
+        if (i !== -1) {
+            const [movida] = ofertasAsignadas.splice(i, 1);
+            if (!ofertasDisponibles.some(o => o.uniqueKey === movida.uniqueKey)) {
+                ofertasDisponibles.push(movida);
+            }
         }
-
-        // Quitar de tabla asignadas
-        $(`#tablaOfertasAsignadas tbody input[value="${oferta.idOferta}"]`).closest('tr').remove();
     });
-
-    // Actualizar contadores
-    const nuevasAsignadas = $("#tablaOfertasAsignadas tbody tr").not('.empty-state').length;
-    const nuevasDisponibles = $("#tablaOfertasDisponibles tbody tr").not('.empty-state').length;
-
-    if (nuevasAsignadas === 0) {
-        $("#cuerpoOfertasAsignadas").html(`
-            <tr>
-                <td colspan="7" class="empty-state">
-                    <i class="fas fa-clipboard fa-2x mb-2"></i>
-                    <p class="mb-0">No hay ofertas asignadas para esta selección</p>
-                </td>
-            </tr>
-        `);
-    }
-
-    actualizarContadoresModificacion(null, nuevasAsignadas, nuevasDisponibles);
+    mostrarOfertasAsignadas(ofertasAsignadas);
+    mostrarOfertasDisponibles(ofertasDisponibles);
     verificarBotonesModificacion();
     verificarHabilitarGuardarModificacion();
+    actualizarBadgeOfertasEnAlumnos(window.totalOfertasAsignadas || 0);
+
 }
 
-// Función para guardar modificaciones de horarios
-function guardarModificacionHorarios() {
-    if (!validarFormularioModificacion()) {
-        return;
+//funcion para calcular las ofertas  que dejare asignadas y las que quedan en disponibles
+function getDeltasOfertas() {
+  const finales = new Set((ofertasAsignadas || []).map(o => o.uniqueKey));
+  const iniciales = new Set(ofertasAsignadasInicialKeys);
+
+  const agregadas = (ofertasAsignadas || []).filter(o => !iniciales.has(o.uniqueKey));
+  const quitadasKeys = [...iniciales].filter(k => !finales.has(k));
+  const universo = [...(ofertasDisponibles||[]), ...(ofertasAsignadas||[])];
+  const quitadas = universo.filter(o => quitadasKeys.includes(o.uniqueKey));
+
+  return { agregadas, quitadas };
+}
+
+// funcion para guardar la modificacion de los horarios
+async function guardarModificacionHorarios() {
+  if (!validarFormularioModificacion()) return;
+
+  const carrera  = $("#claveCarrera").val();
+  const semestre = $("#semestre").val();
+  const grupo    = $("#grupo").val();
+  const turno    = $("#turno").val();
+
+  const alumnos  = obtenerAlumnosTablaModificacion().map(a => a.numeroControl);
+  const ofertasFinales = obtenerOfertasAsignadasTabla(); // ya saca idOferta de la tabla
+
+  const { agregadas, quitadas } = getDeltasOfertas();
+
+  const payload = {
+  Modificar: true,                 // 👈 requerido por PHP
+  idCarrera: carrera,              // 👈 el intermediario usa idCarrera
+  semestre: Number(semestre),
+  grupo,
+  turno,
+  alumnos,                         // ["1789...", "7823...", ...]
+  finales:  ofertasFinales.map(o => ({ idOferta: Number(o.idOferta) })),
+  quitadas:  quitadas.map(o => ({ idOferta: Number(o.clave_de_oferta) }))
+};
+
+
+  $("#btnGuardarModificacion").prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
+
+  try {
+    const res = await fetch('../../Controlador/Intermediarios/Horario/ModificarHorarioGrupal.php', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    }).then(r => r.json());
+
+    if (res?.estado === 'OK' || res?.success === true) {
+      mostrarDatosGuardados(`Horarios guardados correctamente para la carrera ${carrera}, semestre ${semestre}, grupo ${grupo}, turno ${turno}.`, 
+        () => option("horario",""));
+      ofertasAsignadasInicialKeys = (ofertasAsignadas || []).map(o => o.uniqueKey);
+    } else {
+      mostrarErrorCaptura(res?.mensaje || 'No se pudo guardar');
+      $("#btnGuardarModificacion").prop('disabled', false).html('Guardar Modificaciones');
     }
-
-    const datos = {
-        carrera: $("#claveCarrera").val(),
-        semestre: $("#semestre").val(),
-        grupo: $("#grupo").val(),
-        alumnos: obtenerAlumnosTablaModificacion(),
-        ofertasFinales: obtenerOfertasAsignadasTabla()
-    };
-
-    // Deshabilitar botón mientras se procesa
-    $("#btnGuardarModificacion").prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
-
-    mostrarDatosGuardados(
-        `Horarios guardados correctamente para la carrera ${datos.carrera}, semestre ${datos.semestre}, grupo ${datos.grupo}.`,
-        function () {
-            option("horario", "");
-        }
-    );
+  } catch (e) {
+    mostrarErrorCaptura('Error de red al guardar');
+    $("#btnGuardarModificacion").prop('disabled', false).html('Guardar Modificaciones');
+  }
 }
 
 // Función para validar formulario de modificación
@@ -1404,3 +1400,35 @@ function limpiarTablasModificacion() {
     $("#selectAllAsignadas").prop('checked', false);
     $("#selectAllDisponibles").prop('checked', false);
 }
+/*
+ * Función para buscar un Horario por ID.
+ * Llenará los campos del formulario con sus datos
+ */
+async function BuscarHorario(id) {
+  const url  = "../../Controlador/Intermediarios/Horario/BuscarHorario.php";
+  const json = JSON.stringify({ id, Buscar: true });
+
+  try {
+    const response = await $.post(url, json, null, "json");
+    console.log("Respuesta del servidor:", response);
+    if (response?.estado === "OK" && response?.datos) {
+      const { clave_de_carrera, semestre, grupo, turno } = response.datos;
+
+      await cargarCarrerasfrmAgr();
+      $("#claveCarrera").val(clave_de_carrera);
+      $("#semestre").val(semestre);
+      $("#grupo").val(grupo);
+      $("#turno").val(turno);
+
+      cargarDatosGrupoModificacion();
+    } else {
+      sinres("Horario no encontrado.");
+    }
+  } catch (e) {
+    console.error("Error en BuscarHorario:", e);
+    mostrarErrorCaptura("Error al buscar el Horario.");
+  }
+}
+
+
+
