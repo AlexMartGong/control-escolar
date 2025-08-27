@@ -650,5 +650,119 @@ public function aplicarModificacionGrupal(
     return ['estado'=>'OK', 'mensaje'=>'Estado: Exito'];
 }
 
+
+    /**
+     * Cambia el estado de un horario en la base de datos.
+     * 
+     * Este método realiza múltiples validaciones de los datos de entrada
+     * y luego llama al procedimiento almacenado `spModificarEstadoHorario`, que 
+     * se encarga de modificar el estado de la oferta si cumple con las condiciones.
+     * 
+     * También interpreta el mensaje de salida del SP y proporciona una
+     * respuesta clara para el usuario final.
+     *
+     * @param object $datos Objeto con las propiedades:
+     *                      - pid: ID del horario a modificar su estado.
+     *                      - pestado: Estado nuevo a asignar ("Asignada" o "No asignada").
+     * @return array Retorna un array asociativo con el estado ('OK' o 'Error') 
+     *               y un mensaje explicativo.
+     */
+    public function CambiarEstadoHorarios($datos)
+    {
+        // Inicializa el resultado con estado de error por defecto
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // -----------------------------------------
+        // Validaciones
+        // -----------------------------------------
+
+        // Validar que el estado sea un valor aceptado
+        if (empty($datos->pid) || empty($datos->pestado)) {
+            $resultado['mensaje'] = "No se ha proporcionado todos los datos requeridos (idHorario y Estado) porfavor intentelo mas tarde.";
+            return $resultado;
+        }
+
+        // Validar que el id del horario sea un número entero positivo
+        if (!filter_var($datos->pid, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]])) {
+            $resultado['mensaje'] = "El ID del horario debe ser un número entero positivo.";
+            return $resultado;
+        }
+
+        // Validar que el estado sea un valor aceptado
+        if ($datos->pestado !== "Activo" && $datos->pestado !== "Inactivo") {
+            $resultado['mensaje'] = "El estado ingresado no es válido. Solo se permite 'Activo' o 'Inactivo'.";
+            return $resultado;
+        }
+
+        $sp = $c->prepare("CALL spBuscarHorarioByID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $datos->pid, PDO::PARAM_INT);
+        $sp->execute();
+
+       
+        $horario = $sp->fetch(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        
+        $respuestaSPV = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSPV->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        // Verificar si el estado ingresado es igual al actual
+        if ($mensaje['@mensaje'] === 'Estado: Exito' && $horario['estado'] === $datos->pestado) {
+            $resultado['mensaje'] = "No se realizó ningún cambio porque el estado ingresado es igual al actual.";
+            return $resultado;
+        }
+
+        if ($mensaje['@mensaje'] === 'Error: No existe un registro con el parametro solicitado') {
+            $resultado['mensaje'] = "El registro de Horario que se esta intentando modificar no existe, por favor intente con otro.";
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Llamada al sp para hacer la funcionalidad
+        // -----------------------------------------
+
+        try {
+            
+            // Preparar llamada al procedimiento almacenado con parámetros
+            $sp = $c->prepare("CALL spModificarEstadoHorario(:pid, :pestado, @mensaje)");
+            $sp->bindParam(':pid', $datos->pid, PDO::PARAM_INT);
+            $sp->bindParam(':pestado', $datos->pestado, PDO::PARAM_STR);
+            $sp->execute();
+            $sp->closeCursor(); // Cierra el cursor para liberar recursos antes de ejecutar otra consulta
+
+            // Recuperar el mensaje generado por el procedimiento almacenado
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            // Interpretar el mensaje del SP y preparar la respuesta al usuario
+            switch ($resultado['respuestaSP']) {
+
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['mensaje'] = "El estado del registro fue actualizado exitosamente.";
+                    break;
+
+                case 'Error: No se pudo modificar el registro':
+                    $resultado['mensaje'] = "No fue posible el cambio de estado del Horario. Por favor, intente nuevamente más tarde.";
+                    break;
+
+                default:
+                    
+                    $resultado['mensaje'] = "Ocurrió un error inesperado. Contacte al administrador si el problema persiste.";
+                    break;
+            }
+        } catch (PDOException $e) {
+            // Registro detallado de errores para depuración en caso de excepción
+            error_log("Error en la base de datos: " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al cambiar el estado del Horario. Por favor, intente nuevamente más tarde.";
+        }
+
+        // Devolver resultado final con estado y mensaje
+        return $resultado;
+    }
+
 }
 
