@@ -144,7 +144,7 @@ function changeStatusHorario(id, status, currentStatus) {
 
         // Realizar petición AJAX para cambiar el estado
         $.ajax({
-            url: "",
+            url: "../../Controlador/Intermediarios/Horario/CambiarEstadoHorario.php",
             type: "POST",
             data: json,
             contentType: "application/json",
@@ -159,7 +159,7 @@ function changeStatusHorario(id, status, currentStatus) {
                         mostrarDatosGuardados(
                             `El estado del horario ${id} ha sido cambiado a "${status}" correctamente.`,
                             function () {
-                                option("student", "");
+                                option("horario", "");
                             }
                         );
                     } else {
