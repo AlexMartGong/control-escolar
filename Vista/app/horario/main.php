@@ -22,6 +22,10 @@ $res = $objHoDAO->MostrarHorario();
                     onclick="loadFormHorario('frmHorario','');">
                 <i class="fas fa-plus-circle"></i> Agregar Horario
             </button>
+            <button type="button" class="btn" style="background-color: #FF8C00; border-color: #FF8C00; color: black;"
+                    onclick="loadFormHorario('modHorarioIndividual','');">
+                <i class="fas fa-sync-alt"></i> Modificar Horario Individuales
+            </button>
         </div>
     </div>
 

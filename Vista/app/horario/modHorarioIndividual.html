@@ -1,0 +1,245 @@
+<link rel="stylesheet" href="../css/styleInterno.css">
+<div class="container" id="frmHorarioIndividual">
+    <div class="row justify-content-center">
+        <div class="ampliacion">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2"></i>
+                        Modificar Horario Individual
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form>
+                        <!-- Sección de búsqueda de alumno -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="noControlBusqueda" class="form-label">Número de Control del Alumno</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-blue-light">
+                                        <i class="fas fa-id-card"></i>
+                                    </span>
+                                    <input type="text"
+                                           id="noControlBusqueda"
+                                           class="form-control"
+                                           placeholder="Ingrese el número de control"
+                                           maxlength="15">
+                                    <button type="button"
+                                            class="btn btn-outline-primary"
+                                            id="btnBuscarAlumno">
+                                        <i class="fas fa-search"></i>
+                                        Buscar
+                                    </button>
+                                </div>
+                                <div class="error-message" id="errorNoControl" style="color: red; font-size: 0.9rem"></div>
+                            </div>
+                        </div>
+
+                        <!-- Información del periodo activo -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Periodo activo:</strong>
+                                    <span id="periodoInfo">Cargando información del periodo...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información del alumno -->
+                        <div id="seccionAlumno" class="mb-4" style="display: none;">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-user-graduate me-2"></i>
+                                        Información del Alumno
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong>Número de Control</strong>
+                                            <div>
+                                                <p id="alumnoNoControl" class="mb-auto"></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Nombre Completo</strong>
+                                            <div>
+                                                <p id="alumnoNombre" class="mb-auto"></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <strong>Semestre</strong>
+                                            <div>
+                                                <p id="alumnoSemestre" class="mb-auto"></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <strong>Grupo</strong>
+                                            <div>
+                                                <p id="alumnoGrupo" class="mb-auto"></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-auto">
+                                            <strong>Estado</strong>
+                                            <div>
+                                                <p id="alumnoEstado" class="badge mb-auto"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6">
+                                            <strong>Carrera</strong>
+                                            <p id="alumnoCarrera" class="mb-1"></p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Turno</strong>
+                                            <p id="alumnoTurno" class="mb-1"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ofertas Asignadas Actualmente -->
+                        <div id="seccionOfertasAsignadas" class="mb-4" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-clipboard-check me-2"></i>
+                                    Ofertas actualmente asignadas
+                                    <span class="badge bg-success ms-2" id="contadorOfertasAsignadas">0</span>
+                                </h6>
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="btnQuitarOfertas"
+                                        disabled>
+                                    <i class="fas fa-minus-circle me-1"></i>Quitar Seleccionadas
+                                </button>
+                            </div>
+
+                            <div class="matriz-container">
+                                <table class="table table-sm tabla-matriz" id="tablaOfertasAsignadas">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col" style="width: 5%;">
+                                            <input type="checkbox" id="selectAllAsignadas" class="form-check-input">
+                                        </th>
+                                        <th scope="col" style="width: 10%;">
+                                            <i class="fas fa-hashtag me-1"></i>
+                                            ID Oferta
+                                        </th>
+                                        <th scope="col" style="width: 15%;">
+                                            <i class="fas fa-key me-1"></i>
+                                            Clave Materia
+                                        </th>
+                                        <th scope="col" style="width: 35%;">
+                                            <i class="fas fa-book me-1"></i>
+                                            Nombre Materia
+                                        </th>
+                                        <th scope="col" style="width: 25%;">
+                                            <i class="fas fa-chalkboard-teacher me-1"></i>
+                                            Docente
+                                        </th>
+                                        <th scope="col" style="width: 10%;">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Horario
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="cuerpoOfertasAsignadas">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">
+                                            <i class="fas fa-clipboard fa-2x mb-2"></i>
+                                            <p class="mb-0">El alumno no tiene ofertas asignadas</p>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Ofertas Disponibles para Agregar -->
+                        <div id="seccionOfertasDisponibles" class="mb-4" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-plus-circle me-2"></i>
+                                    Ofertas disponibles para agregar
+                                    <span class="badge bg-info ms-2" id="contadorOfertasDisponibles">0</span>
+                                </h6>
+                                <button type="button" class="btn btn-sm btn-outline-success" id="btnAgregarOfertas"
+                                        disabled>
+                                    <i class="fas fa-plus-circle me-1"></i>Agregar Seleccionadas
+                                </button>
+                            </div>
+
+                            <div class="matriz-container">
+                                <table class="table table-sm tabla-matriz" id="tablaOfertasDisponibles">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col" style="width: 5%;">
+                                            <input type="checkbox" id="selectAllDisponibles" class="form-check-input">
+                                        </th>
+                                        <th scope="col" style="width: 10%;">
+                                            <i class="fas fa-hashtag me-1"></i>
+                                            ID Oferta
+                                        </th>
+                                        <th scope="col" style="width: 15%;">
+                                            <i class="fas fa-key me-1"></i>
+                                            Clave Materia
+                                        </th>
+                                        <th scope="col" style="width: 35%;">
+                                            <i class="fas fa-book me-1"></i>
+                                            Nombre Materia
+                                        </th>
+                                        <th scope="col" style="width: 25%;">
+                                            <i class="fas fa-chalkboard-teacher me-1"></i>
+                                            Docente
+                                        </th>
+                                        <th scope="col" style="width: 10%;">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Horario
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="cuerpoOfertasDisponibles">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">
+                                            <i class="fas fa-search fa-2x mb-2"></i>
+                                            <p class="mb-0">Busque un alumno para mostrar ofertas disponibles</p>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Información de estado -->
+                        <div id="alertaCambios" class="mb-4" style="display: none;">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Importante:</strong> Se han detectado cambios. Al guardar, se aplicarán las
+                                modificaciones únicamente a este alumno.
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="row">
+                            <div class="col-12 separarBotones gap-2">
+                                <button type="button"
+                                        id="btnGuardarModificacion"
+                                        class="btn btn3 btn-primary"
+                                        disabled>
+                                    <i class="fas fa-save me-2"></i>Guardar Modificaciones
+                                </button>
+                                <button type="button"
+                                        class="btn btn-outline-secondary"
+                                        onclick="clearArea('frmHorarioIndividual'); option('horario', '');">
+                                    <i class="fas fa-times-circle me-2"></i>Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
