@@ -7,6 +7,9 @@ function loadFormHorario(opc, id = "") {
     } else if (opc === "modalumno") {
         url = "horario/modalumno.html";
     }
+    if (opc === "modHorarioIndividual") {
+        url = "horario/modHorarioIndividual.html";
+    }
 
     let datas = { id: id };
 
@@ -1274,7 +1277,7 @@ async function guardarModificacionHorarios() {
     }).then(r => r.json());
 
     if (res?.estado === 'OK' || res?.success === true) {
-      mostrarDatosGuardados(`Horarios guardados correctamente para la carrera ${carrera}, semestre ${semestre}, grupo ${grupo}, turno ${turno}.`, 
+      mostrarDatosGuardados(`Horarios guardados correctamente para la carrera ${carrera}, semestre ${semestre}, grupo ${grupo}, turno ${turno}.`,
         () => option("horario",""));
       ofertasAsignadasInicialKeys = (ofertasAsignadas || []).map(o => o.uniqueKey);
     } else {
