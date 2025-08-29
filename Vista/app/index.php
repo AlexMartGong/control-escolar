@@ -130,5 +130,6 @@
 <script src="../js/oferta/oferta.js"></script>
 <script src="../js/alumno/alumno.js"></script>
 <script src="../js/horario/horario.js"></script>
+<script src="../js/horario/horarioIndividual.js"></script>
 </body>
 </html>

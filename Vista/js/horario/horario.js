@@ -40,6 +40,15 @@ function loadFormHorario(opc, id = "") {
                             if (opc === "modalumno" && id !== "") {
                                 BuscarAlumno(id);
                             }
+
+                            if (opc === "modHorarioIndividual") {
+                                // Inicializar el formulario de modificación individual
+                                if (typeof window.HorarioIndividual !== 'undefined' && typeof window.HorarioIndividual.inicializar === 'function') {
+                                    window.HorarioIndividual.inicializar();
+                                } else {
+                                    console.error('HorarioIndividual no está disponible');
+                                }
+                            }
                         })
                         .css("transform", "translateY(-10px)")
                         .animate(
@@ -1432,6 +1441,3 @@ async function BuscarHorario(id) {
     mostrarErrorCaptura("Error al buscar el Horario.");
   }
 }
-
-
-
