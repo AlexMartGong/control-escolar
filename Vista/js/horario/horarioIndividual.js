@@ -371,15 +371,9 @@
             return;
         }
 
-        if (confirm('¿Está seguro de que desea guardar las modificaciones al horario del alumno?')) {
-            const datosGuardar = {
-                noControl: alumnoActual.noControl,
-                ofertasAsignadas: ofertasAsignadasActuales.map(o => o.idOferta)
-            };
+        mostrarDatosGuardados(`Horarios guardados correctamente.`,
+            () => option("horario", ""));
 
-            mostrarDatosGuardados(`Horarios guardados correctamente.`,
-                () => option("horario", ""));
-        }
     }
 
     // Utilidades de UI
