@@ -835,4 +835,357 @@ class OfertaDAO
 
         return $resultado;
     }
+
+    /**
+     * Busca ofertas académicas para un alumno según su número de control, 
+     * carrera, semestre, grupo y turno.
+     *
+     * Validaciones realizadas:
+     *  - Formato y longitud del número de control.
+     *  - Que el semestre esté dentro del rango 1–12.
+     *  - Que el grupo sea una letra válida.
+     *  - Que el turno sea 'Matutino' o 'Vespertino'.
+     *  - Que la clave de carrera tenga el formato correcto y exista en la base de datos.
+     *  - Que el alumno exista en la base de datos.
+     *
+     * @param string $pnoControl   Número de control del alumno (máx. 10 caracteres).
+     * @param string $pclavecarrera Clave de la carrera (ej. 'IINF-2010-220').
+     * @param int    $psemestre    Semestre del alumno (1–12).
+     * @param string $pgrupo       Grupo del alumno (ej. 'A').
+     * @param string $pturno       Turno del alumno ('Matutino' o 'Vespertino').
+     *
+     * @return array Retorna un arreglo con:
+     *               - 'estado': 'OK' si se encontraron ofertas, 'Error' si hubo fallo o validación incorrecta.
+     *               - 'datos': Arreglo con las ofertas encontradas.
+     *               - 'respuestaSP': Mensaje textual devuelto por el SP (para trazabilidad y logs).
+     */
+    public function BuscarOfertasByCarreraSemestreGrupoTurnoNoControl($pnoControl, $pclavecarrera, $psemestre, $pgrupo, $pturno)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // -----------------------------------------
+        // Validaciones
+        // -----------------------------------------
+
+        // Validar que los parámetros no estén vacíos o nulos
+        if (empty($pnoControl) || empty($pclavecarrera) || empty($psemestre) || empty($pgrupo) || empty($pturno)) {
+            error_log("BuscarOfertasAsignadasByNc: parámetros incompletos");
+            return $resultado;
+        }
+
+        // Validar que el número de control sea correcto
+        if (strlen($pnoControl) > 10 || !preg_match('/^C?[0-9]{1,9}$/', $pnoControl)) {
+            error_log("BuscarOfertasAsignadasByNc: número de control inválido ({$pnoControl})");
+            return $resultado;
+        }
+
+        // Validar existencia del noControl ingresado
+        $sp = $c->prepare("CALL spBuscarAlumnoDuplicadoID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $pnoControl, PDO::PARAM_STR);
+        $sp->execute();
+        $sp->closeCursor();
+
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        if ($mensaje['@mensaje'] === 'Estado: No Existe') {
+            error_log("BuscarOfertasAsignadasByNc: número de control no existe ({$pnoControl})");
+            return $resultado;
+        }
+
+        // Validar que elsemestre sea correcto
+        if (!filter_var($psemestre, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 12]])) {
+            error_log("BuscarOfertasAsignadasByNc: semestre inválido ({$psemestre})");
+            return $resultado;
+        }
+
+        // Validar que el grupo sea correcto
+        if (!preg_match('/^[A-Za-z]$/', $pgrupo)) {
+            error_log("BuscarOfertasAsignadasByNc: grupo inválido ({$pgrupo})");
+            return $resultado;
+        }
+
+        // Validar que el turno sea correcto
+        if ($pturno !== "Matutino" && $pturno !== "Vespertino") {
+            error_log("BuscarOfertasAsignadasByNc: turno inválido ({$pturno})");
+            return $resultado;
+        }
+
+        // Validar formato de clave de carrera
+        if (!preg_match('/^[A-Za-z]{4}-\d{4}-\d{3}$/', $pclavecarrera)) {
+            error_log("BuscarOfertasAsignadasByNc: clave de carrera inválida ({$pclavecarrera})");
+            return $resultado;
+        }
+
+        // Validación de existencia de carrera
+        $sp = $c->prepare("CALL spBuscarCarreraByID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $pclavecarrera, PDO::PARAM_STR);
+        $sp->execute();
+
+        $carrera = $sp->fetch(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        if ($mensaje['@mensaje'] === 'Error: No existen registros con el parámetro solicitado') {
+            error_log("BuscarOfertasAsignadasByNc: carrera no existe ({$pclavecarrera})");
+            return $resultado;
+        }
+
+        if ($mensaje['@mensaje'] === 'Estado: Exito' && $carrera['estado'] !== 'Activo') {
+            error_log("BuscarOfertasAsignadasByNc: carrera no activa ({$pclavecarrera})");
+            return $resultado;
+        }
+
+        // ----------------------------------------
+        // Llamada al SP 
+        // ----------------------------------------
+
+        try {
+            // Ejecutar el procedimiento principal
+            $sp = $c->prepare("CALL spBuscarOfertasByCarreraSemestreGrupoTurnoNoControl(:pnoControl, :pclavecarrera, :psemestre, :pgrupo, :pturno, @mensaje)");
+            $sp->bindParam(':pnoControl', $pnoControl, PDO::PARAM_STR);
+            $sp->bindParam(':pclavecarrera', $pclavecarrera, PDO::PARAM_STR);
+            $sp->bindParam(':psemestre', $psemestre, PDO::PARAM_INT);
+            $sp->bindParam(':pgrupo', $pgrupo, PDO::PARAM_STR);
+            $sp->bindParam(':pturno', $pturno, PDO::PARAM_STR);
+
+            $sp->execute();
+
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor();
+
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
+
+                case 'Estado: No se encontraron registros':
+                    error_log("BuscarOfertasAsignadasByNc: no se encontraron registros para {$pnoControl}, {$pclavecarrera}, Sem:{$psemestre}, Grupo:{$pgrupo}, Turno:{$pturno}");
+                    break;
+
+                default:
+                    error_log("BuscarOfertasAsignadasByNc: SP BuscarOfertas devolvió estado inesperado: " . $resultado['respuestaSP']);
+                    break;
+            }
+        } catch (PDOException $e) {
+            error_log("Error en la base de datos (BuscarOfertasAsignadasByNc): " . $e->getMessage());
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Busca ofertas académicas disponibles para un estudiante según su número de control.
+     *
+     * Este método ejecuta el procedimiento almacenado `spBuscarOfertasDisponiblesNoControl`,
+     * que devuelve las ofertas que todavía no están asignadas al alumno en el periodo vigente.
+     *
+     * La función valida internamente que el número de control sea válido y exista en la base de datos.
+     * En caso de errores de validación o de base de datos, se registran logs para depuración.
+     *
+     * @param string $pnoControl Número de control del estudiante.
+     *
+     * @return array Respuesta con las siguientes claves:
+     *   - 'estado': 'OK' si la consulta fue exitosa y hay registros, 'Error' si ocurrió un problema.
+     *   - 'datos':  arreglo con los registros de ofertas encontradas (solo si estado = OK).
+     *   - 'respuestaSP': mensaje devuelto por el procedimiento almacenado (solo para logs y depuración).
+     */
+    public function BuscarOfertasDisponiblesByNoControl($pnoControl)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // -----------------------------------------
+        // Validaciones
+        // -----------------------------------------
+
+        // Validar que los parámetros no estén vacíos o nulos
+        if (empty($pnoControl)) {
+            error_log("BuscarOfertasDisponiblesByNc: parámetro incompleto");
+            return $resultado;
+        }
+
+        // Validar que el número de control sea correcto
+        if (strlen($pnoControl) > 10 || !preg_match('/^C?[0-9]{1,9}$/', $pnoControl)) {
+            error_log("BuscarOfertasDisponiblesByNc: número de control inválido ({$pnoControl})");
+            return $resultado;
+        }
+
+        $sp = $c->prepare("CALL spBuscarAlumnoDuplicadoID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $pnoControl, PDO::PARAM_STR);
+        $sp->execute();
+        $sp->closeCursor();
+
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        // Validar existencia del noControl ingresado
+        if ($mensaje['@mensaje'] === 'Estado: No Existe') {
+            error_log("BuscarOfertasDisponiblesByNc: número de control no existe ({$pnoControl})");
+            return $resultado;
+        }
+
+        // ----------------------------------------
+        // Llamada al SP 
+        // ----------------------------------------
+
+        try {
+            // Ejecutar el procedimiento principal
+            $sp = $c->prepare("CALL spBuscarOfertasDisponiblesNoControl(:pnoControl, @mensaje)");
+            $sp->bindParam(':pnoControl', $pnoControl, PDO::PARAM_STR);
+
+            $sp->execute();
+
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor();
+
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
+
+                case 'Estado: No se encontraron registros':
+                    error_log("BuscarOfertasDisponiblesByNc: no se encontraron registros para {$pnoControl}");
+                    break;
+
+                default:
+                    error_log("BuscarOfertasDisponiblesByNc: SP devolvió estado inesperado: " . $resultado['respuestaSP']);
+                    break;
+            }
+        } catch (PDOException $e) {
+            error_log("Error en la base de datos (BuscarOfertasDisponiblesByNc): " . $e->getMessage());
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Registra la baja parcial de una oferta académica para un alumno en un semestre específico.
+     *
+     * Validaciones realizadas:
+     *  - Formato y longitud del número de control.
+     *  - Que el semestre esté dentro del rango 1–12.
+     *  - Que el ID de la oferta sea mayor a 0.
+     *  - Existencia del alumno y de la oferta en la base de datos.
+     *
+     * @param string $pnoControl Número de control del alumno (máx. 10 caracteres).
+     * @param int    $pidOferta  ID de la oferta académica a dar de baja.
+     * @param int    $psemestre  Semestre del alumno (1–12).
+     *
+     * @return array Retorna un arreglo con:
+     *               - 'estado': 'OK' si la baja parcial fue registrada correctamente,
+     *                            'Error' si ocurrió una falla o validación incorrecta.
+     *               - 'respuestaSP': Mensaje textual devuelto por el SP (para trazabilidad y logs).
+     */
+
+    public function RegistrarBajaParcialOferta($pnoControl, $pidOferta, $psemestre)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // -----------------------------------------
+        // Validaciones básicas
+        // -----------------------------------------
+        if (empty($pnoControl) || empty($pidOferta) || empty($psemestre)) {
+            error_log("[RegistrarBajaDeOferta] Faltan datos requeridos (noControl, pidOferta o semestre).");
+            return $resultado;
+        }
+
+        if (strlen($pnoControl) > 10 || !preg_match('/^C?[0-9]{1,9}$/', $pnoControl)) {
+            error_log("[RegistrarBajaDeOferta] Número de control inválido: {$pnoControl}");
+            return $resultado;
+        }
+
+        if (!filter_var($psemestre, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 12]])) {
+            error_log("[RegistrarBajaDeOferta] Semestre inválido: {$psemestre}");
+            return $resultado;
+        }
+
+        if (!filter_var($pidOferta, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]])) {
+            error_log("[RegistrarBajaDeOferta] ID de oferta inválido: {$pidOferta}");
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Validar existencia del alumno
+        // -----------------------------------------
+        $sp = $c->prepare("CALL spBuscarAlumnoDuplicadoID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $pnoControl, PDO::PARAM_STR);
+        $sp->execute();
+        $sp->closeCursor();
+
+        $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+        if ($resultado['respuestaSP'] === 'Estado: No Existe') {
+            error_log("[RegistrarBajaDeOferta] El alumno no existe: {$pnoControl}");
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Validar existencia de la oferta
+        // -----------------------------------------
+        $sp = $c->prepare("CALL spBuscarOfertaByID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $pidOferta, PDO::PARAM_INT);
+        $sp->execute();
+        $sp->closeCursor();
+
+        $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+        if ($resultado['respuestaSP'] === 'Error: No existen registros con el parámetro solicitado') {
+            error_log("[RegistrarBajaDeOferta] Oferta no encontrada: {$pidOferta}");
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Llamada al SP para registrar baja parcial
+        // -----------------------------------------
+        try {
+            $sp = $c->prepare("CALL spAgregarHBajaParcialOferta(:pnoControl, :psemestre, :pidOferta, @mensaje)");
+            $sp->bindParam(':pnoControl', $pnoControl, PDO::PARAM_STR);
+            $sp->bindParam(':psemestre', $psemestre, PDO::PARAM_INT);
+            $sp->bindParam(':pidOferta', $pidOferta, PDO::PARAM_INT);
+            $sp->execute();
+            $sp->closeCursor();
+
+            $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    error_log("Exito Registrar Ofertas a borrar");
+                    break;
+
+                case 'Error: No se pudo insertar el registro':
+                    error_log("[RegistrarBajaDeOferta] No se pudo registrar la baja de oferta: {$pnoControl}");
+                    break;
+
+                default:
+                    error_log("[RegistrarBajaDeOferta] SP devolvió estado inesperado: " . $resultado['respuestaSP']);
+                    break;
+            }
+        } catch (PDOException $e) {
+            error_log("[RegistrarBajaDeOferta] Error en BD al registrar la baja de oferta: " . $e->getMessage());
+        }
+
+        return $resultado;
+    }
 }

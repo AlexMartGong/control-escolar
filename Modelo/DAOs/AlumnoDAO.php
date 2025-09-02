@@ -220,8 +220,8 @@ class AlumnoDAO
 
         // Validar que el NC no esté vacío
         if (empty($id)) {
-            $resultado['mensaje'] = "Ocurrió un problema interno al procesar la solicitud. Inténtelo nuevamente más tarde.";
-            error_log("No llego el nc correctamente: " . $id);
+            $resultado['mensaje'] = "No se proporcionó un número de control válido del alumno.";
+            error_log("[BuscarAlumno] ID vacío o no proporcionado: " . $id);
             return $resultado;
         }
 
@@ -240,22 +240,29 @@ class AlumnoDAO
             $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
             $resultado['respuestaSP'] = $mensaje['@mensaje'];
 
-            // Evaluar mensaje de salida usando switch
+            // Evaluar mensaje de salida
             switch ($resultado['respuestaSP']) {
 
                 case 'Estado: Exito':
-                    $resultado['estado'] = "OK";
-                    $resultado['datos'] = $datos;
+                    if ($datos && count($datos) > 0) {
+                        $resultado['estado'] = "OK";
+                        $resultado['datos'] = $datos;
+                    } else {
+                        // ID proporcionado pero no existe en la BD
+                        $resultado['mensaje'] = "No se encontró ningún alumno con el número de control proporcionado.";
+                        error_log("[BuscarAlumno] ID no encontrado en BD: " . $id);
+                    }
                     break;
 
                 default:
-                    $resultado['mensaje'] = "Algo salió mal al intentar obtener la información de la oferta. Por favor, vuelva a intentarlo más tarde.";
+                    $resultado['mensaje'] = "Ocurrió un error al intentar obtener los datos del alumno. Por favor, inténtelo nuevamente más tarde.";
+                    error_log("[BuscarAlumno] Respuesta SP inesperada: " . $resultado['respuestaSP']);
                     break;
             }
         } catch (PDOException $e) {
             // Registrar errores de la base de datos
-            error_log("Error en la BD al traer los datos del alumno: " . $e->getMessage());
-            $resultado['mensaje'] = "Hubo un problema al acceder a la información. Por favor, intente nuevamente más tarde.";
+            error_log("[BuscarAlumno] Error en la BD al traer datos del alumno: " . $e->getMessage());
+            $resultado['mensaje'] = "Hubo un problema al acceder a la información del alumno. Inténtelo nuevamente más tarde.";
         }
 
         return $resultado;
@@ -635,5 +642,4 @@ class AlumnoDAO
             return false;
         }
     }
-    
 }
