@@ -4,7 +4,7 @@
  * Este archivo contiene las credenciales necesarias para conectar con la base de datos.
  */
 
-$host = "localhost";  // Dirección del servidor de la base de datos (localhost en este caso)
+$host = "localhost";  // Dirección del servidor de la base de datos (por ahora)
 $user = "root";       // Nombre de usuario para acceder a la base de datos
 $pass = "root";       // Contraseña del usuario para acceder a la base de datos
 $db = "controlescolar"; // Nombre de la base de datos con la que se desea trabajar

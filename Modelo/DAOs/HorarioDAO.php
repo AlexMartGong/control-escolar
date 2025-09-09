@@ -38,9 +38,8 @@ class HorarioDAO
 
             // Obtener todos los registros devueltos por el procedimiento
             $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
-            
-            $resultado['datos'] = $datos;
 
+            $resultado['datos'] = $datos;
         } catch (PDOException $e) {
             // Registrar el error para fines de depuración interna
             error_log("Error en la base de datos (BuscarPeriodoValido): " . $e->getMessage());
@@ -51,7 +50,7 @@ class HorarioDAO
     }
 
     /**
-     * Agrega un horario grupal para una carrera y semestre específicos.
+     * Agrega un horario para una carrera, semestre, grupo y turno específicos.
      *
      * Este método valida los datos recibidos y luego llama al procedimiento almacenado
      * `spAgregarHorarioGrupal` para registrar un nuevo horario grupal en la base de datos.
@@ -140,7 +139,7 @@ class HorarioDAO
         $sp = $c->prepare("CALL spBuscarPeriodoValido(@mensaje)");
         $sp->execute();
         $sp->closeCursor();
-        
+
         $respuestaSP = $c->query("SELECT @mensaje");
         $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
         $resultado['respuestaSP'] = $mensaje['@mensaje'];
@@ -387,7 +386,8 @@ class HorarioDAO
 
         return $resultado;
     }
-        /**
+
+    /**
      * Función para mostrar todos los horarios registrados en el sistema.
      * Llama al procedimiento almacenado spMostrarHorario.
      * 
@@ -432,7 +432,7 @@ class HorarioDAO
         return $resultado;
     }
 
-        /**
+    /**
      * Función para buscar un Horario por ID.
      * Llama al procedimiento almacenado spBuscarHorarioByID.
      *
@@ -480,175 +480,185 @@ class HorarioDAO
         return $resultado;
     }
 
-//Buscar alumnos que ya tienen horarios registrados
-public function buscarAlumnos($carrera, $semestre, $grupo, $turno) {
-    $c = $this->conector;
-    $stmt = $c->prepare("CALL spBuscarAlumnosByCarreraSemestreGrupoTurno(?, ?, ?, ?, @mensaje)");
-    $stmt->execute([$carrera, $semestre, $grupo, $turno]);
+    //Buscar alumnos que ya tienen horarios registrados
+    public function buscarAlumnos($carrera, $semestre, $grupo, $turno)
+    {
+        $c = $this->conector;
+        $stmt = $c->prepare("CALL spBuscarAlumnosByCarreraSemestreGrupoTurno(?, ?, ?, ?, @mensaje)");
+        $stmt->execute([$carrera, $semestre, $grupo, $turno]);
 
-    // Recuperar alumnos
-    $alumnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Recuperar alumnos
+        $alumnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $stmt->closeCursor();
+        $stmt->closeCursor();
 
-    // Recuperar el OUT @mensaje
-    $mensajeResult = $c->query("SELECT @mensaje as mensaje")->fetch(PDO::FETCH_ASSOC);
+        // Recuperar el OUT @mensaje
+        $mensajeResult = $c->query("SELECT @mensaje as mensaje")->fetch(PDO::FETCH_ASSOC);
 
-    return [
-        "alumnos" => $alumnos,
-        "mensaje" => $mensajeResult['mensaje'] ?? null
-    ];
-}
+        return [
+            "alumnos" => $alumnos,
+            "mensaje" => $mensajeResult['mensaje'] ?? null
+        ];
+    }
 
-// funcion para buscar ofertas asignadas
-public function buscarOfertasAsignadas($carrera, $semestre, $grupo, $turno) {
-    $c = $this->conector;
+    // funcion para buscar ofertas asignadas
+    public function buscarOfertasAsignadas($carrera, $semestre, $grupo, $turno)
+    {
+        $c = $this->conector;
 
-    // Preparar la llamada al procedimiento almacenado
-    $stmt = $c->prepare("CALL spBuscarOfertasByCarreraSemestreGrupoTurnoAsignadas(?, ?, ?, ?, @mensaje)");
-    $stmt->execute([$carrera, $semestre, $grupo, $turno]);
+        // Preparar la llamada al procedimiento almacenado
+        $stmt = $c->prepare("CALL spBuscarOfertasByCarreraSemestreGrupoTurnoAsignadas(?, ?, ?, ?, @mensaje)");
+        $stmt->execute([$carrera, $semestre, $grupo, $turno]);
 
-    // Recuperar los resultados de la SELECT del SP
-    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $stmt->closeCursor();
+        // Recuperar los resultados de la SELECT del SP
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
 
-    // Leer el valor del OUT (mensaje)
-    $mensajeStmt = $c->query("SELECT @mensaje AS mensaje");
-    $mensaje = $mensajeStmt->fetch(PDO::FETCH_ASSOC)['mensaje'] ?? null;
+        // Leer el valor del OUT (mensaje)
+        $mensajeStmt = $c->query("SELECT @mensaje AS mensaje");
+        $mensaje = $mensajeStmt->fetch(PDO::FETCH_ASSOC)['mensaje'] ?? null;
 
-    return [
-        "mensaje" => $mensaje,
-        "data" => $resultados
-    ];
-}
+        return [
+            "mensaje" => $mensaje,
+            "data" => $resultados
+        ];
+    }
 
-/**
- * Función para modificar el estado de una oferta.
- * Llama al SP `spModificarEstadoOferta(idOferta, estado, OUT mensaje)` para poner la oferta en 'Asignada' o 'No asignada'.
- * Si el SP reporta 0 filas afectadas pero la oferta ya tenía ese estado, se considera éxito "sin cambios".
- * @param string $idOferta  ID de la oferta
- * @param string $estado    'Asignada' | 'No asignada'
- * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
- */
-public function modificarEstadoOferta(string $idOferta, string $estado): array {
-    $c = $this->conector;
+    /**
+     * Función para modificar el estado de una oferta.
+     * Llama al SP `spModificarEstadoOferta(idOferta, estado, OUT mensaje)` para poner la oferta en 'Asignada' o 'No asignada'.
+     * Si el SP reporta 0 filas afectadas pero la oferta ya tenía ese estado, se considera éxito "sin cambios".
+     * @param string $idOferta  ID de la oferta
+     * @param string $estado    'Asignada' | 'No asignada'
+     * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
+     */
+    public function modificarEstadoOferta(string $idOferta, string $estado): array
+    {
+        $c = $this->conector;
 
-    // Llamada al SP
-    $stmt = $c->prepare("CALL spModificarEstadoOferta(?, ?, @mensaje)");
-    $stmt->execute([$idOferta, $estado]);
-    $stmt->closeCursor();
+        // Llamada al SP
+        $stmt = $c->prepare("CALL spModificarEstadoOferta(?, ?, @mensaje)");
+        $stmt->execute([$idOferta, $estado]);
+        $stmt->closeCursor();
 
-    // Leer OUT
-    $msgRow = $c->query("SELECT @mensaje AS mensaje")->fetch(PDO::FETCH_ASSOC);
-    $msg = $msgRow['mensaje'] ?? null;
+        // Leer OUT
+        $msgRow = $c->query("SELECT @mensaje AS mensaje")->fetch(PDO::FETCH_ASSOC);
+        $msg = $msgRow['mensaje'] ?? null;
 
-    if ($msg !== 'Estado: Exito') {
-        $check = $c->prepare("SELECT estado FROM oferta WHERE idOferta = ?");
-        $check->execute([$idOferta]);
-        $curr = $check->fetchColumn();
-        if ($curr === $estado) {
-            return ['estado' => 'OK', 'mensaje' => 'Estado: Exito (sin cambios)'];
+        if ($msg !== 'Estado: Exito') {
+            $check = $c->prepare("SELECT estado FROM oferta WHERE idOferta = ?");
+            $check->execute([$idOferta]);
+            $curr = $check->fetchColumn();
+            if ($curr === $estado) {
+                return ['estado' => 'OK', 'mensaje' => 'Estado: Exito (sin cambios)'];
+            }
+            return ['estado' => 'Error', 'mensaje' => ($msg ?: 'Error modificando estado de oferta')];
         }
-        return ['estado' => 'Error', 'mensaje' => ($msg ?: 'Error modificando estado de oferta')];
+
+        return ['estado' => 'OK', 'mensaje' => $msg];
     }
 
-    return ['estado' => 'OK', 'mensaje' => $msg];
-}
+    /**
+     * Función para registrar una baja parcial de oferta (bitácora).
+     * Llama al SP `spAgregarHBajaParcialOferta(noControl, semestre, idOferta, OUT mensaje)` e inserta en historial.
+     * No modifica el horario; solo guarda el evento para auditoría.
+     * @param string $noControl Número de control del alumno
+     * @param int    $semestre  Semestre del registro
+     * @param string $idOferta  ID de la oferta dada de baja parcial
+     * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
+     */
+    public function agregarHBajaParcialOferta(string $noControl, int $semestre, string $idOferta): array
+    {
+        $c = $this->conector;
 
-/**
- * Función para registrar una baja parcial de oferta (bitácora).
- * Llama al SP `spAgregarHBajaParcialOferta(noControl, semestre, idOferta, OUT mensaje)` e inserta en historial.
- * No modifica el horario; solo guarda el evento para auditoría.
- * @param string $noControl Número de control del alumno
- * @param int    $semestre  Semestre del registro
- * @param string $idOferta  ID de la oferta dada de baja parcial
- * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
- */
-public function agregarHBajaParcialOferta(string $noControl, int $semestre, string $idOferta): array {
-    $c = $this->conector;
+        $stmt = $c->prepare("CALL spAgregarHBajaParcialOferta(?, ?, ?, @mensaje)");
+        $stmt->execute([$noControl, $semestre, $idOferta]);
+        $stmt->closeCursor();
 
-    $stmt = $c->prepare("CALL spAgregarHBajaParcialOferta(?, ?, ?, @mensaje)");
-    $stmt->execute([$noControl, $semestre, $idOferta]);
-    $stmt->closeCursor();
+        $msgRow = $c->query("SELECT @mensaje AS mensaje")->fetch(PDO::FETCH_ASSOC);
+        $msg = $msgRow['mensaje'] ?? null;
 
-    $msgRow = $c->query("SELECT @mensaje AS mensaje")->fetch(PDO::FETCH_ASSOC);
-    $msg = $msgRow['mensaje'] ?? null;
+        return ['estado' => ($msg === 'Estado: Exito' ? 'OK' : 'Error'), 'mensaje' => ($msg ?: 'Error en bitácora')];
+    }
 
-    return ['estado' => ($msg === 'Estado: Exito' ? 'OK' : 'Error'), 'mensaje' => ($msg ?: 'Error en bitácora')];
-}
+    /**
+     * Función para reconstruir el horario grupal desde BD.
+     * Llama al SP `spModificarHorarioGrupal(carrera, semestre, grupo, turno, OUT mensaje)`,
+     * que elimina los horarios actuales del grupo y vuelve a insertar según las ofertas marcadas como 'Asignada'.
+     * @param string $carrera
+     * @param int    $semestre
+     * @param string $grupo
+     * @param string $turno
+     * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
+     */
+    public function reconstruirHorarioGrupal(string $carrera, int $semestre, string $grupo, string $turno): array
+    {
+        $c = $this->conector;
 
-/**
- * Función para reconstruir el horario grupal desde BD.
- * Llama al SP `spModificarHorarioGrupal(carrera, semestre, grupo, turno, OUT mensaje)`,
- * que elimina los horarios actuales del grupo y vuelve a insertar según las ofertas marcadas como 'Asignada'.
- * @param string $carrera
- * @param int    $semestre
- * @param string $grupo
- * @param string $turno
- * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
- */
-public function reconstruirHorarioGrupal(string $carrera, int $semestre, string $grupo, string $turno): array {
-    $c = $this->conector;
+        $stmt = $c->prepare("CALL spModificarHorarioGrupal(?, ?, ?, ?, @mensaje)");
+        $stmt->execute([$carrera, $semestre, $grupo, $turno]);
+        $stmt->closeCursor();
 
-    $stmt = $c->prepare("CALL spModificarHorarioGrupal(?, ?, ?, ?, @mensaje)");
-    $stmt->execute([$carrera, $semestre, $grupo, $turno]);
-    $stmt->closeCursor();
+        $msgRow = $c->query("SELECT @mensaje AS mensaje")->fetch(PDO::FETCH_ASSOC);
+        $msg = $msgRow['mensaje'] ?? null;
 
-    $msgRow = $c->query("SELECT @mensaje AS mensaje")->fetch(PDO::FETCH_ASSOC);
-    $msg = $msgRow['mensaje'] ?? null;
+        return ['estado' => ($msg === 'Estado: Exito' ? 'OK' : 'Error'), 'mensaje' => ($msg ?: 'Error al reconstruir')];
+    }
 
-    return ['estado' => ($msg === 'Estado: Exito' ? 'OK' : 'Error'), 'mensaje' => ($msg ?: 'Error al reconstruir')];
-}
+    /**
+     * Función para aplicar la modificación grupal completa
+     * @param string $carrera
+     * @param int    $semestre
+     * @param string $grupo
+     * @param string $turno
+     * @param array  $alumnos   Array de noControl
+     * @param array  $finales   Array de objetos con idOferta (quedan asignadas)
+     * @param array  $quitadas  Array de objetos con idOferta (se desasignan)
+     * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
+     */
+    public function aplicarModificacionGrupal(
+        string $carrera,
+        int $semestre,
+        string $grupo,
+        string $turno,
+        array $alumnos,
+        array $finales,
+        array $quitadas
+    ): array {
 
-/**
- * Función para aplicar la modificación grupal completa
- * @param string $carrera
- * @param int    $semestre
- * @param string $grupo
- * @param string $turno
- * @param array  $alumnos   Array de noControl
- * @param array  $finales   Array de objetos con idOferta (quedan asignadas)
- * @param array  $quitadas  Array de objetos con idOferta (se desasignan)
- * @return array            ['estado' => 'OK|Error', 'mensaje' => string]
- */
-public function aplicarModificacionGrupal(
-    string $carrera, int $semestre, string $grupo, string $turno,
-    array $alumnos, array $finales, array $quitadas
-): array {
-
-    foreach ($finales as $o) {
-        $id = (string)($o['idOferta'] ?? $o['clave_oferta'] ?? '');
-        if ($id === '') continue;
-        $r = $this->modificarEstadoOferta($id, 'Asignada');
-        if ($r['estado'] !== 'OK') {
-            return ['estado'=>'Error', 'mensaje'=>"No se pudo marcar oferta $id como Asignada: ".$r['mensaje']];
+        foreach ($finales as $o) {
+            $id = (string)($o['idOferta'] ?? $o['clave_oferta'] ?? '');
+            if ($id === '') continue;
+            $r = $this->modificarEstadoOferta($id, 'Asignada');
+            if ($r['estado'] !== 'OK') {
+                return ['estado' => 'Error', 'mensaje' => "No se pudo marcar oferta $id como Asignada: " . $r['mensaje']];
+            }
         }
-    }
 
-    foreach ($quitadas as $o) {
-        $id = (string)($o['idOferta'] ?? $o['clave_oferta'] ?? '');
-        if ($id === '') continue;
-        $r = $this->modificarEstadoOferta($id, 'No asignada');
-        if ($r['estado'] !== 'OK') {
-            return ['estado'=>'Error', 'mensaje'=>"No se pudo marcar oferta $id como No asignada: ".$r['mensaje']];
-        }
-    }
-
-    $r = $this->reconstruirHorarioGrupal($carrera, $semestre, $grupo, $turno);
-    if ($r['estado'] !== 'OK') {
-        return ['estado'=>'Error', 'mensaje'=>$r['mensaje'] ?: 'Error reconstruyendo horarios'];
-    }
-
-    foreach ($alumnos as $nc) {
         foreach ($quitadas as $o) {
             $id = (string)($o['idOferta'] ?? $o['clave_oferta'] ?? '');
             if ($id === '') continue;
-            $rb = $this->agregarHBajaParcialOferta($nc, $semestre, $id);
+            $r = $this->modificarEstadoOferta($id, 'No asignada');
+            if ($r['estado'] !== 'OK') {
+                return ['estado' => 'Error', 'mensaje' => "No se pudo marcar oferta $id como No asignada: " . $r['mensaje']];
+            }
         }
-    }
 
-    return ['estado'=>'OK', 'mensaje'=>'Estado: Exito'];
-}
+        $r = $this->reconstruirHorarioGrupal($carrera, $semestre, $grupo, $turno);
+        if ($r['estado'] !== 'OK') {
+            return ['estado' => 'Error', 'mensaje' => $r['mensaje'] ?: 'Error reconstruyendo horarios'];
+        }
+
+        foreach ($alumnos as $nc) {
+            foreach ($quitadas as $o) {
+                $id = (string)($o['idOferta'] ?? $o['clave_oferta'] ?? '');
+                if ($id === '') continue;
+                $rb = $this->agregarHBajaParcialOferta($nc, $semestre, $id);
+            }
+        }
+
+        return ['estado' => 'OK', 'mensaje' => 'Estado: Exito'];
+    }
 
 
     /**
@@ -699,11 +709,11 @@ public function aplicarModificacionGrupal(
         $sp->bindParam(':pid', $datos->pid, PDO::PARAM_INT);
         $sp->execute();
 
-       
+
         $horario = $sp->fetch(PDO::FETCH_ASSOC);
         $sp->closeCursor();
 
-        
+
         $respuestaSPV = $c->query("SELECT @mensaje");
         $mensaje = $respuestaSPV->fetch(PDO::FETCH_ASSOC);
         $resultado['respuestaSP'] = $mensaje['@mensaje'];
@@ -724,7 +734,7 @@ public function aplicarModificacionGrupal(
         // -----------------------------------------
 
         try {
-            
+
             // Preparar llamada al procedimiento almacenado con parámetros
             $sp = $c->prepare("CALL spModificarEstadoHorario(:pid, :pestado, @mensaje)");
             $sp->bindParam(':pid', $datos->pid, PDO::PARAM_INT);
@@ -750,7 +760,7 @@ public function aplicarModificacionGrupal(
                     break;
 
                 default:
-                    
+
                     $resultado['mensaje'] = "Ocurrió un error inesperado. Contacte al administrador si el problema persiste.";
                     break;
             }
@@ -764,5 +774,194 @@ public function aplicarModificacionGrupal(
         return $resultado;
     }
 
-}
+    /**
+     * Inserta un horario para un alumno en un semestre específico.
+     *
+     * Validaciones realizadas:
+     *  - Formato y longitud del número de control.
+     *  - Que el semestre esté dentro del rango 1–12.
+     *  - Que el ID de la oferta sea mayor a 0.
+     *  - Existencia del alumno y de la oferta en la base de datos.
+     *
+     * @param string $pnoControl Número de control del alumno (máx. 10 caracteres).
+     * @param int    $pidOferta  ID de la oferta académica a dar de baja.
+     * @param int    $psemestre  Semestre del alumno (1–12).
+     *
+     * @return array Retorna un arreglo con:
+     *               - 'estado': 'OK' si la baja parcial fue registrada correctamente,
+     *                            'Error' si ocurrió una falla o validación incorrecta.
+     *               - 'respuestaSP': Mensaje textual devuelto por el SP (para trazabilidad y logs).
+     */
+    public function ModificarHorarioIndividual($pnoControl, $pidOferta, $psemestre)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
 
+        // -----------------------------------------
+        // Validaciones básicas
+        // -----------------------------------------
+
+        if (empty($pnoControl) || empty($pidOferta) || empty($psemestre)) {
+            error_log("[ModificarHorarioIndividual] Faltan datos requeridos (noControl, pidOferta o semestre).");
+            return $resultado;
+        }
+
+        if (strlen($pnoControl) > 10 || !preg_match('/^C?[0-9]{1,9}$/', $pnoControl)) {
+            error_log("[ModificarHorarioIndividual] Número de control inválido: {$pnoControl}");
+            return $resultado;
+        }
+
+        if (!filter_var($psemestre, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 12]])) {
+            error_log("[ModificarHorarioIndividual] Semestre inválido: {$psemestre}");
+            return $resultado;
+        }
+
+        if (!filter_var($pidOferta, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]])) {
+            error_log("[ModificarHorarioIndividual] ID de oferta inválido: {$pidOferta}");
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Validar existencia del alumno
+        // -----------------------------------------
+
+        $sp = $c->prepare("CALL spBuscarAlumnoDuplicadoID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $pnoControl, PDO::PARAM_STR);
+        $sp->execute();
+        $sp->closeCursor();
+
+        $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+        if ($resultado['respuestaSP'] === 'Estado: No Existe') {
+            error_log("[ModificarHorarioIndividual] El alumno no existe: {$pnoControl}");
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Validar existencia de la oferta
+        // -----------------------------------------
+
+        $sp = $c->prepare("CALL spBuscarOfertaByID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $pidOferta, PDO::PARAM_INT);
+        $sp->execute();
+        $sp->closeCursor();
+
+        $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+        if ($resultado['respuestaSP'] === 'Error: No existen registros con el parámetro solicitado') {
+            error_log("[ModificarHorarioIndividual] Oferta no encontrada: {$pidOferta}");
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Llamada al SP para agregar horario individual
+        // -----------------------------------------
+
+        try {
+            $sp = $c->prepare("CALL spAgregarHorarioIndividual(:pnoControl, :pidOferta, :psemestre, @mensaje)");
+            $sp->bindParam(':pnoControl', $pnoControl, PDO::PARAM_STR);
+            $sp->bindParam(':pidOferta', $pidOferta, PDO::PARAM_INT);
+            $sp->bindParam(':psemestre', $psemestre, PDO::PARAM_INT);
+            $sp->execute();
+            $sp->closeCursor();
+
+            $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    error_log("Exito Insertar Nuevos Horarios");
+                    break;
+
+                case 'Error: No se pudo agregar el registro':
+                    error_log("[ModificarHorarioIndividual] No se pudo registrar agregar el horario: {$pnoControl}, {$pidOferta}, {$psemestre}");
+                    break;
+
+                default:
+                    error_log("[ModificarHorarioIndividual] SP devolvió estado inesperado: " . $resultado['respuestaSP']);
+                    break;
+            }
+        } catch (PDOException $e) {
+            error_log("[ModificarHorarioIndividual] Error en BD al agregar horario: " . $e->getMessage());
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Elimina todos los horarios de un alumno correspondientes al periodo vigente.
+     *
+     * Validaciones incluidas:
+     *  - Formato y longitud del número de control.
+     *  - Existencia del alumno en la base de datos.
+     *
+     * @param string $pnoControl Número de control del alumno (máx. 10 caracteres).
+     *
+     *@return array Retorna un arreglo con:
+     *               - 'estado': 'OK' si se insertó correctamente, 'Error' en caso contrario.
+     *               - 'respuestaSP': Mensaje textual devuelto por el procedimiento almacenado.
+     */
+
+    public function RestablecerHorarios($pnoControl)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // -----------------------------------------
+        // Validaciones
+        // -----------------------------------------
+        if (empty($pnoControl)) {
+            error_log("RestablecerHorarios: parámetro incompleto");
+            return $resultado;
+        }
+
+        if (strlen($pnoControl) > 10 || !preg_match('/^C?[0-9]{1,9}$/', $pnoControl)) {
+            error_log("RestablecerHorarios: número de control inválido ({$pnoControl})");
+            return $resultado;
+        }
+
+        // Validar existencia del alumno
+        $sp = $c->prepare("CALL spBuscarAlumnoDuplicadoID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $pnoControl, PDO::PARAM_STR);
+        $sp->execute();
+        $sp->closeCursor();
+
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        if ($mensaje['@mensaje'] === 'Estado: No Existe') {
+            error_log("RestablecerHorarios: alumno no existe ({$pnoControl})");
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Llamada al SP para eliminar horarios
+        // -----------------------------------------
+        try {
+            $sp = $c->prepare("CALL spRestablecerHorariosAlumno(:pnoControl, @mensaje)");
+            $sp->bindParam(':pnoControl', $pnoControl, PDO::PARAM_STR);
+            $sp->execute();
+            $sp->closeCursor();
+
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            if ($resultado['respuestaSP'] === 'Estado: Exito') {
+                $resultado['estado'] = 'OK';
+                error_log("Exito Eliminar Horarios");
+            } else {
+                error_log("RestablecerHorarios: SP devolvió estado inesperado: " . $resultado['respuestaSP']);
+            }
+        } catch (PDOException $e) {
+            error_log("Error en la base de datos (RestablecerHorarios): " . $e->getMessage());
+        }
+
+        return $resultado;
+    }
+
+}
