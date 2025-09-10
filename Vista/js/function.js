@@ -43,8 +43,11 @@ function option(opc, filter) {
       case "student":
         url = "alumno/main.php";
         break;
-        case "horario":
+      case "horario":
         url = "horario/main.php";
+        break;
+      case "parcial":
+        url = "parcial/frmParcial.php";
         break;
       default:
         mainContent.html(
@@ -82,11 +85,11 @@ function option(opc, filter) {
             // Inicializar DataTables después de la animación
             if ($.fn.DataTable) {
               try {
-                   const commonConfig = {
+                const commonConfig = {
                   responsive: true,
                   pageLength: 25,
                   order: [[0, "desc"]],
-                   pagingType: "simple_numbers",
+                  pagingType: "simple_numbers",
                   lengthMenu: [
                     [25, 50, 100, -1],
                     [25, 50, 100, "Todos"],
@@ -99,7 +102,7 @@ function option(opc, filter) {
                     },
                   },
                 };
-                  if (opc === "student" && $("#tableAlumnos").length) {
+                if (opc === "student" && $("#tableAlumnos").length) {
                   $("#tableAlumnos").DataTable({
                     ...commonConfig,
                     columnDefs: [
@@ -201,16 +204,17 @@ function option(opc, filter) {
                 if (opc === "horario" && $("#tableHorario").length) {
                   $("#tableHorario").DataTable({
                     ...commonConfig,
-                      language: {
-                        url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
-                        emptyTable: "No hay registros por el momento de Horarios para Mostrar",
-                      },
+                    language: {
+                      url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
+                      emptyTable:
+                        "No hay registros por el momento de Horarios para Mostrar",
+                    },
                     columnDefs: [
                       { searchable: true, targets: [0, 1, 2, 3, 4] },
                       { searchable: false, targets: "_all" },
                     ],
-                    });
-                  }
+                  });
+                }
 
                 $("table.dataTable")
                   .not("#tableCareer, #tableCareerManager, #tablePeriod")

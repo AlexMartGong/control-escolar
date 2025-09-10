@@ -68,7 +68,7 @@
                     <!-- Enlaces directos sin submenús -->
                     <a href="javascript:void(0);" onclick="option('period', '');" class="nav-link"><i
                                 class="fas fa-calendar me-2"></i>Periodo</a>
-                    <a href="javascript:void(0);" class="nav-link"><i class="fas fa-tasks me-2"></i>Parcial</a>
+                    <a href="javascript:void(0);" onclick="option('parcial', '');" class="nav-link"><i class="fas fa-tasks me-2"></i>Parcial</a>
                 </div>
             </div>
 
@@ -131,5 +131,6 @@
 <script src="../js/alumno/alumno.js"></script>
 <script src="../js/horario/horario.js"></script>
 <script src="../js/horario/horarioIndividual.js"></script>
+<script src="../js/parcial/parcial.js"></script>
 </body>
 </html>
