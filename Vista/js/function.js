@@ -47,7 +47,7 @@ function option(opc, filter) {
         url = "horario/main.php";
         break;
       case "parcial":
-        url = "parcial/frmParcial.php";
+        url = "parcial/main.php";
         break;
       default:
         mainContent.html(
@@ -214,6 +214,20 @@ function option(opc, filter) {
                       { searchable: false, targets: "_all" },
                     ],
                   });
+                }
+                if (opc === "parcial" && $("#tableParcial").length) {
+                    $("#tableParcial").DataTable({
+                    ...commonConfig,
+                    language: {
+                      url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
+                      emptyTable:
+                        "No hay registros por el momento de Parciales para Mostrar",
+                    },
+                    columnDefs: [
+                      { searchable: true, targets: [1] },
+                      { searchable: false, targets: "_all" },
+                     ],
+                    })
                 }
 
                 $("table.dataTable")
