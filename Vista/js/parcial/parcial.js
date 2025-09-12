@@ -6,6 +6,23 @@ Aqui se cargan los formularios de agregar y modificar, ademas se generan las val
 como validar campos vacion, que esten escritos correctamente y que sean igual que las validaciones se piden
 tambien se inyecta codigo html y clases de css desde este archivo.
 
+NUEVAS FUNCIONALIDADES PARA MODIFICACIÓN:
+- validarEstadoParcialParaEdicion: Valida si un parcial puede ser editado según su estado
+- validarPeriodoParaModificacion: Solo permite periodos pendientes o activos en modificación
+- verificarParcialesEnPeriodo: Verifica el conteo de parciales por periodo
+- cargarDatosParcial: Carga los datos del parcial a modificar
+- validarFormularioModificacion: Validación específica para modificación
+
+VALIDACIONES IMPLEMENTADAS:
+1. No permitir edición de parciales en estado "Cerrado" o "Cancelado"
+2. Solo permitir selección de periodos "Pendiente" o "Activo" en modificación
+3. Validar límite de 4 parciales por periodo al cambiar periodo
+4. Campos de solo lectura: id_parcial, estado_parcial
+5. Campos editables: nombre_parcial, periodo_Id
+
+USO:
+- Para abrir formulario de modificación: loadFormParcial("modParcial", idParcial)
+- Las validaciones se ejecutan automáticamente en tiempo real
 */
 
 function loadFormParcial(opc, id = "") {
@@ -30,6 +47,15 @@ function loadFormParcial(opc, id = "") {
                         .html(responseText)
                         .hide()
                         .fadeIn(500, function () {
+                            // Si es modificación y tenemos un ID, cargar los datos
+                            if (opc === "modParcial" && id) {
+                                // Guardar el periodo original para validaciones posteriores
+                                setTimeout(function() {
+                                    cargarDatosParcial(id);
+                                    const periodoOriginal = document.getElementById("idperiodo").value;
+                                    document.getElementById("idperiodo").dataset.original = periodoOriginal;
+                                }, 100);
+                            }
                         })
                         .css("transform", "translateY(-10px)")
                         .animate(
@@ -88,7 +114,21 @@ function validarFormularioParcial(opc) {
             }
             break;
         case "modificar":
-            //logica para validar y  modificar el parcial
+            // Usar la validación específica para modificación
+            if (validarFormularioModificacion()) {
+                const btnModificar = document.getElementById("btnModificarJ");
+                btnModificar.disabled = true; // Deshabilitar el botón para evitar múltiples envíos
+                //logica para modificar el parcial
+                //modificarParcial();
+                mostrarDatosGuardados("Parcial modificado correctamente");
+            } else {
+                // Los errores ya se muestran en validarFormularioModificacion
+                campos.forEach(([elemento, valor]) => {
+                    if (!valor.trim()) {
+                        marcarError(elemento, valor);
+                    }
+                });
+            }
             break;
     }
 }
@@ -104,6 +144,9 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
     const contenedor = input.closest("." + cont);
     const errorPrevio = contenedor.querySelector(".errorscaracter");
 
+    // Detectar si estamos en modo modificación
+    const esModificacion = document.getElementById("id_parcial") !== null;
+
     if (errorPrevio) {
         errorPrevio.remove();
         input.classList.remove("entrada-error");
@@ -113,7 +156,7 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
     // Validaciones por tipo de campo
     switch (idetiqueta) {
         case "nombre_parcial":
-            const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ]+$/;
+            const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
             if (estaVacio) {
                 mostrarErrorparcial(input, "Este campo no puede estar vacío.");
                 input.classList.add("entrada-error");
@@ -131,24 +174,53 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
         case "periodo_Id":
             const opcion = input.options[input.selectedIndex];
             const estado = opcion ? opcion.dataset.estado : "";
-            if (verificarMaxParciales() >= 4) {
-                periodoInfo.textContent =
-                    "Error: No se permite más de 4 parciales por periodo.";
-                setEstadoPeriodo("maxparciales");
-                iconerror.classList.add("is-invalid");
-                input.classList.add("entrada-error");
-                return evaluarEstadoFormulario(idbtn);
+            
+            // Validaciones específicas para modificación
+            if (esModificacion) {
+                // En modificación solo permitir estados pendiente y activo/abierto
+                if (estado && !validarPeriodoParaModificacion(estado)) {
+                    periodoInfo.textContent = "Solo se pueden seleccionar periodos pendientes o activos.";
+                    setEstadoPeriodo("error");
+                    iconerror.classList.add("is-invalid");
+                    input.classList.add("entrada-error");
+                    return evaluarEstadoFormulario(idbtn);
+                }
+                
+                // Verificar límite de parciales solo si es un periodo diferente al original
+                const periodoOriginal = document.getElementById("idperiodo").dataset.original || "";
+                if (valor && valor !== periodoOriginal) {
+                    const conteoActual = verificarParcialesEnPeriodo(valor);
+                    if (conteoActual >= 4) {
+                        periodoInfo.textContent = 
+                            "Error: El periodo seleccionado ya tiene el máximo de 4 parciales.";
+                        setEstadoPeriodo("maxparciales");
+                        iconerror.classList.add("is-invalid");
+                        input.classList.add("entrada-error");
+                        return evaluarEstadoFormulario(idbtn);
+                    }
+                }
             } else {
-                if (estado === "pendiente") {
-                    periodoInfo.textContent = "Periodo pendiente";
-                    setEstadoPeriodo("pendiente");
+                // Validación original para agregar nuevo parcial
+                if (verificarMaxParciales() >= 4) {
+                    periodoInfo.textContent =
+                        "Error: No se permite más de 4 parciales por periodo.";
+                    setEstadoPeriodo("maxparciales");
+                    iconerror.classList.add("is-invalid");
+                    input.classList.add("entrada-error");
                     return evaluarEstadoFormulario(idbtn);
                 }
-                if (estado === "abierto") {
-                    periodoInfo.textContent = "Periodo abierto";
-                    setEstadoPeriodo("abierto");
-                    return evaluarEstadoFormulario(idbtn);
-                }
+            }
+            
+            // Mostrar estado del periodo seleccionado
+            if (estado === "pendiente") {
+                periodoInfo.textContent = "Periodo pendiente";
+                setEstadoPeriodo("pendiente");
+                return evaluarEstadoFormulario(idbtn);
+            }
+            if (estado === "abierto" || estado === "activo") {
+                periodoInfo.textContent = "Periodo abierto";
+                setEstadoPeriodo("abierto");
+                return evaluarEstadoFormulario(idbtn);
             }
 
             break;
@@ -189,16 +261,18 @@ function setEstadoPeriodo(estado) {
 
     switch (estado) {
         case "abierto":
+        case "activo":
             div.classList.add("alert-success");
-
             break;
         case "pendiente":
             div.classList.add("alert-warning");
-
             break;
         case "maxparciales":
+        case "error":
             div.classList.add("alert-danger");
-
+            break;
+        default:
+            div.classList.add("alert-info");
             break;
     }
 }
@@ -218,4 +292,121 @@ function mostrarErrorparcial(input, mensaje) {
 function verificarMaxParciales() {
     let maxParciales = 3; // Definir el máximo permitido
     return maxParciales;
+}
+
+// Función para verificar el conteo de parciales en un periodo específico
+function verificarParcialesEnPeriodo(periodoId) {
+    // Esta función debería hacer una consulta real al servidor
+    // Por ahora simulo el conteo
+    const conteosPorPeriodo = {
+        "1": 2, // Periodo 1 tiene 2 parciales
+        "2": 1, // Periodo 2 tiene 1 parcial
+        "3": 4  // Periodo 3 tiene 4 parciales (máximo)
+    };
+    
+    return conteosPorPeriodo[periodoId] || 0;
+}
+
+// Función para validar si un parcial puede ser editado según su estado
+function validarEstadoParcialParaEdicion(estadoParcial) {
+    const estadosNoEditables = ["cerrado", "cancelado"];
+    return !estadosNoEditables.includes(estadoParcial.toLowerCase());
+}
+
+// Función para cargar datos del parcial en el formulario de modificación
+function cargarDatosParcial(idParcial) {
+    // Esta función debería hacer una petición AJAX para obtener los datos del parcial
+    // Por ahora simulo los datos para demostrar la funcionalidad
+    
+    // Simular datos del parcial (en implementación real vendría del servidor)
+    const datosParcial = {
+        id: idParcial,
+        nombre: "Primer Parcial",
+        periodo_id: "2",
+        periodo_nombre: "Periodo 2",
+        estado: "pendiente" // Estados posibles: pendiente, activo, cerrado, cancelado
+    };
+    
+    // Verificar si el parcial puede ser editado
+    if (!validarEstadoParcialParaEdicion(datosParcial.estado)) {
+        mostrarErrorCaptura("No se puede modificar un parcial en estado " + datosParcial.estado);
+        // Deshabilitar todos los campos editables
+        document.getElementById("nombre_parcial").disabled = true;
+        document.getElementById("periodo_Id").disabled = true;
+        document.getElementById("btnModificarJ").disabled = true;
+        return false;
+    }
+    
+    // Cargar los datos en el formulario
+    document.getElementById("id_parcial").value = datosParcial.id;
+    document.getElementById("nombre_parcial").value = datosParcial.nombre;
+    document.getElementById("periodo_Id").value = datosParcial.periodo_id;
+    document.getElementById("idperiodo").value = datosParcial.periodo_id;
+    document.getElementById("estado_parcial").value = datosParcial.estado;
+    
+    // Actualizar la información del periodo
+    const periodoSelect = document.getElementById("periodo_Id");
+    const opcionSeleccionada = periodoSelect.options[periodoSelect.selectedIndex];
+    if (opcionSeleccionada) {
+        const estadoPeriodo = opcionSeleccionada.dataset.estado;
+        document.getElementById("periodoInfo").textContent = `Periodo ${datosParcial.periodo_nombre}`;
+        setEstadoPeriodo(estadoPeriodo);
+    }
+    
+    // Evaluar el estado inicial del formulario
+    evaluarEstadoFormulario("btnModificarJ");
+    
+    return true;
+}
+
+// Función específica para validar periodos en modificación (solo pendiente y activo)
+function validarPeriodoParaModificacion(estadoPeriodo) {
+    const estadosPermitidos = ["pendiente", "activo", "abierto"];
+    return estadosPermitidos.includes(estadoPeriodo.toLowerCase());
+}
+
+// Función para validar el formulario de modificación específicamente
+function validarFormularioModificacion() {
+    const nombre_parcial = document.querySelector("#nombre_parcial");
+    const periodo_Id = document.querySelector("#periodo_Id");
+    const estado_parcial = document.querySelector("#estado_parcial");
+    
+    const nombre = nombre_parcial.value.trim();
+    const periodo = periodo_Id.value.trim();
+    const estadoParcial = estado_parcial.value.trim();
+    
+    // Verificar que el parcial puede ser modificado
+    if (!validarEstadoParcialParaEdicion(estadoParcial)) {
+        mostrarErrorCaptura("No se puede modificar un parcial en estado " + estadoParcial);
+        return false;
+    }
+    
+    // Validar campos vacíos
+    if (!nombre || !periodo) {
+        mostrarErrorCaptura("No se pueden dejar campos vacíos. Verifique e intente de nuevo.");
+        return false;
+    }
+    
+    // Validar que el periodo seleccionado sea válido para modificación
+    const periodoSelect = document.getElementById("periodo_Id");
+    const opcionSeleccionada = periodoSelect.options[periodoSelect.selectedIndex];
+    if (opcionSeleccionada) {
+        const estadoPeriodo = opcionSeleccionada.dataset.estado;
+        if (!validarPeriodoParaModificacion(estadoPeriodo)) {
+            mostrarErrorCaptura("Solo se pueden seleccionar periodos en estado 'Pendiente' o 'Activo'");
+            return false;
+        }
+    }
+    
+    // Validar límite de parciales si se cambia de periodo
+    const periodoOriginal = document.getElementById("idperiodo").dataset.original || "";
+    if (periodo !== periodoOriginal) {
+        const conteoActual = verificarParcialesEnPeriodo(periodo);
+        if (conteoActual >= 4) {
+            mostrarErrorCaptura("El periodo seleccionado ya tiene el máximo de 4 parciales permitidos");
+            return false;
+        }
+    }
+    
+    return true;
 }

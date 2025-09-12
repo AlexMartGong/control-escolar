@@ -31,7 +31,32 @@
             <td>Parcial 1</td>
             <td>2</td>
             <td>2023-2024</td>
-            <td>Activo</td>
+            <td><span class="badge bg-success">Activo</span></td>
+            <td>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button class="btn btn-primary btn-sm d-flex align-items-center"
+                            onclick="loadFormParcial('modParcial','1');">
+                        <i class="fas fa-edit me-1"></i>
+                        <span>Editar</span>
+                    </button>
+                    <label>
+                        <select class="form-select form-select-sm btn-warning"
+                                style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
+                                onchange="">
+                            <option disabled selected>Cambiar estado</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </label>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Parcial 2</td>
+            <td>1</td>
+            <td>2024-2025</td>
+            <td><span class="badge bg-danger">Cerrado</span></td>
             <td>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-primary btn-sm d-flex align-items-center"

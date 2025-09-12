@@ -12,15 +12,27 @@
                 </div>
                 <div class="card-body p-4">
                     <form>
+                        <!-- Campo ID Parcial (solo lectura) -->
                         <div class="mb-4">
-                            <label for="nombre" class="form-label">Nombre de parcial</label>
+                            <label for="id_parcial" class="form-label">ID Parcial</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-blue-light"><i class="fas fa-hashtag me-2"></i></span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="id_parcial"
+                                       readonly>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="nombre_parcial" class="form-label">Nombre de parcial</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-blue-light"><i class="fas fa-tasks me-2"></i></span>
                                 <input type="text"
                                        maxlength="50"
                                        title='Maximo 50 caracteres'
                                        class="form-control"
-                                       oninput="validarEntrdasParcial('nombre_parcial', 'btnGuardarJ','', 'mb-4')"
+                                       oninput="validarEntrdasParcial('nombre_parcial', 'btnModificarJ','', 'mb-4')"
                                        id="nombre_parcial"
                                        placeholder="Ingrese nombre de parcial" required>
                             </div>
@@ -34,13 +46,12 @@
                                                 class="fas fa-calendar me-2"></i></span>
                                     <select name="periodo_Id" id="periodo_Id" class="form-select"
                                             style="padding: 0.8rem;"
-                                            oninput="validarEntrdasParcial('periodo_Id', 'btnGuardarJ', 'periodoInfo', 'row')"
+                                            oninput="validarEntrdasParcial('periodo_Id', 'btnModificarJ', 'periodoInfo', 'row')"
                                             required>
                                         <option value="" disabled selected>Seleccione un periodo</option>
                                         <option value="1" data-estado="pendiente">Periodo 1</option>
                                         <option value="2" data-estado="abierto">Periodo 2</option>
                                         <option value="3" data-estado="abierto">Periodo 3</option>
-
                                     </select>
                                 </div>
                             </div>
@@ -51,7 +62,7 @@
                                 <div class="input-group">
                                     <span class="input-group-text bg-blue-light"><i
                                                 class="fas fa-calendar me-2"></i></span>
-                                    <input type="text" id="idperiodo" class="form-control" disabled>
+                                    <input type="text" id="idperiodo" class="form-control" readonly>
                                 </div>
                             </div>
                         </div>
@@ -74,31 +85,27 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-check-label" for="estado">Estado</label>
+                            <label class="form-label" for="estado_parcial">Estado</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-blue-light"><i class="fas fa-check-circle"></i></span>
-                                <select class="form-control" disabled id="perfil_Id">
-                                    <option value="pendiente" selected>Pendiente</option>
-
-                                </select>
+                                <input type="text" class="form-control" id="estado_parcial" readonly>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-12 separarBotones gap-2">
                                 <button type="button"
-                                        id="btnGuardarJ"
+                                        id="btnModificarJ"
                                         class="btn btn3 btn-primary"
-                                        onclick="validarFormularioParcial('guardar');"
+                                        onclick="validarFormularioParcial('modificar');"
                                         disabled>
-                                    <i class="fas fa-save me-2"></i>Guardar
+                                    <i class="fas fa-save me-2"></i>Modificar
                                 </button>
                                 <button type="button"
                                         class="btn btn-outline-secondary"
                                         onclick="clearArea('frmparcial'); option('parcial','')">
                                     <i class="fas fa-times-circle me-2"></i>Cancelar
                                 </button>
-
                             </div>
                         </div>
                     </form>
