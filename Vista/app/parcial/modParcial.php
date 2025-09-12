@@ -12,15 +12,11 @@
                 </div>
                 <div class="card-body p-4">
                     <form>
-
-
-
                         <div class="mb-4">
-                            <label for="nombre_parcial" class="form-label">Nombre de parcial</label>
+                            <label for="nombre" class="form-label">Nombre de parcial</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-blue-light"><i class="fas fa-tasks me-2"></i></span>
                                 <input type="text"
-                                       name="nombre_parcial"
                                        maxlength="50"
                                        title='Maximo 50 caracteres'
                                        class="form-control"
@@ -28,16 +24,18 @@
                                        id="nombre_parcial"
                                        placeholder="Ingrese nombre de parcial" required>
                             </div>
-
                         </div>
                         <div class="row">
                             <!-- Selección del periodo -->
                             <div class="col-md-6 mb-3">
                                 <label for="periodo_Id" class="form-label">Nombre del periodo</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-blue-light"><i class="fas fa-calendar me-2"></i></span>
-                                    <select name="periodo_Id" id="periodo_Id" class="form-select" style="padding: 0.8rem;"
-                                            oninput="validarEntrdasParcial('periodo_Id', 'btnGuardarJ', 'periodoInfo', 'row')" required>
+                                    <span class="input-group-text bg-blue-light"><i
+                                                class="fas fa-calendar me-2"></i></span>
+                                    <select name="periodo_Id" id="periodo_Id" class="form-select"
+                                            style="padding: 0.8rem;"
+                                            oninput="validarEntrdasParcial('periodo_Id', 'btnGuardarJ', 'periodoInfo', 'row')"
+                                            required>
                                         <option value="" disabled selected>Seleccione un periodo</option>
                                         <option value="1" data-estado="pendiente">Periodo 1</option>
                                         <option value="2" data-estado="abierto">Periodo 2</option>
@@ -51,21 +49,18 @@
                             <div class="col-md-6 mb-3">
                                 <label for="idperiodo" class="form-label">ID Periodo</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-blue-light"><i class="fas fa-calendar me-2"></i></span>
+                                    <span class="input-group-text bg-blue-light"><i
+                                                class="fas fa-calendar me-2"></i></span>
                                     <input type="text" id="idperiodo" class="form-control" disabled>
                                 </div>
                             </div>
                         </div>
-
-
                         <script>
                             // Evento que escucha cambios en el select
-                            document.getElementById("periodo_Id").addEventListener("change", function() {
+                            document.getElementById("periodo_Id").addEventListener("change", function () {
                                 document.getElementById("idperiodo").value = this.value;
                             });
                         </script>
-
-
 
                         <!-- Información del periodo actual -->
                         <div class="row mb-4">
@@ -81,9 +76,10 @@
                         <div class="mb-4">
                             <label class="form-check-label" for="estado">Estado</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-blue-light" id="estado"><i class="fas fa-check-circle"></i></span>
-                                <label for="perfil_Id"></label><select class="form-control" disabled id="perfil_Id">
+                                <span class="input-group-text bg-blue-light"><i class="fas fa-check-circle"></i></span>
+                                <select class="form-control" disabled id="perfil_Id">
                                     <option value="pendiente" selected>Pendiente</option>
+
                                 </select>
                             </div>
                         </div>
@@ -92,11 +88,8 @@
                             <div class="col-12 separarBotones gap-2">
                                 <button type="button"
                                         id="btnGuardarJ"
-                                <select class="form-control" disabled id="estado_parcial">
+                                        class="btn btn3 btn-primary"
                                         onclick="validarFormularioParcial('guardar');"
-                                    <option value="abierto">Abierto</option>
-                                    <option value="cerrado">Cerrado</option>
-                                    <option value="cancelado">Cancelado</option>
                                         disabled>
                                     <i class="fas fa-save me-2"></i>Guardar
                                 </button>
@@ -106,9 +99,9 @@
                                     <i class="fas fa-times-circle me-2"></i>Cancelar
                                 </button>
 
-                                        onclick="validarFormularioParcial('modificar');"
+                            </div>
                         </div>
-                                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                    </form>
                 </div>
             </div>
         </div>

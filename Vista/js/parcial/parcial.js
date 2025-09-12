@@ -13,7 +13,7 @@ function loadFormParcial(opc, id = "") {
     if (opc === "frmParcial") {
         url = "parcial/frmParcial.php";
     } else if (opc === "modParcial") {
-        url = "parcial/modParcial.html";
+        url = "parcial/modParcial.php";
     }
 
     let datas = {id: id};
