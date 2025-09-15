@@ -40,7 +40,8 @@
                                         <option value="" disabled selected>Seleccione un periodo</option>
                                         <option value="1" data-estado="pendiente">Periodo 1</option>
                                         <option value="2" data-estado="abierto">Periodo 2</option>
-                                        <option value="3" data-estado="abierto">Periodo 3</option>
+                                        <option value="3" data-estado="cerrado">Periodo 3</option>
+                                        <option value="4" data-estado="cancelado">Periodo 4</option>
 
                                     </select>
                                 </div>

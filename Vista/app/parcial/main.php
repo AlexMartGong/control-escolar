@@ -67,7 +67,7 @@
                     <label>
                         <select class="form-select form-select-sm btn-warning"
                                 style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="">
+                                 onchange="changeStatusParcial('2', this.value);">
                             <option disabled selected>Cambiar estado</option>
                             <option value="Activo">Activo</option>
                             <option value="Inactivo">Inactivo</option>
