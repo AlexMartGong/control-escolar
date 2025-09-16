@@ -47,17 +47,7 @@ function loadFormParcial(opc, id = "") {
             .html(responseText)
             .hide()
             .fadeIn(500, function () {
-              // Si es modificación y tenemos un ID, cargar los datos
-              if (opc === "modParcial" && id) {
-                // Guardar el periodo original para validaciones posteriores
-                setTimeout(function () {
-                  cargarDatosParcial(id);
-                  const periodoOriginal =
-                    document.getElementById("idperiodo").value;
-                  document.getElementById("idperiodo").dataset.original =
-                    periodoOriginal;
-                }, 100);
-              }
+              iniciarFuncionesParcial(opc, id); // Iniciar funciones específicas para parcial
             })
             .css("transform", "translateY(-10px)")
             .animate(
@@ -207,7 +197,7 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
         if (estado && !validarPeriodoParaModificacion(estado)) {
           periodoInfo.textContent =
             "Solo se pueden seleccionar periodos pendientes o activos.";
-          setEstadoPeriodo("error");
+          setEstadoPeriodo("Error");
           iconerror.classList.add("is-invalid");
           input.classList.add("entrada-error");
           return evaluarEstadoFormulario(idbtn);
@@ -218,10 +208,10 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
           document.getElementById("idperiodo").dataset.original || "";
         if (valor && valor !== periodoOriginal) {
           const conteoActual = verificarParcialesEnPeriodo(valor);
-          if (conteoActual >= 4) {
+          if (conteoActual > 4) {
             periodoInfo.textContent =
               "Error: El periodo seleccionado ya tiene el máximo de 4 parciales.";
-            setEstadoPeriodo("maxparciales");
+            setEstadoPeriodo("Error");
             iconerror.classList.add("is-invalid");
             input.classList.add("entrada-error");
             return evaluarEstadoFormulario(idbtn);
@@ -240,19 +230,19 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
       }
 
       // Mostrar estado del periodo seleccionado
-      if (estado === "pendiente") {
-        periodoInfo.textContent = "Periodo pendiente";
-        setEstadoPeriodo("pendiente");
+      if (estado === "Pendiente") {
+        periodoInfo.textContent = "Periodo en estado pendiente";
+        setEstadoPeriodo("Pendiente");
         return evaluarEstadoFormulario(idbtn);
       }
-      if (estado === "abierto" || estado === "activo") {
-        periodoInfo.textContent = "Periodo abierto";
-        setEstadoPeriodo("abierto");
+      if (estado === "Abierto" || estado === "Activo") {
+        periodoInfo.textContent = "Periodo en estado abierto";
+        setEstadoPeriodo("Abierto");
         return evaluarEstadoFormulario(idbtn);
       }
-      if (estado === "cerrado" || estado === "cancelado") {
-        periodoInfo.textContent = "Periodo cerrado o cancelado";
-        setEstadoPeriodo("error");
+      if (estado === "Cerrado" || estado === "Cancelado") {
+        periodoInfo.textContent = "Periodo en estado cerrado o cancelado";
+        setEstadoPeriodo("Error");
         iconerror.classList.add("is-invalid");
         input.classList.add("entrada-error");
         return evaluarEstadoFormulario(idbtn);
@@ -270,19 +260,22 @@ function evaluarEstadoFormulario(idbtn) {
   const btnGuardar = document.getElementById(idbtn);
   const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
 
-let hayErrores = false;
+  let hayErrores = false;
 
-// Verificar clases
-const inputs = [nombreInput, periodoInput];
-if (inputs.some(input => input.classList.contains("entrada-error", "is-invalid"))) {
-  hayErrores = true;
-}
+  // Verificar clases
+  const inputs = [nombreInput, periodoInput];
+  if (
+    inputs.some((input) =>
+      input.classList.contains("entrada-error", "is-invalid")
+    )
+  ) {
+    hayErrores = true;
+  }
 
-// Verificar que las entrasa no contengan caracteres no permitidos
-if (!soloLetras.test(nombreInput.value.trim())) {
-  hayErrores = true;
-}
-
+  // Verificar que las entrasa no contengan caracteres no permitidos
+  if (!soloLetras.test(nombreInput.value.trim())) {
+    hayErrores = true;
+  }
 
   let camposVacios = [
     nombreInput.value.trim() === "",
@@ -304,15 +297,14 @@ function setEstadoPeriodo(estado) {
   );
 
   switch (estado) {
-    case "abierto":
-    case "activo":
+    case "Abierto":
+    case "Activo":
       div.classList.add("alert-success");
       break;
-    case "pendiente":
+    case "Pendiente":
       div.classList.add("alert-warning");
       break;
-
-    case "error":
+    case "Error":
       div.classList.add("alert-danger");
       break;
     default:
@@ -344,7 +336,7 @@ function verificarMaxParciales(idPeriodo) {
   // Aquí se debería hacer una consulta real al servidor para obtener el conteo actual
   // Por ahora simulo que ya hay 4 parciales registrados en el periodo seleccionado
   let parcialesActualesEnPeriodo = 3; // Simulación
-  return parcialesActualesEnPeriodo >= maxParciales;
+  return parcialesActualesEnPeriodo > maxParciales;
 }
 
 // Función para verificar el conteo de parciales en un periodo específico
@@ -366,6 +358,7 @@ function validarEstadoParcialParaEdicion(estadoParcial) {
   return !estadosNoEditables.includes(estadoParcial.toLowerCase());
 }
 
+//Esta funcion deve eliminarce
 // Función para cargar datos del parcial en el formulario de modificación
 function cargarDatosParcial(idParcial) {
   // Esta función debería hacer una petición AJAX para obtener los datos del parcial
@@ -554,6 +547,8 @@ function changeStatusParcial(id, status, currentStatus) {
       // Cerrar el modal
       modal.hide();
 
+      //En caso de que el estado no haya cambiado a cerrado o cancelado, el b
+
       // Preparar datos para enviar
       let data = {
         id: id,
@@ -609,4 +604,59 @@ function changeStatusParcial(id, status, currentStatus) {
       });
     }); */
     });
+}
+
+function iniciarFuncionesParcial(opc, id) {
+  switch (opc) {
+    case "frmParcial":
+      obtenerDatosdePeriodoEnParcial();
+      break;
+    case "modParcial":
+      cargarDatosParcial(1); // Simulando con ID 1, en implementación real usar el id pasado
+    
+    //obtenerDatosModParcial(id);
+
+      break;
+  }
+}
+
+// Función para cargar datos del parcial en el formulario de modificación
+async function obtenerDatosModParcial(idParcial) {
+  // Esta función debería hacer una petición fetch para obtener los datos del parcial
+ /* try {
+    const response = await fetch(`parcial/getParcial.php?id=${idParcial}`);
+    if (!response.ok) {
+      throw new Error("Error en la petición: " + response.statusText);
+    }
+    const datos = await response.json();
+    mostrarDatosParcial(datos);
+  } catch (error) {
+    mostrarErrorCaptura(
+      "Error al obtener los datos del parcial: " + error.message
+    );
+  }*/
+}
+
+function mostrarDatosParcial(datos) {
+  // Aquí puedes mostrar los datos del parcial obtenidos en la peticion por fetch en el formulario de modificar parcial
+}
+
+//funcion para obtener los periodos por medio de una peticion fetch hacia un archivo php
+async function obtenerDatosdePeriodoEnParcial(opc) {
+  // obtiene los datos del periodo por medio de una peticion fetch
+  // y se envia a la funcion mostrarDatosdePeriodoEnParcial
+  /*try {
+    const response = await fetch("parcial/getPeriodos.php");
+    if (!response.ok) {
+      throw new Error("Error en la petición: " + response.statusText);
+    }
+    const datos = await response.json();
+    mostrarDatosdePeriodoEnParcial(datos);
+  } catch (error) {
+    mostrarErrorCaptura("Error al obtener los periodos: " + error.message);
+  }*/
+}
+
+function mostrarDatosdePeriodoEnParcial(datos) {
+  // Aquí puedes  mostrar los datos del periodo obtenidos en la peticion por fetch en el formulario de parcial
 }

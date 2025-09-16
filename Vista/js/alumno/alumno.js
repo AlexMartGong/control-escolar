@@ -23,9 +23,9 @@ function loadFormAlumno(opc, id = "") {
               // Si es edición, llamar a buscarDocente automáticamente
 
               if (opc === "frmalumno") {
-                cargarCarrerasfrmAgr(); 
+                cargarCarrerasAlumno(); 
               }
-
+                
               if (opc === "modalumno" && id !== "") {
                 BuscarAlumno(id);
               }
@@ -638,7 +638,7 @@ function AgregarAlumno() {
 /**
  * Carga la lista de carreras activas desde el servidor y las inserta en el <select> correspondiente.
  */
-function cargarCarrerasfrmAgr() {
+function cargarCarrerasAlumno() {
   fetch("../../Controlador/Intermediarios/Carrera/ObtenerCarrerasActivas.php")
     .then((response) => response.json())
     .then((data) => {
