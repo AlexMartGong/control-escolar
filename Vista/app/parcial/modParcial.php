@@ -49,9 +49,9 @@
                                             oninput="validarEntrdasParcial('periodo_Id', 'btnModificarJ', 'periodoInfo', 'row')"
                                             required>
                                         <option value="" disabled selected>Seleccione un periodo</option>
-                                        <option value="1" data-estado="pendiente">Periodo 1</option>
-                                        <option value="2" data-estado="abierto">Periodo 2</option>
-                                        <option value="3" data-estado="abierto">Periodo 3</option>
+                                        <option value="1" data-estado="Pendiente">Periodo 1</option>
+                                        <option value="2" data-estado="Abierto">Periodo 2</option>
+                                        <option value="3" data-estado="Cerrado">Periodo 3</option>
                                     </select>
                                 </div>
                             </div>

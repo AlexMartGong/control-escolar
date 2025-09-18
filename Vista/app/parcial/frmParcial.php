@@ -38,11 +38,10 @@
                                     <select name="periodo_Id" id="periodo_Id" class="form-select" style="padding: 0.8rem;"
                                         oninput="validarEntrdasParcial('periodo_Id', 'btnGuardarJ', 'periodoInfo', 'row')" required>
                                         <option value="" disabled selected>Seleccione un periodo</option>
-                                        <option value="1" data-estado="pendiente">Periodo 1</option>
-                                        <option value="2" data-estado="abierto">Periodo 2</option>
-                                        <option value="3" data-estado="cerrado">Periodo 3</option>
-                                        <option value="4" data-estado="cancelado">Periodo 4</option>
-
+                                        <option value="1" data-estado="Pendiente">Periodo 1</option>
+                                        <option value="2" data-estado="Abierto">Periodo 2</option>
+                                        <option value="3" data-estado="Cerrado">Periodo 3</option>
+                                        <option value="4" data-estado="Cancelado">Periodo 4</option>
                                     </select>
                                 </div>
                             </div>
