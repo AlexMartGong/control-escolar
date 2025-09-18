@@ -1,5 +1,16 @@
+<?php
+require '../../../Modelo/BD/ConexionBD.php';
+require '../../../Modelo/BD/ModeloBD.php';
+require '../../../Modelo/DAOs/ParcialDAO.php';
+
+$objBD = new ConexionBD($DatosBD);
+$objPaDAO = new ParcialDAO($objBD->Conectar());
+
+$res = $objPaDAO->MostrarParcial();
+?>
+
 <div id="frmArea">
-    <h2 class="mb-4">Horario</h2>
+    <h2 class="mb-4">Parcial</h2>
 
     <div class="row mb-3">
         <div class="col-12 text-end">
@@ -25,13 +36,30 @@
                 <th>Opciones</th>
             </tr>
         </thead>
-        <tbody>
-            <tr>
-                <td>1</td>
-                <td>Parcial 1</td>
-                <td>2</td>
-                <td>2023-2024</td>
-                <td><span class="badge bg-success">Activo</span></td>
+        <tbody class="">
+            <?php
+            if ($res['estado'] == 'OK' && $res['filas'] > 0) {
+                $cont = 1;
+                foreach ($res['datos'] as $fila) {
+
+                    $rowClass = "table-success";
+
+                    $badgeClass = "bg-success";
+                    switch ($fila['estado']) {
+                        case 'Activo':
+                            $badgeClass = "bg-success";
+                            break;
+                        case 'Inactivo':
+                            $badgeClass = "bg-danger";
+                            break;
+                    }
+            ?>
+        <tr class="text-center">
+            <td><?= $fila['clave_parcial'] ?></td>
+            <td><?= $fila['nombre_parcial'] ?></td>
+            <td><?= $fila['clave_periodo'] ?></td>
+            <td><?= $fila['periodo'] ?></td>
+            <td><span class="badge <?= $badgeClass ?>"><?= $fila['estado'] ?></span></td>
                 <td>
                     <div class="d-flex gap-2 justify-content-center">
                         <button class="btn btn-primary btn-sm d-flex align-items-center"
@@ -54,33 +82,11 @@
                     </div>
                 </td>
             </tr>
-            <tr>
-                <td>2</td>
-                <td>Parcial 2</td>
-                <td>1</td>
-                <td>2024-2025</td>
-                <td><span class="badge bg-danger">Cerrado</span></td>
-                <td>
-                    <div class="d-flex gap-2 justify-content-center">
-                        <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="loadFormParcial('modParcial','1');">
-                            <i class="fas fa-edit me-1"></i>
-                            <span>Editar</span>
-                        </button>
-                        <label>
-                            <select class="form-select form-select-sm btn-warning"
-                                style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="changeStatusParcial('2', this.value);">
-                                <option disabled>Cambiar estado</option>
-                                <option value="pendiente">pendiente</option>
-                                <option selected value="Activo">Abierto</option>
-                                <option value="cerrado">Cerrado</option>
-                                <option value="cancelado">Cancelado</option>
-                            </select>
-                        </label>
-                    </div>
-                </td>
-            </tr>
+            <?php
+                    $cont++;
+                }
+            }
+            ?>
         </tbody>
     </table>
 </div>
