@@ -75,15 +75,21 @@ function validarFormularioParcial(opc) {
   const nombre_parcial = document.querySelector("#nombre_parcial");
   const idperiodo = document.querySelector("#idperiodo");
   const estado_parcial = document.querySelector("#periodo_Id");
+  const fechaInicio = document.querySelector("#fechaInicio");
+  const fechaFin = document.querySelector("#fechaFin");
 
   //se limpian los valores
   const nombre = nombre_parcial.value.trim();
   const periodo = idperiodo.value.trim();
+  const fehcaI = fechaInicio.value.trim();
+  const fechaf = fechaFin.value.trim();
   //se crea un arreglo con los campos a validar
 
   const campos = [
     [nombre_parcial, nombre],
     [idperiodo, periodo],
+    [fechaInicio, fehcaI],
+    [fechaFin, fechaf]
   ];
 
   const nadaVacio = campos.every(([_, valor]) => valor.trim() !== "");
@@ -98,7 +104,7 @@ function validarFormularioParcial(opc) {
           marcarError(elemento, valor);
         });
 
-        mostrarErrorCaptura(
+        mostrarFaltaDatos(
           "No se pueden dejar campos vacíos. Verifique e intente de nuevo."
         );
       } else if (verificarMaxParciales(periodo) === true) {
@@ -147,7 +153,6 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
   let input = document.getElementById(idetiqueta);
   const periodoInfo = document.getElementById(idperiodo);
   const valor = input.value.trim();
-
   const estaVacio = valor === "";
   const iconerror = document.querySelector(`#${idetiqueta}`);
   const contenedor = input.closest("." + cont);
@@ -174,16 +179,16 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
     case "nombre_parcial":
       const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
       if (estaVacio) {
-        mostrarErrorparcial(input, "Este campo no puede estar vacío.");
+        mostrarErrorparcial(input, "Este campo no puede estar vacío.", cont);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
-        return evaluarEstadoFormulario(idbtn);
+        return evaluarEstadoFormularioParcial(idbtn);
       }
       if (!soloLetras.test(valor)) {
-        mostrarErrorparcial(input, "No se permiten caracteres especiales.");
+        mostrarErrorparcial(input, "No se permiten caracteres especiales.", cont);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
-        return evaluarEstadoFormulario(idbtn);
+        return evaluarEstadoFormularioParcial(idbtn);
       }
       break;
 
@@ -200,7 +205,7 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
           setEstadoPeriodo("Error");
           iconerror.classList.add("is-invalid");
           input.classList.add("entrada-error");
-          return evaluarEstadoFormulario(idbtn);
+          return evaluarEstadoFormularioParcial(idbtn);
         }
 
         // Verificar límite de parciales solo si es un periodo diferente al original
@@ -214,7 +219,7 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
             setEstadoPeriodo("Error");
             iconerror.classList.add("is-invalid");
             input.classList.add("entrada-error");
-            return evaluarEstadoFormulario(idbtn);
+            return evaluarEstadoFormularioParcial(idbtn);
           }
         }
       } else {
@@ -225,7 +230,7 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
           setEstadoPeriodo("error");
           iconerror.classList.add("is-invalid");
           input.classList.add("entrada-error");
-          return evaluarEstadoFormulario(idbtn);
+          return evaluarEstadoFormularioParcial(idbtn);
         }
       }
 
@@ -233,32 +238,78 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
       if (estado === "Pendiente") {
         periodoInfo.textContent = "Periodo en estado pendiente";
         setEstadoPeriodo("Pendiente");
-        return evaluarEstadoFormulario(idbtn);
+        return evaluarEstadoFormularioParcial(idbtn);
       }
       if (estado === "Abierto" || estado === "Activo") {
         periodoInfo.textContent = "Periodo en estado abierto";
         setEstadoPeriodo("Abierto");
-        return evaluarEstadoFormulario(idbtn);
+        return evaluarEstadoFormularioParcial(idbtn);
       }
       if (estado === "Cerrado" || estado === "Cancelado") {
         periodoInfo.textContent = "Periodo en estado cerrado o cancelado";
         setEstadoPeriodo("Error");
         iconerror.classList.add("is-invalid");
         input.classList.add("entrada-error");
-        return evaluarEstadoFormulario(idbtn);
+        return evaluarEstadoFormularioParcial(idbtn);
       }
 
       break;
+
+      case "fechaInicio":
+      const regexFecha = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+      if(estaVacio){
+        mostrarErrorparcial(input, "Este campo no puede estar vacío.", cont);
+        input.classList.add("entrada-error");
+        iconerror.classList.add("is-invalid");
+        return evaluarEstadoFormularioParcial(idbtn);
+
+      }
+
+      if (!regexFecha.test(valor)){
+        mostrarErrorparcial(input, "Formato invalido, intente de nuevo.", cont);
+        input.classList.add("entrada-error");
+        iconerror.classList.add("is-invalid");
+        return evaluarEstadoFormularioParcial(idbtn);
+      }
+
+      break;
+      case "fechaFin":
+
+       const regexFecha2 = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+      if(estaVacio){
+        mostrarErrorparcial(input, "Este campo no puede estar vacío.", cont);
+        input.classList.add("entrada-error");
+        iconerror.classList.add("is-invalid");
+        return evaluarEstadoFormularioParcial(idbtn);
+
+      }
+
+      if (!regexFecha2.test(valor)){
+        mostrarErrorparcial(input, "Formato invalido, intente de nuevo.", cont);
+        input.classList.add("entrada-error");
+        iconerror.classList.add("is-invalid");
+        return evaluarEstadoFormularioParcial(idbtn);
+      }
+
+      break;
+
+
   }
   // Siempre reevalúa el estado global al final
-  evaluarEstadoFormulario(idbtn);
+  evaluarEstadoFormularioParcial(idbtn);
 }
 
-function evaluarEstadoFormulario(idbtn) {
+//Funcion que permite evaliar si esta todo correctamente para Habilitar el boton de guardar
+function evaluarEstadoFormularioParcial(idbtn) {
   const nombreInput = document.getElementById("nombre_parcial");
   const periodoInput = document.getElementById("periodo_Id");
+  const fehcaInicio = document.getElementById("fechaInicio");
+  const fechaFin = document.getElementById("fechaFin")
   const btnGuardar = document.getElementById(idbtn);
   const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
+  
 
   let hayErrores = false;
 
@@ -280,7 +331,10 @@ function evaluarEstadoFormulario(idbtn) {
   let camposVacios = [
     nombreInput.value.trim() === "",
     periodoInput.value.trim() === "",
+    fehcaInicio.value.trim() === "",
+    fechaFin.value.trim() === ""
   ].some(Boolean);
+
   // Habilitar o deshabilitar el botón de guardar
   btnGuardar.disabled = hayErrores || camposVacios;
 }
@@ -314,8 +368,8 @@ function setEstadoPeriodo(estado) {
 }
 
 //funcion para mostrar el error de escritura
-function mostrarErrorparcial(input, mensaje) {
-  const contenedorCampo = input.closest(".mb-4");
+function mostrarErrorparcial(input, mensaje, cont) {
+  const contenedorCampo = input.closest("." + cont);
   // Eliminamos mensaje anterior si ya existe
   const errorPrevio = contenedorCampo.querySelector(".errorscaracter");
   if (errorPrevio) errorPrevio.remove();
@@ -404,7 +458,7 @@ function cargarDatosParcial(idParcial) {
   }
 
   // Evaluar el estado inicial del formulario
-  evaluarEstadoFormulario("btnModificarJ");
+  evaluarEstadoFormularioParcial("btnModificarJ");
 
   return true;
 }

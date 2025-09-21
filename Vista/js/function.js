@@ -466,7 +466,7 @@ function mostrarErrorCaptura(mensaje) {
  * @param {string} mensaje - Mensaje específico sobre los datos faltantes
  * @param {Function} callback - Función a ejecutar al confirmar (opcional)
  */
-function mostrarFaltaDatos(mensaje, callback) {
+function mostrarFaltaDatos(mensaje, callback) { 
   // Crear el contenido del modal
   let modalHTML = `
     <div class="modal fade" id="faltaDatosModal" tabindex="-1" aria-labelledby="faltaDatosModalLabel" >
