@@ -308,8 +308,8 @@ public function CambiarEstadoParcial($datos)
         }
 
         // 2) Lógica normal: usar tu SP (compatible con cómo llamas Oferta)
-        $sp = $c->prepare("CALL spModificarEstadoParcial(:pclave, :pestado, @mensaje)");
-        $sp->bindParam(':pclave',  $id,     PDO::PARAM_INT);
+        $sp = $c->prepare("CALL spModificarEstadoParcial(:pidParcial, :pestado, @mensaje)");
+        $sp->bindParam(':pidParcial',  $id,     PDO::PARAM_INT);
         $sp->bindParam(':pestado', $estado, PDO::PARAM_STR);
         $sp->execute();
         while ($sp->nextRowset()) {}
@@ -351,9 +351,9 @@ public function CambiarEstadoParcial($datos)
 private function obtenerEstadoPeriodoDeParcial(int $idParcial): ?string
 {
     $sql = "SELECT per.estado
-              FROM Parcial p
-              JOIN Periodo per ON per.id_periodo = p.id_periodo
-             WHERE p.id_parcial = :id
+              FROM parcial p
+              JOIN periodo per ON per.idPeriodo = p.idPeriodo
+             WHERE p.idParcial = :id
              LIMIT 1";
     $st = $this->conector->prepare($sql);
     $st->execute([':id' => $idParcial]);

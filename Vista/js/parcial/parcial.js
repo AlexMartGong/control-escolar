@@ -525,89 +525,134 @@ function validarFormularioModificacion() {
 // Función para cambiar el estado de un parcial con confirmación modal
 // Esta función se llama desde el onchange del select de estado
 function changeStatusParcial(id, status, currentStatus) {
-  if (!status || status === "Cambiar estado") return;
+  // Si no hay un estado seleccionado (opción por defecto), no hacer nada
+  if (!status || status === "Cambiar estado") {
+    return;
+  }
 
-  // Normaliza a lo que acepta el backend
-  const mapa = { abierto:"Abierto", activo:"Abierto", pendiente:"Pendiente", cerrado:"Cerrado", cancelado:"Cancelado" };
-  status = mapa[String(status).toLowerCase()] || status;
+  // Crear el contenido del modal de confirmación
+  let modalHTML = `
+    <div class="modal fade" id="confirmStatusModal" tabindex="-1" aria-labelledby="confirmStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="confirmStatusModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar cambio de estado
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-sync-alt text-warning fa-4x"></i>
+                    </div>
+                    <p class="text-center">¿Está seguro de cambiar el estado de parcial con el ID <strong>${id}</strong> a <strong>${status}</strong>?</p>
+                    <p class="text-center text-danger">Esta acción puede afectar a los procesos académicos en curso.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCancelar">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmar">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
 
-  const modalHTML = `
-  <div class="modal fade" id="confirmStatusModal" tabindex="-1" aria-labelledby="confirmStatusModalLabel" aria-hidden="true">
-    <div class="modal-dialog"><div class="modal-content">
-      <div class="modal-header bg-warning text-dark">
-        <h5 class="modal-title" id="confirmStatusModalLabel">
-          <i class="fas fa-exclamation-triangle me-2"></i>Confirmar cambio de estado
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="text-center mb-3"><i class="fas fa-sync-alt text-warning fa-4x"></i></div>
-        <p class="text-center">¿Está seguro de cambiar el estado de parcial con el ID <strong>${id}</strong> a <strong>${status}</strong>?</p>
-        <p class="text-center text-danger">Esta acción puede afectar a los procesos académicos en curso.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCancelar">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="btnConfirmar">Confirmar</button>
-      </div>
-    </div></div>
-  </div>`;
+  // Remover modal anterior si existe
+  let modalAnterior = document.getElementById("confirmStatusModal");
+  if (modalAnterior) {
+    modalAnterior.remove();
+  }
 
-  document.getElementById("confirmStatusModal")?.remove();
+  // Agregar el modal al documento
   document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-  const modalElement = document.getElementById("confirmStatusModal");
-  const modal = new bootstrap.Modal(modalElement);
-  let confirmed = false; // declara ANTES de listeners
+  // Mostrar el modal
+  let modalElement = document.getElementById("confirmStatusModal");
+  let modal = new bootstrap.Modal(modalElement);
+  modal.show();
 
-  const findSelect = () =>
-    document.querySelector(`select[onchange="changeStatusParcial('${id}', this.value, '${currentStatus}')"]`);
-
-  document.getElementById("btnCancelar").addEventListener("click", () => {
-    const sel = findSelect(); if (sel) sel.value = currentStatus;
-  });
-
-  modalElement.addEventListener("hidden.bs.modal", () => {
-    if (!confirmed) {
-      const sel = findSelect(); if (sel) sel.value = currentStatus;
+  // Configurar acción para el botón cancelar
+  document.getElementById("btnCancelar").addEventListener("click", function () {
+    // Resetear el select al cancelar
+    const selectElement = document.querySelector(
+      `select[onchange="changeStatusParcial('${id}', this.value, '${currentStatus}')"]`
+    );
+    if (selectElement) {
+      selectElement.value = currentStatus;
     }
-    modalElement.remove();
   });
 
-  document.getElementById("btnConfirmar").addEventListener("click", () => {
+  // También resetear al cerrar el modal con la X o haciendo clic fuera
+  modalElement.addEventListener("hidden.bs.modal", function () {
+  // Solo revertir si NO se confirmó
+  if (!confirmed) {
+    const selectElement = document.querySelector(
+      `select[onchange="changeStatusParcial('${id}', this.value, '${currentStatus}')"]`
+    );
+    if (selectElement) selectElement.value = currentStatus;
+  }
+  modalElement.remove();
+});
+
+  // Configurar acción para el botón confirmar
+    let confirmed = false;
+
+    document.getElementById("btnConfirmar").addEventListener("click", function () {
     confirmed = true;
     modal.hide();
 
-    $.ajax({
-      url: "../../Controlador/Intermediarios/Parcial/CambiarEstadoParcial.php",
-      type: "POST",
-      data: JSON.stringify({ id, status }),
-      contentType: "application/json",
-      timeout: 10000,
-      success: function (resp) {
-        try { if (typeof resp === "string") resp = JSON.parse(resp); } catch (e) {
-          (window.mostrarErrorCaptura || alert)("Respuesta no válida del servidor.");
-          const sel = findSelect(); if (sel) sel.value = currentStatus;
-          return;
-        }
-        if (resp && resp.estado === "OK") {
-          (window.mostrarDatosGuardados || alert)(
-            `El estado de parcial ${id} ha sido cambiado a "${status}".`,
-            () => option("parcial","")
-          );
-        } else {
-          (window.mostrarErrorCaptura || alert)(resp?.mensaje || "Error al cambiar el estado del parcial.");
-          const sel = findSelect(); if (sel) sel.value = currentStatus;
-        }
-      },
-      error: function (xhr, s, err) {
-        (window.mostrarErrorCaptura || alert)(`Error al cambiar el estado: ${s} - ${err}`);
-        const sel = findSelect(); if (sel) sel.value = currentStatus;
-      }
-    });
-  });
+      //En caso de que el estado no haya cambiado a cerrado o cancelado, el b
 
-  modal.show();
+      // Preparar datos para enviar
+      let data = {
+        id: id,
+        status: status,
+      };
+
+      // Convertir a JSON
+      let json = JSON.stringify(data);
+      //Muestra un mensaje de espera simulando el cambio de estado exitoso
+      /*mostrarDatosGuardados(
+        `El estado de  parcial ${id} ha sido cambiado a "${status}" correctamente.`,
+        function () {
+          option("parcial", "");
+        }
+      ); // Mensaje de espera
+      */
+      
+
+      // Realizar petición AJAX para cambiar el estado 
+      $.ajax({
+        url: "../../Controlador/Intermediarios/Parcial/CambiarEstadoParcial.php",
+        type: "POST",
+        data: JSON.stringify({ id, status }),
+        contentType: "application/json",
+        dataType: "json",
+        processData: false,
+        timeout: 10000,
+        success: function (response) {
+  try {
+    if (response?.estado === "OK") {
+      mostrarDatosGuardados(
+        `El estado de parcial ${id} ha sido cambiado a "${status}" correctamente.`,
+        () => option("parcial", "")
+      );
+    } else {
+      mostrarErrorCaptura(response?.mensaje || "Error al cambiar el estado.");
+    }
+  } catch (e) {
+    mostrarErrorCaptura("Error procesando la respuesta: " + e.message);
+  }
+},
+
+        error: function (xhr, status, error) {
+          mostrarErrorCaptura(
+            `Error al cambiar el estado: ${status} - ${error}`
+          );
+        },
+      });
+    }); 
 }
+
 
 
 

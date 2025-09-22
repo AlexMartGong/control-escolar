@@ -1,70 +1,91 @@
 <?php
-require '../../../Modelo/BD/ConexionBD.php';
-require '../../../Modelo/BD/ModeloBD.php';
+// Archivo intermediario que recibe una solicitud del cliente para cambiar el estado de una parcial,
+// procesa los datos y llama al método del modelo que realiza la actualización en la base de datos.
 
-header('Content-Type: application/json');
+// Importación de archivos necesarios para la conexión y la lógica de base de datos.
+require '../../../Modelo/BD/ConexionBD.php';         // Manejo de la conexión a la base de datos.
+require '../../../Modelo/BD/ModeloBD.php';          // Configuración de la base de datos.
+require '../../../Modelo/DAOs/ParcialDAO.php';     // Contiene la lógica para cambiar el estado de unparcial.
+
+header('Content-Type: application/json; charset=utf-8');
+
+// Decodificación robusta del JSON
+$raw = file_get_contents("php://input");
+if ($raw === false || $raw === '') {
+    echo json_encode(['estado' => 'Error', 'mensaje' => 'Solicitud vacía.']);
+    exit;
+}
+
+$datos = json_decode($raw);
+if ($datos === null && json_last_error() !== JSON_ERROR_NONE) {
+    error_log("JSON inválido: " . json_last_error_msg() . " | RAW: " . $raw);
+    echo json_encode(['estado' => 'Error', 'mensaje' => 'JSON inválido en la solicitud.']);
+    exit;
+}
+
+// Validaciones mínimas y mapeo seguro
+$id = isset($datos->id) ? $datos->id : null;
+if ($id === null || !is_numeric($id)) {
+    echo json_encode(['estado' => 'Error', 'mensaje' => 'Falta o es inválido el id.']);
+    exit;
+}
+
+$validos = ['Abierto', 'Cerrado', 'Cancelado', 'Pendiente'];
+$status  = isset($datos->status) ? (string)$datos->status : 'Pendiente';
+$pestado = in_array($status, $validos, true) ? $status : 'Pendiente';
+
+// Objeto limpio para el DAO
+$payload = (object)[
+    'pclave'  => (int)$id,
+    'pestado' => $pestado
+];
+
+// Respuesta por defecto
+$resultado = ['estado' => 'Error'];
+
+
+// Instanciamos la clase de conexión a la base de datos y el DAO de Parcial.
+$c = new ConexionBD($DatosBD);  // Se pasa la configuración de la base de datos.
+$conexion = $c->Conectar();     // Establecemos la conexión con la base de datos.
+$objDaoParcial = new ParcialDAO($conexion);  // Instanciamos el DAO de Parcial para acceder a los métodos relacionados.
 
 try {
-    // 1) Lee JSON o form-data
-    $raw = file_get_contents('php://input');
-    $in  = json_decode($raw ?: "{}", true);
-    if (!is_array($in)) $in = [];
-    $id     = isset($in['id']) ? (int)$in['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : 0);
-    $status = isset($in['status']) ? (string)$in['status'] : (isset($_POST['status']) ? (string)$_POST['status'] : '');
+    // Log para indicar que estamos procesando los parámetros de la solicitud.
+    error_log("Comprobando parámetros de la solicitud...");
 
-    if ($id <= 0) {
-        echo json_encode(['estado'=>'Error','mensaje'=>'ID de parcial inválido.']); exit;
+    if (isset($payload)) {
+        // Verificamos si los datos están completos. Si es así, pasamos a cambiar el estado del parcial.
+        error_log("CambiarEstadoParcial payload => id={$payload->pclave}, estado={$payload->pestado}");
+        $resultado = $objDaoParcial->CambiarEstadoParcial($payload);  // Llamamos al método del DAO para cambiar el estado del parcial.
+
+        // Dependiendo del resultado de la operación, se ajusta la respuesta.
+        if ($resultado['estado'] == "OK") {
+            // Si la operación fue exitosa, preparamos la respuesta para el usuario y registramos el éxito.
+            $resultado = [
+                'estado' => 'OK',  // Indicamos que la operación fue exitosa.
+                'mensaje' => $resultado['mensaje']  // Mensaje del DAO con el resultado de la operación.
+            ];
+            error_log("Estado actualizado correctamente para el parcial con ID: " . $payload->pclave);  // Registro en el log de éxito.
+        } else {
+            // Si ocurrió un error al cambiar el estado de la parcial, preparamos la respuesta de error.
+            $resultado = [
+                'estado' => 'Error',  // Indicamos que hubo un error en la operación.
+                'mensaje' => $resultado['mensaje']  // Mensaje de error proporcionado por el DAO.
+            ];
+            error_log("Error al cambiar el estado del parcial con ID: " . $payload->pclave);  // Registro en el log de error.
+        }
+    } else {
+        // Si no se recibieron los datos o los datos están incompletos, respondemos con un mensaje adecuado.
+        $resultado = ['mensaje' => "No pudimos completar la acción en este momento. Intente de nuevo en unos minutos."];  // Respuesta para el cliente.
+        error_log("Datos incompletos para cambiar estado del parcial. Datos recibidos: " . $payload);  // Log para indicar falta de datos.
     }
-
-    // 2) Normaliza estados a lo que acepta el SP
-    $mapa = [
-        'abierto'   => 'Abierto',
-        'activo'    => 'Abierto',
-        'pendiente' => 'Pendiente',
-        'cerrado'   => 'Cerrado',
-        'cancelado' => 'Cancelado',
-    ];
-    $estado = $mapa[strtolower(trim($status))] ?? 'Pendiente';
-
-    // 3) Conexión PDO
-    $c = new ConexionBD($DatosBD);
-    $pdo = $c->Conectar();
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    // 4) Prepara la variable OUT y llama el SP EXACTO:
-    //    spModificarEstadoParcial(IN pidParcial, IN pestado, OUT mensaje)
-    $pdo->exec("SET @mensaje := ''");
-
-    $stmt = $pdo->prepare("CALL spModificarEstadoParcial(:pid, :pestado, @mensaje)");
-    $stmt->bindValue(':pid', $id, PDO::PARAM_INT);
-    $stmt->bindValue(':pestado', $estado, PDO::PARAM_STR);
-    $stmt->execute();
-
-    // drenar cualquier resultset para evitar "commands out of sync"
-    do { $stmt->fetchAll(); } while ($stmt->nextRowset());
-    $stmt->closeCursor();
-
-    // 5) Lee el OUT
-    $row = $pdo->query("SELECT @mensaje AS mensaje")->fetch(PDO::FETCH_ASSOC);
-    $msg = $row && isset($row['mensaje']) ? (string)$row['mensaje'] : '';
-
-    // 6) Interpreta la respuesta del SP
-    $ml = mb_strtolower($msg, 'UTF-8');
-
-    if (strpos($ml, 'estado: exito') !== false || strpos($ml, 'estado: éxito') !== false) {
-        echo json_encode(['estado'=>'OK','mensaje'=>$msg !== '' ? $msg : 'Estado actualizado.']); exit;
-    }
-    if (strpos($ml, 'estado: sin cambios') !== false) {
-        echo json_encode(['estado'=>'OK','mensaje'=>$msg !== '' ? $msg : 'Estado: Sin cambios']); exit;
-    }
-    if (strpos($ml, 'error:') !== false) {
-        echo json_encode(['estado'=>'Error','mensaje'=>$msg]); exit;
-    }
-
-    // fallback si el SP no devolvió nada claro
-    echo json_encode(['estado'=>'Error','mensaje'=> ($msg !== '' ? $msg : 'Error al cambiar el estado del parcial')]);
-
-} catch (Throwable $e) {
-    // Devuelve el error real para depurar; si no quieres mostrarlo, cámbialo por un genérico
-    echo json_encode(['estado'=>'Error','mensaje'=>'Error al realizar la operación: '.$e->getMessage()]);
+} catch (PDOException $e) {
+   } catch (PDOException $e) {
+    error_log("PDOException: " . $e->getMessage());
+    // DEV: muestra más detalle por ahora
+    $resultado['mensaje'] = "DB: " . $e->getMessage();
 }
+
+// Enviamos la respuesta al cliente en formato JSON, para que pueda procesarla adecuadamente.
+echo json_encode($resultado);  // Devuelve el resultado final (estado y mensaje) en formato JSON.
+?>
