@@ -73,10 +73,10 @@ $res = $objPaDAO->MostrarParcial();
                                 onchange="changeStatusParcial('1', this.value);" 
                               >
                                 <option disabled>Cambiar estado</option>
-                                <option value="pendiente">pendiente</option>
-                                <option value="Activo">Abierto</option>
-                                <option value="cerrado">Cerrado</option>
-                                <option selected value="cancelado">Cancelado</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Abierto">Abierto</option>
+                                <option value="Cerrado">Cerrado</option>
+                                <option selected value="Cancelado">Cancelado</option>
                             </select>
                         </label>
                     </div>
