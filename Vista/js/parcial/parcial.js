@@ -121,10 +121,9 @@ function validarFormularioParcial(opc) {
         );
         btnGuardarJ.disabled = true; // Deshabilitar el botón para evitar múltiples acciones
       } else {
-        // Si todo está bien, se puede proceder a enviar el formulario
-        btnGuardarJ.disabled = true; // Deshabilitar el botón para evitar múltiples envíos
+        // Deshabilitar el botón para evitar múltiples envíos
         //logica para guardar el parcial
-        guardarParcial().finally(() => { btnGuardarJ.disabled = false; });      }
+        guardarParcial().finally(() => { btnGuardarJ.disabled = true; });      }
       break;
     case "modificar":
       // Usar la validación específica para modificación
@@ -175,15 +174,9 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
   // Validaciones por tipo de campo
   switch (idetiqueta) {
     case "nombre_parcial":
-      const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
+ 
       if (estaVacio) {
         mostrarErrorparcial(input, "Este campo no puede estar vacío.", cont);
-        input.classList.add("entrada-error");
-        iconerror.classList.add("is-invalid");
-        return evaluarEstadoFormularioParcial(idbtn);
-      }
-      if (!soloLetras.test(valor)) {
-        mostrarErrorparcial(input, "No se permiten caracteres especiales.", cont);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioParcial(idbtn);
