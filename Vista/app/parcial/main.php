@@ -70,13 +70,13 @@ $res = $objPaDAO->MostrarParcial();
                         <label>
                             <select class="form-select form-select-sm btn-warning" 
                                 style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="changeStatusParcial('1', this.value);" 
+                                onchange="changeStatusParcial('<?= $fila['clave_parcial'] ?>', this.value, '<?= $fila['estado'] ?>');" 
                               >
                                 <option disabled>Cambiar estado</option>
-                                <option value="pendiente">pendiente</option>
-                                <option value="Activo">Abierto</option>
-                                <option value="cerrado">Cerrado</option>
-                                <option selected value="cancelado">Cancelado</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Abierto">Abierto</option>
+                                <option value="Cerrado">Cerrado</option>
+                                <option selected value="Cancelado">Cancelado</option>
                             </select>
                         </label>
                     </div>

@@ -103,18 +103,22 @@
 
 
                         <script>
-                            // Evento que escucha cambios en el select
-                            document.getElementById("periodo_Id").addEventListener("change", function() {
-                                const id = document.getElementById("idperiodo").value = this.value;
-                                const contenedor = idperiodo.closest("." + 'mb-3');
-                                const errorInvalid = contenedor.querySelector(".entrada-error");
-                                if (errorInvalid) {
-                                    idperiodo.classList.remove("entrada-error");
-                                }
+                            document.getElementById("periodo_Id").addEventListener("change", function () {
+                            const inputId = document.getElementById("idperiodo");
+                            inputId.value = this.value; // ← copiar el id
 
+                            // limpiar posible error visual en el input
+                            const contenedor = inputId.closest(".mb-3");
+                            const errorInvalid = contenedor?.querySelector(".entrada-error");
+                            if (errorInvalid) inputId.classList.remove("entrada-error");
 
-                            });
+                            // si quieres que #periodoInfo muestre el id seleccionado:
+                            const info = document.getElementById("periodoInfo");
+                            const opt = this.options[this.selectedIndex];
+                            info.textContent = this.value; // o, si prefieres, `${this.value} — ${opt?.dataset.estado || ""}`
+                        });
                         </script>
+
 
 
 
