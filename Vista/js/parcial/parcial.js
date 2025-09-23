@@ -111,7 +111,7 @@ function validarFormularioParcial(opc) {
         mostrarErrorCaptura(
           "Error: El periodo seleccionado ya tiene el máximo de 4 parciales."
         );
-        btnGuardarJ.disabled = true; // Deshabilitar el botón para evitar múltiples acciones
+        //btnGuardarJ.disabled = true; // Deshabilitar el botón para evitar múltiples acciones
       }
 
       //verificar que el periodo seleccionado no este cerrado o cancelado
@@ -119,10 +119,8 @@ function validarFormularioParcial(opc) {
         mostrarErrorCaptura(
           "Error: El periodo seleccionado está cerrado o cancelado."
         );
-        btnGuardarJ.disabled = true; // Deshabilitar el botón para evitar múltiples acciones
+        //btnGuardarJ.disabled = true; // Deshabilitar el botón para evitar múltiples acciones
       } else {
-        // Deshabilitar el botón para evitar múltiples envíos
-        //logica para guardar el parcial
         guardarParcial().finally(() => { btnGuardarJ.disabled = true; });      }
       break;
     case "modificar":
@@ -778,7 +776,8 @@ function estadoPeriodoActual() {
  * - Valida número máximo de parciales (≤ 4).
  * - Configura inputs de fechas y botón Guardar según reglas.
  * - Guarda contexto en ParcialCtx.
- */async function onPeriodoChange() {
+ */
+async function onPeriodoChange() {
   const sel = document.getElementById('periodo_Id');
   const idPeriodo = Number(sel?.value) || 0;
   if (!idPeriodo) return;
@@ -819,23 +818,12 @@ if (el) el.value = idPeriodo;
       return;
     } else {
       btn && (btn.disabled = false);
-      if (ini) ini.disabled = !ctx.reglas.inicioEditable;
-      if (fin) fin.disabled = !ctx.reglas.terminoEditable;
+      if (ini) ini.disabled = false;
+      if (fin) fin.disabled = false;
+
     }
 
-    // Reglas y sugerencias
-    if (ini) {
-      ini.min = ctx.reglas.minInicio;
-      ini.max = ctx.reglas.maxTermino;
-      ini.value = ctx.sugerencias.inicio;
-    }
-    if (fin) {
-      fin.min = ctx.reglas.minTermino;
-      fin.max = ctx.reglas.maxTermino;
-      fin.value = ctx.sugerencias.termino;
-      if (ini?.value) fin.min = ini.value; // asegura fin >= inicio
-    }
-    if (info) info.textContent = `Parciales: ${ctx.parcialesRegistrados}/4 • ${ctx.periodo.inicio} → ${ctx.periodo.fin}`;
+    if (info) info.textContent = `${ctx.periodo.inicio} → ${ctx.periodo.fin}`;
 
   } catch (e) {
     console.error(e);
@@ -849,7 +837,8 @@ if (el) el.value = idPeriodo;
  * - dentro de los límites del periodo
  * - sin traslapes con parciales existentes
  * @returns {boolean} true si son válidas, false en caso contrario.
- */function validarFechas() {
+ */
+function validarFechas() {
   const iniEl = document.getElementById('fechaInicio');
   const finEl = document.getElementById('fechaFin');
   if (!iniEl || !finEl) return true;
@@ -871,7 +860,7 @@ if (el) el.value = idPeriodo;
     (window.mostrarErrorCaptura || alert)(`Término debe ser ≤ ${finEl.max}`);
     return false;
   }
-
+  //Valida que la fecha de inicio y final esten dentro del rango de fechas de periodo
   if (ParcialCtx.periodo) {
     const pIni = ParcialCtx.periodo.inicio;
     const pFin = ParcialCtx.periodo.fin;
@@ -884,7 +873,7 @@ if (el) el.value = idPeriodo;
       return false;
     }
   }
-
+  //Valida que la fecha  de inicio y final de un nuevo parcial no caigan en el rango de otro parcial
   if (ini && fin && Array.isArray(ParcialCtx.parciales) && ParcialCtx.parciales.length) {
     for (const p of ParcialCtx.parciales) {
       const eIni = _fi(p), eFin = _ft(p);
@@ -898,8 +887,51 @@ if (el) el.value = idPeriodo;
     }
   }
 
+  //Validar que la fecha inicio de un parcial no sea menor a la fecha fin del ultimo parcial agregado
+  if (ini && ParcialCtx.parciales.length) {
+  const ultimo = ParcialCtx.parciales[ParcialCtx.parciales.length - 1];
+  const finUltimo = _ft(ultimo);
+
+  if (finUltimo && ini < finUltimo) {
+    (window.mostrarErrorCaptura || alert)(
+      `La fecha de inicio (${ini}) no puede ser menor que la fecha de término del último parcial (${finUltimo}).`
+    );
+    return false;
+  }
+}
+
+
   return true;
 }
+
+/*
+*Funcion para validar la secuncia de guardado y que tenga coherencia
+*/
+function validarSecuenciaParcial(nombreParcial) {
+  const count = ParcialCtx.parciales.length;
+
+  if (nombreParcial === "Segundo" && count < 1) {
+    (window.mostrarErrorCaptura || alert)(
+      "No puede registrar el Segundo Parcial si no existe el Primero."
+    );
+    return false;
+  }
+  if (nombreParcial === "Tercero" && count < 2) {
+    (window.mostrarErrorCaptura || alert)(
+      "No puede registrar el Tercer Parcial si no existe el Segundo."
+    );
+    return false;
+  }
+  if (nombreParcial === "Final" && count < 3) {
+    (window.mostrarErrorCaptura || alert)(
+      "No puede registrar el Parcial Final si no existen los anteriores."
+    );
+    return false;
+  }
+
+  return true;
+}
+
 
 /* ===== Listeners delegados (dejar al final del archivo) ===== */
 $(document).on('change', '#periodo_Id', onPeriodoChange);
@@ -909,12 +941,12 @@ $(document).on('change', '#periodo_Id', onPeriodoChange);
  * Verifica que la duración del parcial sea al menos 35 días.
  * @returns {boolean} true si cumple, false y muestra error si no.
  */
-function validar35ParaGuardar() {
+function validar15ParaGuardar() {
   const ini = document.getElementById('fechaInicio')?.value || '';
   const fin = document.getElementById('fechaFin')?.value || '';
   if (!ini || !fin) return (window.mostrarErrorCaptura || alert)('Seleccione ambas fechas.'), false;
-  if (_diffDays(ini, fin) < 35) {
-    (window.mostrarErrorCaptura || alert)('La duración mínima del parcial es de 35 días.');
+  if (_diffDays(ini, fin) < 15) {
+    (window.mostrarErrorCaptura || alert)('La duración mínima del parcial es de 15 días.');
     return false;
   }
   return true;
@@ -922,13 +954,16 @@ function validar35ParaGuardar() {
 
 /**
  * Envía los datos del nuevo parcial al backend para guardarlo.
- * - Previo valida fechas (mínimo 35 días).
+ * - Previo valida rango de fechas (mínimo 15 días).
+ * - Previo valida  fechas en general.
  * - Deshabilita el botón mientras guarda.
  * - Muestra mensaje según respuesta del servidor.
  */
 async function guardarParcial() {
-  
-  if (!validar35ParaGuardar()) return;
+  const nombre = document.getElementById('nombre_parcial').value.trim();
+  if (!validarSecuenciaParcial(nombre)) return;
+  if (!validarFechas()) return;
+  if (!validar15ParaGuardar()) return;
 
   const btn = document.getElementById('btnGuardarJ');
   btn && (btn.disabled = true);
@@ -951,8 +986,7 @@ async function guardarParcial() {
 
     if (j.estado === 'OK') {
       (window.toastOk || window.mostrarDatosGuardados || alert)(j.mensaje || 'Parcial guardado.');
-      // opcional: regresar al main
-      // option('parcial','');
+      resetFormularioParcial();
       return;
     }
     (window.mostrarErrorCaptura || alert)(j.mensaje || 'No se pudo guardar.');
@@ -963,55 +997,60 @@ async function guardarParcial() {
   }
 }
 
-// Guarda el valor previo al entrar
-$(document).on('focusin', '#fechaInicio, #fechaFin', function () {
-  this.dataset.prev = this.value || '';
+function resetFormularioParcial() {
+  const sel = document.getElementById('nombre_parcial');
+  const ini = document.getElementById('fechaInicio');
+  const fin = document.getElementById('fechaFin');
+
+  if (sel) {
+    sel.selectedIndex = 0;
+    sel.dispatchEvent(new Event('input',  { bubbles: true }));
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  if (ini) {
+    ini.value = '';
+    ini.removeAttribute('min');
+    ini.removeAttribute('max');
+    ini.classList.remove('is-invalid', 'entrada-error');
+  }
+  if (fin) {
+    fin.value = '';
+    fin.removeAttribute('min');
+    fin.removeAttribute('max');
+    fin.classList.remove('is-invalid', 'entrada-error');
+  }
+
+  document.querySelectorAll('.errorscaracter').forEach(n => n.remove());
+
+  if (typeof evaluarEstadoFormularioParcial === 'function') {
+    evaluarEstadoFormularioParcial('btnGuardarJ');
+  }
+
+  sel?.focus();
+}
+
+
+// Cuando el usuario selecciona fechaInicio, autocompleta fechaFin +15 días
+document.addEventListener("change", function(e) {
+  if (e.target && e.target.id === "fechaInicio") {
+    const iniEl = document.getElementById("fechaInicio");
+    const finEl = document.getElementById("fechaFin");
+    if (!iniEl || !finEl) return;
+
+    const ini = iniEl.value;
+    if (!ini) return;
+
+    const fecha = new Date(ini);
+    fecha.setDate(fecha.getDate() + 16);
+    const yyyy = fecha.getFullYear();
+    const mm = String(fecha.getMonth() + 1).padStart(2, "0");
+    const dd = String(fecha.getDate()).padStart(2, "0");
+
+    finEl.value = `${yyyy}-${mm}-${dd}`;
+    finEl.min = ini;
+  }
 });
 
-// Valida 3 reglas en vivo; si falla, modal y revert
-$(document).on('change', '#fechaInicio, #fechaFin', function (e) {
-  const iniEl = document.getElementById('fechaInicio');
-  const finEl = document.getElementById('fechaFin');
-  if (!iniEl || !finEl) return;
-
-  const ini = iniEl.value;
-  const fin = finEl.value;
-  const changed = e.target;
-  let msg = null;
-
-  // 1) fin < inicio
-  if (!msg && ini && fin && ini > fin) {
-    msg = 'La fecha de término no puede ser menor a la de inicio.';
-  }
-  // 2) inicio cae dentro de otro parcial (solo si cambió inicio)
-  if (!msg && changed.id === 'fechaInicio' && ini && Array.isArray(window.ParcialCtx?.parciales)) {
-    for (const p of window.ParcialCtx.parciales) {
-      const eIni = _fi(p), eFin = _ft(p);
-      if (!eIni || !eFin) continue;
-      const dentro = _parseDate(eIni) <= _parseDate(ini) && _parseDate(ini) <= _parseDate(eFin);
-      if (dentro) { msg = `La fecha de inicio no puede caer dentro de otro parcial (${eIni} → ${eFin}).`; break; }
-    }
-  }
-  // 3) rango exactamente igual a otro parcial
-  if (!msg && ini && fin && Array.isArray(window.ParcialCtx?.parciales)) {
-    for (const p of window.ParcialCtx.parciales) {
-      const eIni = _fi(p), eFin = _ft(p);
-      if (eIni === ini && eFin === fin) { msg = 'Ya existe un parcial con exactamente esas fechas.'; break; }
-    }
-  }
-
-  if (msg) {
-    const prev = changed.dataset.prev || '';
-    (window.mostrarErrorCaptura || alert)(msg);
-    changed.value = prev;                       // ← revert
-    if (changed.id === 'fechaInicio' && finEl) // coherencia del min
-      finEl.min = prev || finEl.min;
-    return; // ¡no actualices dataset.prev en error!
-  }
-
-  // válido: ajusta min de fin si cambió inicio y guarda el nuevo prev
-  if (changed.id === 'fechaInicio' && ini) finEl.min = ini;
-  changed.dataset.prev = changed.value || '';
-});
 
 
