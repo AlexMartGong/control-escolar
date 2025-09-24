@@ -144,28 +144,16 @@ public function AgregarParcial(object $datos): array
 
 
     public function obtenerPeriodosDisponibles(): array {
-        // 1) Llamar al SP con OUT param
-        //    Usamos variable de sesión @mensaje para luego leerla.
         $this->conector->query("SET @mensaje := NULL");
-
-        // Llama el SP: éste puede devolver filas (primer result set)
         $stmt = $this->conector->query("CALL spMostrarPeriodosDisponibles(@mensaje)");
-
-        // 2) Si hubo filas, las leemos
         $filas = [];
         if ($stmt) {
-            $filas = $stmt->fetchAll(); // puede ser [] si no hubo result set
-            // Importante: consumir cualquier result set pendiente
-            while ($stmt->nextRowset()) { /* vaciar */ }
+            $filas = $stmt->fetchAll(); 
+            while ($stmt->nextRowset()) {}
             $stmt->closeCursor();
         }
-
-        // 3) Leemos el OUT
         $rowMsg = $this->conector->query("SELECT @mensaje AS mensaje")->fetch();
         $mensajeSP = $rowMsg['mensaje'] ?? null;
-
-        // 4) Normalizamos la respuesta para el front
-        //    El SP setea 'Estado: Exito' o 'Estado: No se encontraron registros'
         $okExito = is_string($mensajeSP) && stripos($mensajeSP, 'Exito') !== false;
         $okVacio = is_string($mensajeSP) && stripos($mensajeSP, 'No se encontraron') !== false;
 
@@ -185,7 +173,6 @@ public function AgregarParcial(object $datos): array
             ];
         }
 
-        // Si llega aquí, trátalo como error de negocio
         return [
             'estado'  => 'Error',
             'datos'   => [],
@@ -224,21 +211,19 @@ public function ContextoParcial(int $idPeriodo): array {
     $parciales = $this->ListarParcialesPorPeriodo($idPeriodo);
     $n = count($parciales);
 
-    $iniPeriodo = $rango['inicio']; // YYYY-MM-DD
+    $iniPeriodo = $rango['inicio'];
     $finPeriodo = $rango['fin'];
 
-    // último fin (o null)
     $ultimoFin = null;
     foreach ($parciales as $p) {
         if (!$ultimoFin || $p['fechaTermino'] > $ultimoFin) $ultimoFin = $p['fechaTermino'];
     }
 
-    // reglas base
     $inicioEditable = true;
     $terminoEditable = true;
 
     if ($n === 0) {
-        $inicioEditable = false;             // bloqueado
+        $inicioEditable = false;
         $inicioSug = $iniPeriodo;
         $terminoSug = min(
             date('Y-m-d', strtotime("$inicioSug +35 days")),
@@ -283,7 +268,7 @@ public function CambiarEstadoParcial($datos)
     $resultado = ['estado' => 'Error', 'mensaje' => 'Error al cambiar el estado del parcial'];
 
     try {
-        $c = $this->conector; // ← tu PDO en esta clase
+        $c = $this->conector;
 
         // Validaciones básicas
         $id = isset($datos->pclave) ? (int)$datos->pclave : 0;
@@ -295,19 +280,14 @@ public function CambiarEstadoParcial($datos)
             $resultado['mensaje'] = 'Estado no permitido.'; return $resultado;
         }
 
-        // 1) Regla de negocio: si el periodo del parcial está Cerrado/Cancelado → forzar
-        $estadoPeriodo = $this->obtenerEstadoPeriodoDeParcial($id);
-        if ($estadoPeriodo && in_array($estadoPeriodo, ['Cerrado','Cancelado'], true)) {
-            // Forzamos el estado del parcial al del periodo; NO permitir otro
-            $upd = $c->prepare("UPDATE Parcial SET estado = :estado WHERE id_parcial = :id");
-            $ok  = $upd->execute([':estado' => $estadoPeriodo, ':id' => $id]);
-            if ($ok) {
-                return ['estado'=>'OK','mensaje'=>"Periodo {$estadoPeriodo}. Parcial forzado a \"{$estadoPeriodo}\"."];
+            $estadoPeriodo = $this->obtenerEstadoPeriodoDeParcial($id);
+            if ($estadoPeriodo && in_array($estadoPeriodo, ['Cerrado','Cancelado'], true)) {
+                return [
+                    'estado'  => 'Error',
+                    'mensaje' => "El periodo está {$estadoPeriodo}, no es posible modificar el parcial."
+                ];
             }
-            return ['estado'=>'Error','mensaje'=>'No fue posible forzar el estado por periodo.'];
-        }
 
-        // 2) Lógica normal: usar tu SP (compatible con cómo llamas Oferta)
         $sp = $c->prepare("CALL spModificarEstadoParcial(:pidParcial, :pestado, @mensaje)");
         $sp->bindParam(':pidParcial',  $id,     PDO::PARAM_INT);
         $sp->bindParam(':pestado', $estado, PDO::PARAM_STR);
@@ -315,24 +295,19 @@ public function CambiarEstadoParcial($datos)
         while ($sp->nextRowset()) {}
         $sp->closeCursor();
 
-        // Leer mensaje del SP
         $row = $c->query("SELECT @mensaje AS msg")->fetch(PDO::FETCH_ASSOC);
         $msg = isset($row['msg']) ? (string)$row['msg'] : '';
 
-        // Normaliza y decide
         $ml = mb_strtolower($msg, 'UTF-8');
 
-        // éxito tolerante: “exito/éxito/ok/actualizad…”
         if (preg_match('/(exito|éxito|ok|actualizad)/u', $ml)) {
             return ['estado'=>'OK','mensaje'=> ($msg !== '' ? $msg : 'Estado actualizado.')];
         }
 
-        // si el SP ya te está bloqueando por periodo cerrado/cancelado
         if (preg_match('/periodo.*(cerrad|cancelad)/u', $ml)) {
             return ['estado'=>'Error','mensaje'=> ($msg !== '' ? $msg : 'El periodo está cerrado o cancelado.')];
         }
 
-        // default: propaga mensaje del SP si vino, para depurar
         return ['estado'=>'Error','mensaje'=> ($msg !== '' ? $msg : 'No fue posible actualizar el estado.')];
 
     } catch (PDOException $e) {
@@ -345,7 +320,7 @@ public function CambiarEstadoParcial($datos)
 }
 
 /**
- * Regresa el estado del periodo al que pertenece el parcial (o null).
+ * Regresa el estado del periodo al que pertenece el parcial.
  * Ajusta nombres de tabla/campo si en tu BD difieren.
  */
 private function obtenerEstadoPeriodoDeParcial(int $idParcial): ?string
