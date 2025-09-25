@@ -1,0 +1,385 @@
+/**
+ * Sistema de gestión de horarios por carrera con paginación y búsqueda
+ * Autor: Sistema de Gestión Académica
+ * Fecha: 2024
+ */
+
+// Evitar redeclaración de la clase si ya existe
+if (typeof window.HorarioCarreraManager === 'undefined') {
+
+    class HorarioCarreraManager {
+        constructor() {
+            this.tablasPorPagina = 2;
+            this.paginaActual = 1;
+            this.totalCarreras = 0;
+            this.carrerasFiltradas = [];
+            this.todasLasCarreras = [];
+            this.instanceId = 'horario_' + Date.now();
+            this.init();
+        }
+
+        init() {
+            this.obtenerCarreras();
+            this.configurarEventos();
+            this.mostrarPagina(1);
+            this.inicializarDataTables();
+        }
+
+        obtenerCarreras() {
+            const secciones = document.querySelectorAll('.carrera-section');
+            this.todasLasCarreras = Array.from(secciones);
+            this.carrerasFiltradas = [...this.todasLasCarreras];
+            this.totalCarreras = this.todasLasCarreras.length;
+            this.actualizarPaginacion();
+        }
+
+        configurarEventos() {
+            // Remover eventos anteriores para evitar duplicación
+            const searchGlobal = document.getElementById('searchGlobal');
+            if (searchGlobal) {
+                // Clonar el elemento para remover todos los event listeners
+                const newSearchGlobal = searchGlobal.cloneNode(true);
+                searchGlobal.parentNode.replaceChild(newSearchGlobal, searchGlobal);
+
+                newSearchGlobal.addEventListener('input', (e) => {
+                    this.buscarGlobal(e.target.value);
+                });
+            }
+
+            const carreraFilter = document.getElementById('carreraFilter');
+            if (carreraFilter) {
+                // Clonar el elemento para remover todos los event listeners
+                const newCarreraFilter = carreraFilter.cloneNode(true);
+                carreraFilter.parentNode.replaceChild(newCarreraFilter, carreraFilter);
+
+                newCarreraFilter.addEventListener('change', (e) => {
+                    this.filtrarPorCarrera(e.target.value);
+                });
+            }
+        }
+
+        buscarGlobal(termino) {
+            termino = termino.toLowerCase().trim();
+
+            if (termino === '') {
+                this.carrerasFiltradas = [...this.todasLasCarreras];
+                this.resetearBusquedaEnTablas();
+            } else {
+                this.carrerasFiltradas = this.todasLasCarreras.filter(carrera => {
+                    const tabla = carrera.querySelector('table tbody');
+                    let encontrado = false;
+
+                    if (tabla) {
+                        const filas = tabla.querySelectorAll('tr');
+                        filas.forEach(fila => {
+                            const texto = fila.textContent.toLowerCase();
+                            if (texto.includes(termino)) {
+                                encontrado = true;
+                            }
+                        });
+                    }
+
+                    return encontrado;
+                });
+
+                this.aplicarBusquedaEnTablas(termino);
+            }
+
+            this.totalCarreras = this.carrerasFiltradas.length;
+            this.paginaActual = 1;
+            this.actualizarPaginacion();
+            this.mostrarPagina(1);
+        }
+
+        filtrarPorCarrera(claveCarrera) {
+            if (claveCarrera === '') {
+                this.carrerasFiltradas = [...this.todasLasCarreras];
+            } else {
+                this.carrerasFiltradas = this.todasLasCarreras.filter(carrera => {
+                    return carrera.dataset.clave === claveCarrera;
+                });
+            }
+
+            this.totalCarreras = this.carrerasFiltradas.length;
+            this.paginaActual = 1;
+            this.actualizarPaginacion();
+            this.mostrarPagina(1);
+
+            const searchGlobal = document.getElementById('searchGlobal');
+            if (searchGlobal) {
+                searchGlobal.value = '';
+            }
+            this.resetearBusquedaEnTablas();
+        }
+
+        aplicarBusquedaEnTablas(termino) {
+            this.carrerasFiltradas.forEach(carrera => {
+                const tabla = carrera.querySelector('table');
+                if (tabla && $.fn.DataTable.isDataTable(tabla)) {
+                    $(tabla).DataTable().search(termino).draw();
+                }
+            });
+        }
+
+        resetearBusquedaEnTablas() {
+            this.carrerasFiltradas.forEach(carrera => {
+                const tabla = carrera.querySelector('table');
+                if (tabla && $.fn.DataTable.isDataTable(tabla)) {
+                    $(tabla).DataTable().search('').draw();
+                }
+            });
+        }
+
+        mostrarPagina(numeroPagina) {
+            this.paginaActual = numeroPagina;
+
+            this.todasLasCarreras.forEach(carrera => {
+                carrera.style.display = 'none';
+            });
+
+            const inicio = (numeroPagina - 1) * this.tablasPorPagina;
+            const fin = inicio + this.tablasPorPagina;
+
+            const carrerasEnPagina = this.carrerasFiltradas.slice(inicio, fin);
+            carrerasEnPagina.forEach(carrera => {
+                carrera.style.display = 'block';
+            });
+
+            this.actualizarEstadoPaginacion();
+
+            setTimeout(() => {
+                this.inicializarDataTablesVisibles();
+            }, 100);
+        }
+
+        actualizarPaginacion() {
+            const totalPaginas = Math.ceil(this.totalCarreras / this.tablasPorPagina);
+            const paginationContainer = document.getElementById('paginationCarreras');
+
+            if (!paginationContainer) return;
+
+            paginationContainer.innerHTML = '';
+
+            if (totalPaginas <= 1) {
+                return;
+            }
+
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${this.paginaActual === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" data-page="${this.paginaActual - 1}">Anterior</a>`;
+            paginationContainer.appendChild(prevLi);
+
+            for (let i = 1; i <= totalPaginas; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === this.paginaActual ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                paginationContainer.appendChild(li);
+            }
+
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${this.paginaActual === totalPaginas ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" data-page="${this.paginaActual + 1}">Siguiente</a>`;
+            paginationContainer.appendChild(nextLi);
+
+            // Remover event listeners anteriores del contenedor de paginación
+            const newPaginationContainer = paginationContainer.cloneNode(true);
+            paginationContainer.parentNode.replaceChild(newPaginationContainer, paginationContainer);
+
+            newPaginationContainer.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (e.target.classList.contains('page-link') && !e.target.closest('.disabled')) {
+                    const pagina = parseInt(e.target.dataset.page);
+                    if (pagina && pagina !== this.paginaActual) {
+                        this.mostrarPagina(pagina);
+                    }
+                }
+            });
+        }
+
+        actualizarEstadoPaginacion() {
+            const totalPaginas = Math.ceil(this.totalCarreras / this.tablasPorPagina);
+            const inicio = (this.paginaActual - 1) * this.tablasPorPagina + 1;
+            const fin = Math.min(this.paginaActual * this.tablasPorPagina, this.totalCarreras);
+
+            let estadoInfo = document.getElementById('estadoPaginacion');
+            if (!estadoInfo) {
+                estadoInfo = document.createElement('div');
+                estadoInfo.id = 'estadoPaginacion';
+                estadoInfo.className = 'text-center text-muted mb-3';
+
+                const container = document.getElementById('tablasContainer');
+                if (container && container.parentNode) {
+                    container.parentNode.insertBefore(estadoInfo, container.nextSibling);
+                }
+            }
+
+            if (this.totalCarreras > 0) {
+                estadoInfo.innerHTML = `
+                    <small>
+                        Mostrando carreras ${inicio} a ${fin} de ${this.totalCarreras}
+                        (Página ${this.paginaActual} de ${totalPaginas})
+                    </small>
+                `;
+            } else {
+                estadoInfo.innerHTML = '<small>No se encontraron carreras que coincidan con los criterios de búsqueda</small>';
+            }
+        }
+
+        inicializarDataTables() {
+            const commonConfig = {
+                responsive: true,
+                pageLength: 10,
+                order: [[0, "asc"]],
+                pagingType: "simple_numbers",
+                lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "Todos"]],
+                language: {
+                    paginate: {
+                        previous: "Anterior",
+                        next: "Siguiente",
+                    },
+                    emptyTable: "No hay registros de horarios para mostrar",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                    infoFiltered: "(filtrado de _MAX_ registros totales)",
+                    search: "Buscar en esta carrera:",
+                    lengthMenu: "Mostrar _MENU_ registros por página"
+                },
+                columnDefs: [
+                    { searchable: true, targets: [0, 1, 2, 5, 6] },
+                    { searchable: false, targets: [3, 4, 7, 8, 9] },
+                    { orderable: false, targets: [9] }
+                ],
+                dom: 'frtip'
+            };
+
+            const tablas = document.querySelectorAll('.horario-table');
+            tablas.forEach(tabla => {
+                if ($.fn.DataTable.isDataTable(tabla)) {
+                    $(tabla).DataTable().destroy();
+                }
+                $(tabla).DataTable(commonConfig);
+            });
+        }
+
+        inicializarDataTablesVisibles() {
+            const commonConfig = {
+                responsive: true,
+                pageLength: 10,
+                order: [[0, "asc"]],
+                pagingType: "simple_numbers",
+                lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "Todos"]],
+                language: {
+                    paginate: {
+                        previous: "Anterior",
+                        next: "Siguiente",
+                    },
+                    emptyTable: "No hay registros de horarios para mostrar",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                    infoFiltered: "(filtrado de _MAX_ registros totales)",
+                    search: "Buscar en esta carrera:",
+                    lengthMenu: "Mostrar _MENU_ registros por página"
+                },
+                columnDefs: [
+                    { searchable: true, targets: [0, 1, 2, 5, 6] },
+                    { searchable: false, targets: [3, 4, 7, 8, 9] },
+                    { orderable: false, targets: [9] }
+                ],
+                dom: 'frtip'
+            };
+
+            const tablasVisibles = document.querySelectorAll('.carrera-section[style*="block"] .horario-table');
+            tablasVisibles.forEach(tabla => {
+                if ($.fn.DataTable.isDataTable(tabla)) {
+                    $(tabla).DataTable().destroy();
+                }
+                $(tabla).DataTable(commonConfig);
+            });
+        }
+    }
+
+    // Exportar la clase al objeto window solo si no existe
+    window.HorarioCarreraManager = HorarioCarreraManager;
+}
+
+// Funciones auxiliares globales - solo declarar si no existen
+if (typeof window.loadFormHorario === 'undefined') {
+    window.loadFormHorario = function(form, id) {
+        console.log(`Cargando formulario: ${form} con ID: ${id}`);
+        alert(`Funcionalidad de ${form} con ID: ${id} - Por implementar`);
+    };
+}
+
+if (typeof window.changeStatusHorario === 'undefined') {
+    window.changeStatusHorario = function(id, nuevoEstado, estadoActual) {
+        if (nuevoEstado === estadoActual) {
+            alert('El horario ya tiene ese estado');
+            return;
+        }
+
+        const confirmacion = confirm(`¿Está seguro de cambiar el estado del horario ${id} a "${nuevoEstado}"?`);
+        if (confirmacion) {
+            console.log(`Cambiando estado del horario ${id} de "${estadoActual}" a "${nuevoEstado}"`);
+            alert(`Estado del horario ${id} cambiado a: ${nuevoEstado}`);
+
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        }
+    };
+}
+
+// Función de inicialización que maneja múltiples ejecuciones
+function initHorarioCarreraManager() {
+    // Destruir instancia anterior si existe
+    if (window.horarioManagerInstance) {
+        try {
+            // Limpiar DataTables existentes
+            $('.horario-table').each(function() {
+                if ($.fn.DataTable.isDataTable(this)) {
+                    $(this).DataTable().destroy();
+                }
+            });
+        } catch (e) {
+            console.warn('Error limpiando instancia anterior:', e);
+        }
+    }
+
+    // Verificar que los elementos necesarios estén disponibles
+    if (document.getElementById('frmArea') && document.querySelectorAll('.carrera-section').length > 0) {
+        // Crear nueva instancia
+        window.horarioManagerInstance = new window.HorarioCarreraManager();
+    }
+}
+
+// Inicializar cuando el DOM esté listo o cuando se cargue dinámicamente
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof $ !== 'undefined' && $.fn.DataTable) {
+            initHorarioCarreraManager();
+        } else {
+            setTimeout(() => {
+                if (typeof $ !== 'undefined' && $.fn.DataTable) {
+                    initHorarioCarreraManager();
+                } else {
+                    console.error('jQuery o DataTables no están disponibles');
+                }
+            }, 500);
+        }
+    });
+} else {
+    // Si el DOM ya está cargado (contenido dinámico)
+    if (typeof $ !== 'undefined' && $.fn.DataTable) {
+        setTimeout(() => {
+            initHorarioCarreraManager();
+        }, 100);
+    } else {
+        setTimeout(() => {
+            if (typeof $ !== 'undefined' && $.fn.DataTable) {
+                initHorarioCarreraManager();
+            } else {
+                console.error('jQuery o DataTables no están disponibles');
+            }
+        }, 500);
+    }
+}
