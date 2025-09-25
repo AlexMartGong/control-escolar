@@ -32,6 +32,8 @@ $res = $objPaDAO->MostrarParcial();
                 <th>Nombre parcial</th>
                 <th>Id periodo</th>
                 <th>Nombre periodo</th>
+                <th>Fecha de inicio</th>
+                <th>Fecha de termino</th>
                 <th>estatus</th>
                 <th>Opciones</th>
             </tr>
@@ -59,6 +61,8 @@ $res = $objPaDAO->MostrarParcial();
             <td><?= $fila['nombre_parcial'] ?></td>
             <td><?= $fila['clave_periodo'] ?></td>
             <td><?= $fila['periodo'] ?></td>
+            <td></td>
+            <td></td>
             <td><span class="badge <?= $badgeClass ?>"><?= $fila['estado'] ?></span></td>
                 <td>
                     <div class="d-flex gap-2 justify-content-center">
@@ -68,9 +72,9 @@ $res = $objPaDAO->MostrarParcial();
                             <span>Editar</span>
                         </button>
                         <label>
-                            <select class="form-select form-select-sm btn-warning" 
+                            <select class="form-select form-select-sm btn-warning"
                                 style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="changeStatusParcial('<?= $fila['clave_parcial'] ?>', this.value, '<?= $fila['estado'] ?>');" 
+                                onchange="changeStatusParcial('<?= $fila['clave_parcial'] ?>', this.value, '<?= $fila['estado'] ?>');"
                               >
                                 <option disabled>Cambiar estado</option>
                                 <option value="Pendiente">Pendiente</option>
