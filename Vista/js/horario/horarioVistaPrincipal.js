@@ -158,17 +158,20 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
 
             if (!paginationContainer) return;
 
+            // Limpiar contenido existente
             paginationContainer.innerHTML = '';
 
             if (totalPaginas <= 1) {
                 return;
             }
 
+            // Botón Anterior
             const prevLi = document.createElement('li');
             prevLi.className = `page-item ${this.paginaActual === 1 ? 'disabled' : ''}`;
             prevLi.innerHTML = `<a class="page-link" href="#" data-page="${this.paginaActual - 1}">Anterior</a>`;
             paginationContainer.appendChild(prevLi);
 
+            // Botones de páginas
             for (let i = 1; i <= totalPaginas; i++) {
                 const li = document.createElement('li');
                 li.className = `page-item ${i === this.paginaActual ? 'active' : ''}`;
@@ -176,24 +179,44 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
                 paginationContainer.appendChild(li);
             }
 
+            // Botón Siguiente
             const nextLi = document.createElement('li');
             nextLi.className = `page-item ${this.paginaActual === totalPaginas ? 'disabled' : ''}`;
             nextLi.innerHTML = `<a class="page-link" href="#" data-page="${this.paginaActual + 1}">Siguiente</a>`;
             paginationContainer.appendChild(nextLi);
 
-            // Remover event listeners anteriores del contenedor de paginación
-            const newPaginationContainer = paginationContainer.cloneNode(true);
-            paginationContainer.parentNode.replaceChild(newPaginationContainer, paginationContainer);
+            // CORRECCIÓN: Usar delegación de eventos en lugar de clonar
+            // Esto evita perder las referencias y mejora el rendimiento
+            this.configurarEventosPaginacion();
+        }
 
-            newPaginationContainer.addEventListener('click', (e) => {
+        configurarEventosPaginacion() {
+            const paginationContainer = document.getElementById('paginationCarreras');
+            if (!paginationContainer) return;
+
+            // Remover event listeners anteriores si existen
+            if (this.paginationHandler) {
+                paginationContainer.removeEventListener('click', this.paginationHandler);
+            }
+
+            // Crear nuevo handler
+            this.paginationHandler = (e) => {
                 e.preventDefault();
-                if (e.target.classList.contains('page-link') && !e.target.closest('.disabled')) {
-                    const pagina = parseInt(e.target.dataset.page);
-                    if (pagina && pagina !== this.paginaActual) {
-                        this.mostrarPagina(pagina);
-                    }
+
+                const link = e.target.closest('.page-link');
+                if (!link) return;
+
+                const pageItem = link.closest('.page-item');
+                if (pageItem && pageItem.classList.contains('disabled')) return;
+
+                const pagina = parseInt(link.dataset.page);
+                if (pagina && !isNaN(pagina) && pagina !== this.paginaActual) {
+                    this.mostrarPagina(pagina);
                 }
-            });
+            };
+
+            // Agregar el nuevo event listener
+            paginationContainer.addEventListener('click', this.paginationHandler);
         }
 
         actualizarEstadoPaginacion() {
@@ -223,6 +246,53 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
             } else {
                 estadoInfo.innerHTML = '<small>No se encontraron carreras que coincidan con los criterios de búsqueda</small>';
             }
+
+            // Actualizar estado visual de los botones de paginación
+            this.actualizarBotonesPaginacion();
+        }
+
+        actualizarBotonesPaginacion() {
+            const paginationContainer = document.getElementById('paginationCarreras');
+            if (!paginationContainer) return;
+
+            const totalPaginas = Math.ceil(this.totalCarreras / this.tablasPorPagina);
+            const pageItems = paginationContainer.querySelectorAll('.page-item');
+
+            pageItems.forEach(item => {
+                const link = item.querySelector('.page-link');
+                if (!link) return;
+
+                const page = parseInt(link.dataset.page);
+
+                // Actualizar estado activo
+                if (!isNaN(page)) {
+                    if (page === this.paginaActual) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                }
+
+                // Actualizar estado deshabilitado para Anterior
+                if (link.textContent === 'Anterior') {
+                    if (this.paginaActual === 1) {
+                        item.classList.add('disabled');
+                    } else {
+                        item.classList.remove('disabled');
+                        link.dataset.page = this.paginaActual - 1;
+                    }
+                }
+
+                // Actualizar estado deshabilitado para Siguiente
+                if (link.textContent === 'Siguiente') {
+                    if (this.paginaActual === totalPaginas) {
+                        item.classList.add('disabled');
+                    } else {
+                        item.classList.remove('disabled');
+                        link.dataset.page = this.paginaActual + 1;
+                    }
+                }
+            });
         }
 
         inicializarDataTables() {
@@ -245,9 +315,9 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
                     lengthMenu: "Mostrar _MENU_ registros por página"
                 },
                 columnDefs: [
-                    { searchable: true, targets: [0, 1, 2, 5, 6] },
-                    { searchable: false, targets: [3, 4, 7, 8, 9] },
-                    { orderable: false, targets: [9] }
+                    {searchable: true, targets: [0, 1, 2, 5, 6]},
+                    {searchable: false, targets: [3, 4, 7, 8, 9]},
+                    {orderable: false, targets: [9]}
                 ],
                 dom: 'frtip'
             };
@@ -281,9 +351,9 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
                     lengthMenu: "Mostrar _MENU_ registros por página"
                 },
                 columnDefs: [
-                    { searchable: true, targets: [0, 1, 2, 5, 6] },
-                    { searchable: false, targets: [3, 4, 7, 8, 9] },
-                    { orderable: false, targets: [9] }
+                    {searchable: true, targets: [0, 1, 2, 5, 6]},
+                    {searchable: false, targets: [3, 4, 7, 8, 9]},
+                    {orderable: false, targets: [9]}
                 ],
                 dom: 'frtip'
             };
@@ -296,6 +366,22 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
                 $(tabla).DataTable(commonConfig);
             });
         }
+
+        // Método para limpiar la instancia
+        destroy() {
+            // Limpiar event listeners
+            const paginationContainer = document.getElementById('paginationCarreras');
+            if (paginationContainer && this.paginationHandler) {
+                paginationContainer.removeEventListener('click', this.paginationHandler);
+            }
+
+            // Limpiar DataTables
+            $('.horario-table').each(function () {
+                if ($.fn.DataTable.isDataTable(this)) {
+                    $(this).DataTable().destroy();
+                }
+            });
+        }
     }
 
     // Exportar la clase al objeto window solo si no existe
@@ -304,14 +390,14 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
 
 // Funciones auxiliares globales - solo declarar si no existen
 if (typeof window.loadFormHorario === 'undefined') {
-    window.loadFormHorario = function(form, id) {
+    window.loadFormHorario = function (form, id) {
         console.log(`Cargando formulario: ${form} con ID: ${id}`);
         alert(`Funcionalidad de ${form} con ID: ${id} - Por implementar`);
     };
 }
 
 if (typeof window.changeStatusHorario === 'undefined') {
-    window.changeStatusHorario = function(id, nuevoEstado, estadoActual) {
+    window.changeStatusHorario = function (id, nuevoEstado, estadoActual) {
         if (nuevoEstado === estadoActual) {
             alert('El horario ya tiene ese estado');
             return;
@@ -334,12 +420,10 @@ function initHorarioCarreraManager() {
     // Destruir instancia anterior si existe
     if (window.horarioManagerInstance) {
         try {
-            // Limpiar DataTables existentes
-            $('.horario-table').each(function() {
-                if ($.fn.DataTable.isDataTable(this)) {
-                    $(this).DataTable().destroy();
-                }
-            });
+            // Llamar al método destroy si existe
+            if (window.horarioManagerInstance.destroy) {
+                window.horarioManagerInstance.destroy();
+            }
         } catch (e) {
             console.warn('Error limpiando instancia anterior:', e);
         }
@@ -354,7 +438,7 @@ function initHorarioCarreraManager() {
 
 // Inicializar cuando el DOM esté listo o cuando se cargue dinámicamente
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         if (typeof $ !== 'undefined' && $.fn.DataTable) {
             initHorarioCarreraManager();
         } else {
