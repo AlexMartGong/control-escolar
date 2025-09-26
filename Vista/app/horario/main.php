@@ -161,4 +161,3 @@ $horariosData = [
         </div>
     </div>
 </div>
-<script src="/Proyecto/Vista/js/horario/horarioVistaPrincipal.js"></script>
