@@ -28,22 +28,23 @@
                             <label for="nombre_parcial" class="form-label">Nombre de parcial</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-blue-light"><i class="fas fa-tasks me-2"></i></span>
-                                <input type="text"
-                                       maxlength="50"
-                                       title='Maximo 50 caracteres'
-                                       class="form-control"
-                                       oninput="validarEntrdasParcial('nombre_parcial', 'btnModificarJ','', 'mb-4')"
-                                       id="nombre_parcial"
-                                       placeholder="Ingrese nombre de parcial" required>
+                                <select name="nombre_parcial" id="nombre_parcial" class="form-select" oninput="validarEntrdasParcial('nombre_parcial', 'btnModificarJ','', 'mb-4')" required>
+                                    <option value="" selected disabled>Seleccione....</option>
+                                    <option value="Primero">Primero</option>
+                                    <option value="Segundo">Segundo</option>
+                                    <option value="Tercero">Tercero</option>
+                                    <option value="Final">Final</option>
+                                </select>
                             </div>
                         </div>
+
+                        <!--Datos sobre el periodo-->
                         <div class="row">
-                            <!-- Selección del periodo -->
+                            <!-- Seleccin del periodo -->
                             <div class="col-md-6 mb-3">
                                 <label for="periodo_Id" class="form-label">Nombre del periodo</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-blue-light"><i
-                                                class="fas fa-calendar me-2"></i></span>
+                                    <span class="input-group-text bg-blue-light"><i class="fas fa-calendar me-2"></i></span>
                                     <select name="periodo_Id" id="periodo_Id" class="form-select"
                                             style="padding: 0.8rem;"
                                             oninput="validarEntrdasParcial('periodo_Id', 'btnModificarJ', 'periodoInfo', 'row')"
@@ -52,6 +53,7 @@
                                         <option value="1" data-estado="Pendiente">Periodo 1</option>
                                         <option value="2" data-estado="Abierto">Periodo 2</option>
                                         <option value="3" data-estado="Cerrado">Periodo 3</option>
+                                        <option value="4" data-estado="Cancelado">Periodo 4</option>
                                     </select>
                                 </div>
                             </div>
@@ -60,20 +62,73 @@
                             <div class="col-md-6 mb-3">
                                 <label for="idperiodo" class="form-label">ID Periodo</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-blue-light"><i
-                                                class="fas fa-calendar me-2"></i></span>
+                                    <span class="input-group-text bg-blue-light"><i class="fas fa-calendar me-2"></i></span>
                                     <input type="text" id="idperiodo" class="form-control" readonly>
                                 </div>
                             </div>
                         </div>
+
                         <script>
-                            // Evento que escucha cambios en el select
-                            document.getElementById("periodo_Id").addEventListener("change", function () {
-                                document.getElementById("idperiodo").value = this.value;
+                            document.getElementById("periodo_Id").addEventListener("change", function() {
+                                const inputId = document.getElementById("idperiodo");
+                                inputId.value = this.value; // † copiar el id
+
+                                // limpiar posible error visual en el input
+                                const contenedor = inputId.closest(".mb-3");
+                                const errorInvalid = contenedor?.querySelector(".entrada-error");
+                                if (errorInvalid) inputId.classList.remove("entrada-error");
+
+                                // si quieres que #periodoInfo muestre el id seleccionado:
+                                const info = document.getElementById("periodoInfo");
+                                const opt = this.options[this.selectedIndex];
+                                info.textContent = this.value; // o, si prefieres, `${this.value} €" ${opt?.dataset.estado  ""}`
                             });
                         </script>
 
-                        <!-- Información del periodo actual -->
+                        <!--Fechas-->
+                        <div class="row">
+                            <!--Fecha de inicio-->
+                            <div class="col-md-6 mb-3">
+                                <label for="fechaInicio" class="form-label">Fecha Inicio Parcial</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-blue-light"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-plus" viewBox="0 0 16 16">
+                                            <path d="M8 7a.5.5 0 0 1 .5.5V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5A.5.5 0 0 1 8 7" />
+                                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z" />
+                                        </svg></span>
+                                    <input type="date" class="form-control"
+                                        id="fechaInicio"
+                                        oninput="validarEntrdasParcial('fechaInicio', 'btnModificarJ','', 'mb-3')"
+                                        required>
+                                </div>
+                            </div>
+
+                            <!--Fecha de Termino-->
+                            <div class="col-md-6 mb-3">
+                                <label for="fechaTermino" class="form-label">Fecha Fin Parcial</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-blue-light"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2-check" viewBox="0 0 16 16">
+                                            <path d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0" />
+                                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z" />
+                                            <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5z" />
+                                        </svg></span>
+                                    <input type="date" class="form-control"
+                                        id="fechaFin"
+                                        oninput="validarEntrdasParcial('fechaFin', 'btnModificarJ','', 'mb-3')"
+                                        required>
+                                </div>
+                            </div>
+
+                            <!--Script para no permitir seleccionar fechas pasadas-->
+                            <script>
+                                var hoy = new Date().toISOString().split("T")[0];
+
+                                // Asignar como fecha mnima
+                                document.getElementById("fechaInicio").setAttribute("min", hoy);
+                                document.getElementById("fechaFin").setAttribute("min", hoy);
+                            </script>
+                        </div>
+
+                        <!-- Informacin del periodo actual -->
                         <div class="row mb-4">
                             <div class="col-12">
                                 <div id="periodoInfoclass" class="alert alert-info " role="alert">

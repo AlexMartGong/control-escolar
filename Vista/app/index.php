@@ -130,6 +130,7 @@
 <script src="../js/oferta/oferta.js"></script>
 <script src="../js/alumno/alumno.js"></script>
 <script src="../js/horario/horario.js"></script>
+<script src="../js/horario/horarioVistaPrincipal.js"></script>
 <script src="../js/horario/horarioIndividual.js"></script>
 <script src="../js/parcial/parcial.js"></script>
 </body>

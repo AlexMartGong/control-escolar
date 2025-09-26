@@ -215,6 +215,21 @@ function option(opc, filter) {
                     ],
                   });
                 }
+                  if (opc === "horario" && document.querySelector('.carrera-section')) {
+                      setTimeout(() => {
+                          if (typeof window.HorarioCarreraManager !== 'undefined') {
+                              // Destruir instancia anterior si existe
+                              if (window.horarioManagerInstance && typeof window.horarioManagerInstance.destroy === 'function') {
+                                  window.horarioManagerInstance.destroy();
+                              }
+                              // Crear nueva instancia
+                              window.horarioManagerInstance = new window.HorarioCarreraManager();
+                              console.log('HorarioCarreraManager inicializado correctamente');
+                          } else {
+                              console.warn('HorarioCarreraManager no está disponible');
+                          }
+                      }, 200); // Pequeño delay para asegurar que todo esté cargado
+                  }
                 if (opc === "parcial" && $("#tableParcial").length) {
                     $("#tableParcial").DataTable({
                     ...commonConfig,
