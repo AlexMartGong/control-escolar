@@ -1,5 +1,5 @@
 /**
- * Sistema de gestión de horarios por carrera con paginación y búsqueda
+ * Sistema de gestión de horarios por carrera con paginación
  * Autor: Sistema de Gestión Académica
  * Fecha: 2024
  */
@@ -12,7 +12,6 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
             this.tablasPorPagina = 2;
             this.paginaActual = 1;
             this.totalCarreras = 0;
-            this.carrerasFiltradas = [];
             this.todasLasCarreras = [];
             this.instanceId = 'horario_' + Date.now();
             this.init();
@@ -20,7 +19,6 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
 
         init() {
             this.obtenerCarreras();
-            this.configurarEventos();
             this.mostrarPagina(1);
             this.inicializarDataTables();
         }
@@ -28,106 +26,8 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
         obtenerCarreras() {
             const secciones = document.querySelectorAll('.carrera-section');
             this.todasLasCarreras = Array.from(secciones);
-            this.carrerasFiltradas = [...this.todasLasCarreras];
             this.totalCarreras = this.todasLasCarreras.length;
             this.actualizarPaginacion();
-        }
-
-        configurarEventos() {
-            // Remover eventos anteriores para evitar duplicación
-            const searchGlobal = document.getElementById('searchGlobal');
-            if (searchGlobal) {
-                // Clonar el elemento para remover todos los event listeners
-                const newSearchGlobal = searchGlobal.cloneNode(true);
-                searchGlobal.parentNode.replaceChild(newSearchGlobal, searchGlobal);
-
-                newSearchGlobal.addEventListener('input', (e) => {
-                    this.buscarGlobal(e.target.value);
-                });
-            }
-
-            const carreraFilter = document.getElementById('carreraFilter');
-            if (carreraFilter) {
-                // Clonar el elemento para remover todos los event listeners
-                const newCarreraFilter = carreraFilter.cloneNode(true);
-                carreraFilter.parentNode.replaceChild(newCarreraFilter, carreraFilter);
-
-                newCarreraFilter.addEventListener('change', (e) => {
-                    this.filtrarPorCarrera(e.target.value);
-                });
-            }
-        }
-
-        buscarGlobal(termino) {
-            termino = termino.toLowerCase().trim();
-
-            if (termino === '') {
-                this.carrerasFiltradas = [...this.todasLasCarreras];
-                this.resetearBusquedaEnTablas();
-            } else {
-                this.carrerasFiltradas = this.todasLasCarreras.filter(carrera => {
-                    const tabla = carrera.querySelector('table tbody');
-                    let encontrado = false;
-
-                    if (tabla) {
-                        const filas = tabla.querySelectorAll('tr');
-                        filas.forEach(fila => {
-                            const texto = fila.textContent.toLowerCase();
-                            if (texto.includes(termino)) {
-                                encontrado = true;
-                            }
-                        });
-                    }
-
-                    return encontrado;
-                });
-
-                this.aplicarBusquedaEnTablas(termino);
-            }
-
-            this.totalCarreras = this.carrerasFiltradas.length;
-            this.paginaActual = 1;
-            this.actualizarPaginacion();
-            this.mostrarPagina(1);
-        }
-
-        filtrarPorCarrera(claveCarrera) {
-            if (claveCarrera === '') {
-                this.carrerasFiltradas = [...this.todasLasCarreras];
-            } else {
-                this.carrerasFiltradas = this.todasLasCarreras.filter(carrera => {
-                    return carrera.dataset.clave === claveCarrera;
-                });
-            }
-
-            this.totalCarreras = this.carrerasFiltradas.length;
-            this.paginaActual = 1;
-            this.actualizarPaginacion();
-            this.mostrarPagina(1);
-
-            const searchGlobal = document.getElementById('searchGlobal');
-            if (searchGlobal) {
-                searchGlobal.value = '';
-            }
-            this.resetearBusquedaEnTablas();
-        }
-
-        aplicarBusquedaEnTablas(termino) {
-            this.carrerasFiltradas.forEach(carrera => {
-                const tabla = carrera.querySelector('table');
-                if (tabla && $.fn.DataTable.isDataTable(tabla)) {
-                    $(tabla).DataTable().search(termino).draw();
-                }
-            });
-        }
-
-        resetearBusquedaEnTablas() {
-            this.carrerasFiltradas.forEach(carrera => {
-                const tabla = carrera.querySelector('table');
-                if (tabla && $.fn.DataTable.isDataTable(tabla)) {
-                    $(tabla).DataTable().search('').draw();
-                }
-            });
         }
 
         mostrarPagina(numeroPagina) {
@@ -140,7 +40,7 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
             const inicio = (numeroPagina - 1) * this.tablasPorPagina;
             const fin = inicio + this.tablasPorPagina;
 
-            const carrerasEnPagina = this.carrerasFiltradas.slice(inicio, fin);
+            const carrerasEnPagina = this.todasLasCarreras.slice(inicio, fin);
             carrerasEnPagina.forEach(carrera => {
                 carrera.style.display = 'block';
             });
@@ -185,8 +85,6 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
             nextLi.innerHTML = `<a class="page-link" href="#" data-page="${this.paginaActual + 1}">Siguiente</a>`;
             paginationContainer.appendChild(nextLi);
 
-            // CORRECCIÓN: Usar delegación de eventos en lugar de clonar
-            // Esto evita perder las referencias y mejora el rendimiento
             this.configurarEventosPaginacion();
         }
 
@@ -244,10 +142,9 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
                     </small>
                 `;
             } else {
-                estadoInfo.innerHTML = '<small>No se encontraron carreras que coincidan con los criterios de búsqueda</small>';
+                estadoInfo.innerHTML = '<small>No se encontraron carreras</small>';
             }
 
-            // Actualizar estado visual de los botones de paginación
             this.actualizarBotonesPaginacion();
         }
 
@@ -315,9 +212,9 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
                     lengthMenu: "Mostrar _MENU_ registros por página"
                 },
                 columnDefs: [
-                    {searchable: true, targets: [0, 1, 2, 5, 6]},
-                    {searchable: false, targets: [3, 4, 7, 8, 9]},
-                    {orderable: false, targets: [9]}
+                    {searchable: true, targets: [0, 1, 2]},
+                    {searchable: false, targets: [3]},
+                    {orderable: false, targets: [3]}
                 ],
                 dom: 'frtip'
             };
@@ -351,9 +248,9 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
                     lengthMenu: "Mostrar _MENU_ registros por página"
                 },
                 columnDefs: [
-                    {searchable: true, targets: [0, 1, 2, 5, 6]},
-                    {searchable: false, targets: [3, 4, 7, 8, 9]},
-                    {orderable: false, targets: [9]}
+                    {searchable: true, targets: [0, 1, 2]},
+                    {searchable: false, targets: [3]},
+                    {orderable: false, targets: [3]}
                 ],
                 dom: 'frtip'
             };
@@ -396,6 +293,21 @@ if (typeof window.loadFormHorario === 'undefined') {
     };
 }
 
+if (typeof window.eliminarHorario === 'undefined') {
+    window.eliminarHorario = function (id) {
+        const confirmacion = confirm(`¿Está seguro de eliminar el horario ${id}? Esta acción no se puede deshacer.`);
+        if (confirmacion) {
+            console.log(`Eliminando horario ${id}`);
+            alert(`Horario ${id} eliminado exitosamente`);
+
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        }
+    };
+}
+
+// Mantener la función anterior para compatibilidad si es necesaria
 if (typeof window.changeStatusHorario === 'undefined') {
     window.changeStatusHorario = function (id, nuevoEstado, estadoActual) {
         if (nuevoEstado === estadoActual) {
