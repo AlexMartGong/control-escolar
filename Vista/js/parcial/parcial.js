@@ -645,17 +645,20 @@ function changeStatusParcial(id, status, currentStatus) {
 }
 
 
-function iniciarFuncionesParcial(opc, id) {
-  switch (opc) {
-    case "frmParcial":
-      obtenerDatosdePeriodoEnParcial();
-      break;
-    case "modParcial":
-      obtenerDatosdePeriodoEnParcial();
-      obtenerDatosModParcial(id);
-
-      break;
-  }
+async function iniciarFuncionesParcial(opc, id) {
+    switch (opc) {
+        case "frmParcial":
+            await obtenerDatosdePeriodoEnParcial();
+            break;
+        case "modParcial":
+            // Wait for periods to load before getting partial data
+            await obtenerDatosdePeriodoEnParcial();
+            // Small delay to ensure DOM updates
+            await new Promise(resolve => setTimeout(resolve, 100));
+            // Now get partial data
+            await obtenerDatosModParcial(id);
+            break;
+    }
 }
 
 /**
