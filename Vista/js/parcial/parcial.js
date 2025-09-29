@@ -121,7 +121,8 @@ function validarFormularioParcial(opc) {
         );
         //btnGuardarJ.disabled = true; // Deshabilitar el botón para evitar múltiples acciones
       } else {
-        guardarParcial().finally(() => { btnGuardarJ.disabled = true; });      }
+        guardarParcial().finally(() => { btnGuardarJ.disabled = true; });
+      }
       break;
     case "modificar":
       // Usar la validación específica para modificación
@@ -129,8 +130,7 @@ function validarFormularioParcial(opc) {
         const btnModificar = document.getElementById("btnModificarJ");
         btnModificar.disabled = true; // Deshabilitar el botón para evitar múltiples envíos
         //logica para modificar el parcial
-        //modificarParcial();
-        mostrarDatosGuardados("Parcial modificado correctamente");
+        modificarParcial();
       } else {
         // Los errores ya se muestran en validarFormularioModificacion
         campos.forEach(([elemento, valor]) => {
@@ -172,7 +172,7 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
   // Validaciones por tipo de campo
   switch (idetiqueta) {
     case "nombre_parcial":
- 
+
       if (estaVacio) {
         mostrarErrorparcial(input, "Este campo no puede estar vacío.", cont);
         input.classList.add("entrada-error");
@@ -244,10 +244,10 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
 
       break;
 
-      case "fechaInicio":
+    case "fechaInicio":
       const regexFecha = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
-      if(estaVacio){
+      if (estaVacio) {
         mostrarErrorparcial(input, "Este campo no puede estar vacío.", cont);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
@@ -255,7 +255,7 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
 
       }
 
-      if (!regexFecha.test(valor)){
+      if (!regexFecha.test(valor)) {
         mostrarErrorparcial(input, "Formato invalido, intente de nuevo.", cont);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
@@ -263,11 +263,11 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
       }
 
       break;
-      case "fechaFin":
+    case "fechaFin":
 
-       const regexFecha2 = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+      const regexFecha2 = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
-      if(estaVacio){
+      if (estaVacio) {
         mostrarErrorparcial(input, "Este campo no puede estar vacío.", cont);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
@@ -275,7 +275,7 @@ function validarEntrdasParcial(idetiqueta, idbtn, idperiodo, cont) {
 
       }
 
-      if (!regexFecha2.test(valor)){
+      if (!regexFecha2.test(valor)) {
         mostrarErrorparcial(input, "Formato invalido, intente de nuevo.", cont);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
@@ -298,7 +298,7 @@ function evaluarEstadoFormularioParcial(idbtn) {
   const fechaFin = document.getElementById("fechaFin")
   const btnGuardar = document.getElementById(idbtn);
   const soloLetras = /^[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+$/;
-  
+
 
   let hayErrores = false;
 
@@ -574,77 +574,75 @@ function changeStatusParcial(id, status, currentStatus) {
 
   // También resetear al cerrar el modal con la X o haciendo clic fuera
   modalElement.addEventListener("hidden.bs.modal", function () {
-  // Solo revertir si NO se confirmó
-  if (!confirmed) {
-    const selectElement = document.querySelector(
-      `select[onchange="changeStatusParcial('${id}', this.value, '${currentStatus}')"]`
-    );
-    if (selectElement) selectElement.value = currentStatus;
-  }
-  modalElement.remove();
-});
+    // Solo revertir si NO se confirmó
+    if (!confirmed) {
+      const selectElement = document.querySelector(
+        `select[onchange="changeStatusParcial('${id}', this.value, '${currentStatus}')"]`
+      );
+      if (selectElement) selectElement.value = currentStatus;
+    }
+    modalElement.remove();
+  });
 
   // Configurar acción para el botón confirmar
-    let confirmed = false;
+  let confirmed = false;
 
-    document.getElementById("btnConfirmar").addEventListener("click", function () {
+  document.getElementById("btnConfirmar").addEventListener("click", function () {
     confirmed = true;
     modal.hide();
 
-      //En caso de que el estado no haya cambiado a cerrado o cancelado, el b
+    //En caso de que el estado no haya cambiado a cerrado o cancelado, el b
 
-      // Preparar datos para enviar
-      let data = {
-        id: id,
-        status: status,
-      };
+    // Preparar datos para enviar
+    let data = {
+      id: id,
+      status: status,
+    };
 
-      // Convertir a JSON
-      let json = JSON.stringify(data);
-      //Muestra un mensaje de espera simulando el cambio de estado exitoso
-      /*mostrarDatosGuardados(
-        `El estado de  parcial ${id} ha sido cambiado a "${status}" correctamente.`,
-        function () {
-          option("parcial", "");
+    // Convertir a JSON
+    let json = JSON.stringify(data);
+    //Muestra un mensaje de espera simulando el cambio de estado exitoso
+    /*mostrarDatosGuardados(
+      `El estado de  parcial ${id} ha sido cambiado a "${status}" correctamente.`,
+      function () {
+        option("parcial", "");
+      }
+    ); // Mensaje de espera
+    */
+
+
+    // Realizar petición AJAX para cambiar el estado 
+    $.ajax({
+      url: "../../Controlador/Intermediarios/Parcial/CambiarEstadoParcial.php",
+      type: "POST",
+      data: JSON.stringify({ id, status }),
+      contentType: "application/json",
+      dataType: "json",
+      processData: false,
+      timeout: 10000,
+      success: function (response) {
+        try {
+          if (response?.estado === "OK") {
+            mostrarDatosGuardados(
+              `El estado de parcial ${id} ha sido cambiado a "${status}" correctamente.`,
+              () => option("parcial", "")
+            );
+          } else {
+            mostrarErrorCaptura(response?.mensaje || "Error al cambiar el estado.");
+          }
+        } catch (e) {
+          mostrarErrorCaptura("Error procesando la respuesta: " + e.message);
         }
-      ); // Mensaje de espera
-      */
-      
+      },
 
-      // Realizar petición AJAX para cambiar el estado 
-      $.ajax({
-        url: "../../Controlador/Intermediarios/Parcial/CambiarEstadoParcial.php",
-        type: "POST",
-        data: JSON.stringify({ id, status }),
-        contentType: "application/json",
-        dataType: "json",
-        processData: false,
-        timeout: 10000,
-        success: function (response) {
-  try {
-    if (response?.estado === "OK") {
-      mostrarDatosGuardados(
-        `El estado de parcial ${id} ha sido cambiado a "${status}" correctamente.`,
-        () => option("parcial", "")
-      );
-    } else {
-      mostrarErrorCaptura(response?.mensaje || "Error al cambiar el estado.");
-    }
-  } catch (e) {
-    mostrarErrorCaptura("Error procesando la respuesta: " + e.message);
-  }
-},
-
-        error: function (xhr, status, error) {
-          mostrarErrorCaptura(
-            `Error al cambiar el estado: ${status} - ${error}`
-          );
-        },
-      });
-    }); 
+      error: function (xhr, status, error) {
+        mostrarErrorCaptura(
+          `Error al cambiar el estado: ${status} - ${error}`
+        );
+      },
+    });
+  });
 }
-
-
 
 
 function iniciarFuncionesParcial(opc, id) {
@@ -653,36 +651,150 @@ function iniciarFuncionesParcial(opc, id) {
       obtenerDatosdePeriodoEnParcial();
       break;
     case "modParcial":
-      cargarDatosParcial(1); // Simulando con ID 1, en implementación real usar el id pasado
-    
-    //obtenerDatosModParcial(id);
+      obtenerDatosdePeriodoEnParcial();
+      obtenerDatosModParcial(id);
 
       break;
   }
 }
 
-// Función para cargar datos del parcial en el formulario de modificación
+/**
+ * Realiza una petición al servidor para obtener los datos de un parcial específico por su ID.
+ * - Envía un JSON con la propiedad `pId` y `Buscar` al intermediario PHP.
+ * - Procesa la respuesta y, si es exitosa, llama a `mostrarDatosParcial` para llenar el formulario.
+ * - Muestra errores de red o de servidor en caso de fallo.
+ * 
+ * @param {number|string} idParcial - ID del parcial que se desea consultar.
+ */
 async function obtenerDatosModParcial(idParcial) {
-  // Esta función debería hacer una petición fetch para obtener los datos del parcial
- /* try {
-    const response = await fetch(`parcial/getParcial.php?id=${idParcial}`);
+  let url = "../../Controlador/Intermediarios/Parcial/ModificarParcial.php";
+  let datos = { pId: idParcial, Buscar: true };
+  let json = JSON.stringify(datos);
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: json,
+    });
+
     if (!response.ok) {
       throw new Error("Error en la petición: " + response.statusText);
     }
-    const datos = await response.json();
-    mostrarDatosParcial(datos);
+
+    const resultado = await response.json();
+
+    if (resultado.estado === "OK") {
+      // Llenar el formulario con los datos recibidos
+      mostrarDatosParcial(resultado.datos);
+    } else {
+      // Mostrar el mensaje de error que viene desde PHP
+      mostrarErrorCaptura(resultado.mensaje);
+    }
   } catch (error) {
     mostrarErrorCaptura(
       "Error al obtener los datos del parcial: " + error.message
     );
-  }*/
+  }
 }
 
+/**
+ * Llena los campos del formulario de modificación de parcial con los datos recibidos.
+ * - Asigna el ID del parcial al input correspondiente.
+ * - Selecciona el nombre del parcial en el select.
+ * - Selecciona el periodo correspondiente en el select y dispara el evento 'change'
+ *   para actualizar campos dependientes (como `#periodoInfo`).
+ * - Rellena las fechas de inicio y término del parcial.
+ * - Muestra el estado actual del parcial en el campo de solo lectura.
+ * 
+ * @param {Object} datos - Objeto con la información del parcial obtenida desde la base de datos.
+ * @param {string|number} datos.clave_parcial - ID del parcial.
+ * @param {string} datos.nombre_parcial - Nombre del parcial ('Primero', 'Segundo', etc.).
+ * @param {string|number} datos.clave_periodo - ID del periodo al que pertenece el parcial.
+ * @param {string} datos.fecha_inicio_de_parcial - Fecha de inicio del parcial.
+ * @param {string} datos.fecha_termino_de_parcial - Fecha de término del parcial.
+ * @param {string} datos.estado - Estado actual del parcial ('Abierto', 'Cerrado', etc.).
+ */
 function mostrarDatosParcial(datos) {
-  // Aquí puedes mostrar los datos del parcial obtenidos en la peticion por fetch en el formulario de modificar parcial
+  // ID del parcial
+  $("#id_parcial").val(datos.clave_parcial);
+
+  // Nombre del parcial (select)
+  $("#nombre_parcial").val(datos.nombre_parcial);
+
+  // Nombre del periodo (select)
+  $("#periodo_Id").val(datos.clave_periodo).trigger("change");
+
+  // Id del periodo 
+  $("#idperiodo").val(datos.clave_periodo);
+
+  // Fechas
+  $("#fechaInicio").val(datos.fecha_inicio_de_parcial);
+  $("#fechaFin").val(datos.fecha_termino_de_parcial);
+
+  // Estado del parcial 
+  $("#estado_parcial").val(datos.estado);
 }
 
+/**
+ * Realiza la actualización de un parcial existente en la base de datos.
+ * - Recopila los valores ingresados en el formulario de modificación.
+ * - Envía un JSON con todos los datos necesarios al intermediario PHP para procesar la actualización.
+ * - Si la operación es exitosa, llama a `mostrarDatosGuardados` para notificar al usuario.
+ * - Maneja errores de red, validaciones o fallos del servidor y los muestra mediante `mostrarErrorCaptura`.
+ */
+async function modificarParcial() {
 
+  const idPa = document.getElementById("id_parcial").value.trim();
+  const nombrePa = document.getElementById("nombre_parcial").value.trim();
+  const idPe = document.getElementById("idperiodo").value.trim();
+  const fechaI = document.getElementById("fechaInicio").value.trim();
+  const fechaT = document.getElementById("fechaFin").value.trim();
+
+  const datos = {
+    pId: idPa,
+    pnombre: nombrePa,
+    pIdPeriodo: idPe,
+    pfchInicio: fechaI,
+    pfchTermino: fechaT,
+    Modificar: true
+  };
+
+  const json = JSON.stringify(datos);
+  const url = "../../Controlador/Intermediarios/Parcial/ModificarParcial.php";
+
+  //console.log("Datos JSON enviados:", json);
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: json,
+    });
+
+    if (!response.ok) {
+      throw new Error("Error en la petición: " + response.statusText);
+    }
+
+    const resultado = await response.json();
+
+    if (resultado.estado === "OK") {
+      mostrarDatosGuardados(resultado.mensaje);
+      option("parcial", "");
+    } else {
+      mostrarErrorCaptura(resultado.mensaje);
+    }
+  } catch (error) {
+    mostrarErrorCaptura(
+      "Error al modificar los datos del parcial: " + error.message
+    );
+  }
+
+}
 
 /**
  * Hace petición al servidor para obtener los periodos disponibles
@@ -709,7 +821,6 @@ async function obtenerDatosdePeriodoEnParcial() {
   }
 }
 
-
 /**
  * Recibe la respuesta de periodos y los renderiza en el <select>.
  * - Valida que payload.estado sea "OK".
@@ -730,7 +841,7 @@ function mostrarDatosdePeriodoEnParcial(payload) {
 
   for (const p of periodos) {
     const option = document.createElement("option");
-    option.value = p.clave_periodo ?? "";         
+    option.value = p.clave_periodo ?? "";
     option.textContent = p.periodo ?? "Periodo";
     if (p.estado) option.dataset.estado = p.estado;
     select.appendChild(option);
@@ -747,8 +858,8 @@ $(document).on('ajaxComplete DOMContentLoaded', function () {
 /* ===== Estado + helpers (colócalo cerca del inicio de parcial.js) ===== */
 window.ParcialCtx = { parciales: [], periodo: null };
 
-function _parseDate(s) { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
-function _diffDays(a, b) { return Math.floor((_parseDate(b) - _parseDate(a)) / (1000*60*60*24)); }
+function _parseDate(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function _diffDays(a, b) { return Math.floor((_parseDate(b) - _parseDate(a)) / (1000 * 60 * 60 * 24)); }
 function _overlaps(a1, b1, a2, b2) {  // rangos inclusivos
   return _parseDate(a1) <= _parseDate(b2) && _parseDate(b1) >= _parseDate(a2);
 }
@@ -782,19 +893,19 @@ async function onPeriodoChange() {
   const idPeriodo = Number(sel?.value) || 0;
   if (!idPeriodo) return;
 
- const el = document.getElementById('idperiodo');
-if (el) el.value = idPeriodo;
+  const el = document.getElementById('idperiodo');
+  if (el) el.value = idPeriodo;
 
 
-  const btn  = document.getElementById('btnGuardarJ');
-  const ini  = document.getElementById('fechaInicio');
-  const fin  = document.getElementById('fechaFin');
+  const btn = document.getElementById('btnGuardarJ');
+  const ini = document.getElementById('fechaInicio');
+  const fin = document.getElementById('fechaFin');
   const info = document.getElementById('periodoInfo');
 
   try {
     const resp = await fetch('../../Controlador/Intermediarios/Parcial/ContextoParcial.php', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idPeriodo }),
       credentials: 'include'
     });
@@ -806,7 +917,7 @@ if (el) el.value = idPeriodo;
 
     // Guarda contexto para validar traslapes
     ParcialCtx.parciales = Array.isArray(ctx.parciales) ? ctx.parciales : [];
-    ParcialCtx.periodo   = ctx.periodo || null;
+    ParcialCtx.periodo = ctx.periodo || null;
 
     // Máximo 4
     if (ctx.parcialesRegistrados >= 4) {
@@ -889,16 +1000,16 @@ function validarFechas() {
 
   //Validar que la fecha inicio de un parcial no sea menor a la fecha fin del ultimo parcial agregado
   if (ini && ParcialCtx.parciales.length) {
-  const ultimo = ParcialCtx.parciales[ParcialCtx.parciales.length - 1];
-  const finUltimo = _ft(ultimo);
+    const ultimo = ParcialCtx.parciales[ParcialCtx.parciales.length - 1];
+    const finUltimo = _ft(ultimo);
 
-  if (finUltimo && ini < finUltimo) {
-    (window.mostrarErrorCaptura || alert)(
-      `La fecha de inicio (${ini}) no puede ser menor que la fecha de término del último parcial (${finUltimo}).`
-    );
-    return false;
+    if (finUltimo && ini < finUltimo) {
+      (window.mostrarErrorCaptura || alert)(
+        `La fecha de inicio (${ini}) no puede ser menor que la fecha de término del último parcial (${finUltimo}).`
+      );
+      return false;
+    }
   }
-}
 
 
   return true;
@@ -969,8 +1080,8 @@ async function guardarParcial() {
   btn && (btn.disabled = true);
 
   const body = {
-    nombre:  document.getElementById('nombre_parcial').value.trim(),
-    inicio:  document.getElementById('fechaInicio').value,
+    nombre: document.getElementById('nombre_parcial').value.trim(),
+    inicio: document.getElementById('fechaInicio').value,
     termino: document.getElementById('fechaFin').value,
     idPeriodo: Number(document.getElementById('idperiodo').value)
   };
@@ -978,7 +1089,7 @@ async function guardarParcial() {
   try {
     const r = await fetch('../../Controlador/Intermediarios/Parcial/InsertarParcial.php', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
       credentials: 'include'
     });
@@ -1004,7 +1115,7 @@ function resetFormularioParcial() {
 
   if (sel) {
     sel.selectedIndex = 0;
-    sel.dispatchEvent(new Event('input',  { bubbles: true }));
+    sel.dispatchEvent(new Event('input', { bubbles: true }));
     sel.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
@@ -1032,7 +1143,7 @@ function resetFormularioParcial() {
 
 
 // Cuando el usuario selecciona fechaInicio, autocompleta fechaFin +15 días
-document.addEventListener("change", function(e) {
+document.addEventListener("change", function (e) {
   if (e.target && e.target.id === "fechaInicio") {
     const iniEl = document.getElementById("fechaInicio");
     const finEl = document.getElementById("fechaFin");

@@ -56,36 +56,48 @@ $res = $objPaDAO->MostrarParcial();
                             break;
                     }
             ?>
-        <tr class="text-center">
-            <td><?= $fila['clave_parcial'] ?></td>
-            <td><?= $fila['nombre_parcial'] ?></td>
-            <td><?= $fila['clave_periodo'] ?></td>
-            <td><?= $fila['periodo'] ?></td>
-            <td></td>
-            <td></td>
-            <td><span class="badge <?= $badgeClass ?>"><?= $fila['estado'] ?></span></td>
-                <td>
-                    <div class="d-flex gap-2 justify-content-center">
-                        <button class="btn btn-primary btn-sm d-flex align-items-center"
-                            onclick="loadFormParcial('modParcial','1');">
-                            <i class="fas fa-edit me-1"></i>
-                            <span>Editar</span>
-                        </button>
-                        <label>
-                            <select class="form-select form-select-sm btn-warning"
-                                style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
-                                onchange="changeStatusParcial('<?= $fila['clave_parcial'] ?>', this.value, '<?= $fila['estado'] ?>');"
-                              >
-                                <option disabled>Cambiar estado</option>
-                                <option value="Pendiente">Pendiente</option>
-                                <option value="Abierto">Abierto</option>
-                                <option value="Cerrado">Cerrado</option>
-                                <option selected value="Cancelado">Cancelado</option>
-                            </select>
-                        </label>
-                    </div>
-                </td>
-            </tr>
+                    <tr class="text-center">
+                        <td><?= $fila['clave_parcial'] ?></td>
+                        <td><?= $fila['nombre_parcial'] ?></td>
+                        <td><?= $fila['clave_periodo'] ?></td>
+                        <td><?= $fila['periodo'] ?></td>
+                        <td><?= $fila['fecha_inicio_de_parcial'] ?></td>
+                        <td><?= $fila['fecha_termino_de_parcial'] ?></td>
+                        <td><span class="badge <?= $badgeClass ?>"><?= $fila['estado'] ?></span></td>
+                        <td>
+                            <div class="d-flex gap-2 justify-content-center">
+                                
+                                <?php if ($fila['estado'] === 'Abierto' || $fila['estado'] === 'Pendiente') : 
+                                ?>
+                                <button class="btn btn-primary btn-sm d-flex align-items-center"
+                                    onclick="loadFormParcial('modParcial', <?= $fila['clave_parcial'] ?>)">
+                                    <i class="fas fa-edit me-1"></i>
+                                    <span>Editar</span>
+                                </button>
+                                <?php else : 
+                                ?>
+                                <button class="btn btn-primary btn-sm d-flex align-items-center" title="No editable"
+                                    disabled>
+                                    <i class="fas fa-edit me-1"></i>
+                                    <span>Editar</span>
+                                </button>
+                                <?php endif; 
+                                ?>
+
+                                <label>
+                                    <select class="form-select form-select-sm btn-warning"
+                                        style="width: auto; color: #212529; background-color: #ffc107; border-color: #ffc107;"
+                                        onchange="changeStatusParcial('<?= $fila['clave_parcial'] ?>', this.value, '<?= $fila['estado'] ?>');">
+                                        <option disabled selected>Cambiar estado</option>
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="Abierto">Abierto</option>
+                                        <option value="Cerrado">Cerrado</option>
+                                        <option value="Cancelado">Cancelado</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
             <?php
                     $cont++;
                 }
@@ -98,17 +110,21 @@ $res = $objPaDAO->MostrarParcial();
 <!-- este codigo se comento para que no se pueda editar el parcial si esta cerrado o cancelado
 
 
-    <?php //if ($fila['estado'] === 'Abierto' || $fila['estado'] === 'Pendiente') : ?>
+    <?php //if ($fila['estado'] === 'Abierto' || $fila['estado'] === 'Pendiente') : 
+    ?>
         <button class="btn btn-primary btn-sm d-flex align-items-center"
-            onclick="option('period-edit', <?//= $fila['clave_periodo'] ?>)">
+            onclick="option('modParcial', <? //= $fila['clave_periodo'] 
+                                            ?>)">
             <i class="fas fa-edit me-1"></i>
             <span>Editar</span>
         </button>
-    <?php //else : ?>
+    <?php //else : 
+    ?>
         <button class="btn btn-primary btn-sm d-flex align-items-center" title="No editable"
             disabled>
             <i class="fas fa-edit me-1"></i>
             <span>Editar</span>
         </button>
-    <?php //endif; ?>
+    <?php //endif; 
+    ?>
 -->
