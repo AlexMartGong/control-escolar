@@ -379,3 +379,4 @@ if (document.readyState === 'loading') {
         }, 500);
     }
 }
+

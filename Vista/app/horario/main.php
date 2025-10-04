@@ -1,43 +1,41 @@
 <?php
-// Datos de prueba para 5 carreras diferentes con estructura simplificada
-$horariosData = [
-        'Ingeniería en Sistemas Computacionales' => [
-                ['clave_horario' => 'H001', 'semestre' => '1°', 'grupo' => 'A', 'turno' => 'Matutino'],
-                ['clave_horario' => 'H002', 'semestre' => '2°', 'grupo' => 'B', 'turno' => 'Vespertino'],
-                ['clave_horario' => 'H003', 'semestre' => '3°', 'grupo' => 'A', 'turno' => 'Matutino'],
-                ['clave_horario' => 'H004', 'semestre' => '4°', 'grupo' => 'C', 'turno' => 'Vespertino'],
-                ['clave_horario' => 'H005', 'semestre' => '5°', 'grupo' => 'A', 'turno' => 'Matutino'],
-        ],
-        'Ingeniería Industrial' => [
-                ['clave_horario' => 'H006', 'semestre' => '1°', 'grupo' => 'B', 'turno' => 'Matutino'],
-                ['clave_horario' => 'H007', 'semestre' => '2°', 'grupo' => 'A', 'turno' => 'Vespertino'],
-                ['clave_horario' => 'H008', 'semestre' => '3°', 'grupo' => 'C', 'turno' => 'Matutino'],
-                ['clave_horario' => 'H009', 'semestre' => '4°', 'grupo' => 'B', 'turno' => 'Vespertino'],
-                ['clave_horario' => 'H010', 'semestre' => '6°', 'grupo' => 'A', 'turno' => 'Matutino'],
-        ],
-        'Ingeniería Electrónica' => [
-                ['clave_horario' => 'H011', 'semestre' => '2°', 'grupo' => 'A', 'turno' => 'Matutino'],
-                ['clave_horario' => 'H012', 'semestre' => '3°', 'grupo' => 'B', 'turno' => 'Vespertino'],
-                ['clave_horario' => 'H013', 'semestre' => '4°', 'grupo' => 'A', 'turno' => 'Matutino'],
-                ['clave_horario' => 'H014', 'semestre' => '5°', 'grupo' => 'C', 'turno' => 'Vespertino'],
-                ['clave_horario' => 'H015', 'semestre' => '7°', 'grupo' => 'A', 'turno' => 'Matutino'],
-        ],
-        'Ingeniería Mecánica' => [
-                ['clave_horario' => 'H016', 'semestre' => '1°', 'grupo' => 'C', 'turno' => 'Matutino'],
-                ['clave_horario' => 'H017', 'semestre' => '2°', 'grupo' => 'A', 'turno' => 'Vespertino'],
-                ['clave_horario' => 'H018', 'semestre' => '4°', 'grupo' => 'B', 'turno' => 'Matutino'],
-                ['clave_horario' => 'H019', 'semestre' => '6°', 'grupo' => 'A', 'turno' => 'Vespertino'],
-                ['clave_horario' => 'H020', 'semestre' => '8°', 'grupo' => 'B', 'turno' => 'Matutino'],
-        ],
-        'Ingeniería en Gestión Empresarial' => [
-                ['clave_horario' => 'H021', 'semestre' => '1°', 'grupo' => 'A', 'turno' => 'Matutino'],
-                ['clave_horario' => 'H022', 'semestre' => '3°', 'grupo' => 'B', 'turno' => 'Vespertino'],
-                ['clave_horario' => 'H023', 'semestre' => '5°', 'grupo' => 'A', 'turno' => 'Matutino'],
-                ['clave_horario' => 'H024', 'semestre' => '7°', 'grupo' => 'C', 'turno' => 'Vespertino'],
-                ['clave_horario' => 'H025', 'semestre' => '9°', 'grupo' => 'A', 'turno' => 'Matutino'],
-        ]
-];
+// ==========================
+//  Backend: Cargar Horarios
+// ==========================
+require '../../../Modelo/BD/ConexionBD.php';
+require '../../../Modelo/BD/ModeloBD.php';
+require '../../../Modelo/DAOs/HorarioDAO.php';
+
+// Crear conexión a la BD
+$objBD = new ConexionBD($DatosBD);
+$objHoDAO = new HorarioDAO($objBD->Conectar());
+
+// Ejecutar método que llama al SP
+$res = $objHoDAO->vizualizarHorarios();
+
+// ==========================
+//  Transformar datos: agrupar por carrera
+// ==========================
+$horariosData = [];
+if ($res['estado'] === "OK" && $res['respuestaSP'] === "Estado: Exito") {
+    foreach ($res['datos'] as $fila) {
+        $carrera = $fila['nombre_de_carrera'];
+        if (!isset($horariosData[$carrera])) {
+            $horariosData[$carrera] = [];
+        }
+        $horariosData[$carrera][] = [
+            'clave_horario' => $fila['clave_de_carrera'],
+            'semestre'      => $fila['semestre'],
+            'grupo'         => $fila['grupo'],
+            'turno'         => $fila['turno'],
+        ];
+    }
+}
 ?>
+
+<!-- ==========================
+     Frontend: Render dinámico
+=========================== -->
 <div id="frmArea">
     <h2 class="mb-4">Horarios por Carrera</h2>
 
@@ -63,60 +61,63 @@ $horariosData = [
 
     <!-- Contenedor para las tablas -->
     <div id="tablasContainer">
-        <?php
-        foreach ($horariosData as $nombreCarrera => $horarios):
-            $carreraClass = str_replace([' ', 'ñ'], ['', 'n'], $nombreCarrera);
-            $carreraClass = preg_replace('/[^A-Za-z0-9]/', '', $carreraClass);
+        <?php if (!empty($horariosData)): ?>
+            <?php foreach ($horariosData as $nombreCarrera => $horarios): 
+                $carreraClass = str_replace([' ', 'ñ'], ['', 'n'], $nombreCarrera);
+                $carreraClass = preg_replace('/[^A-Za-z0-9]/', '', $carreraClass);
             ?>
-            <div class="carrera-section mb-5" data-carrera="<?= $nombreCarrera ?>">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="card-title mb-0">
-                            <i class="fas fa-graduation-cap me-2"></i>
-                            <?= $nombreCarrera ?>
-                        </h4>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-hover table-responsive table-striped horario-table"
-                               id="table<?= $carreraClass ?>">
-                            <thead>
-                            <tr class="table-dark text-center">
-                                <th>Semestre</th>
-                                <th>Grupo</th>
-                                <th>Turno</th>
-                                <th>Opciones</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php foreach ($horarios as $fila): ?>
-                                <tr class="text-center">
-                                    <td><?= $fila['semestre'] ?></td>
-                                    <td><?= $fila['grupo'] ?></td>
-                                    <td><?= $fila['turno'] ?></td>
-                                    <td>
-                                        <div class="d-flex gap-2 justify-content-center">
-                                            <button class="btn btn-primary btn-sm d-flex align-items-center"
-                                                    onclick="loadFormHorario('modHorario', '<?= $fila['clave_horario'] ?>');">
-                                                <i class="fas fa-edit me-1"></i>
-                                                <span>Editar</span>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm d-flex align-items-center"
-                                                    onclick="eliminarHorario('<?= $fila['clave_horario'] ?>');">
-                                                <i class="fas fa-trash me-1"></i>
-                                                <span>Eliminar</span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                <div class="carrera-section mb-5" data-carrera="<?= $nombreCarrera ?>">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-graduation-cap me-2"></i>
+                                <?= $nombreCarrera ?>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-hover table-responsive table-striped horario-table"
+                                   id="table<?= $carreraClass ?>">
+                                <thead>
+                                    <tr class="table-dark text-center">
+                                        <th>Semestre</th>
+                                        <th>Grupo</th>
+                                        <th>Turno</th>
+                                        <th>Opciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($horarios as $fila): ?>
+                                        <tr class="text-center">
+                                            <td><?= $fila['semestre'] ?></td>
+                                            <td><?= $fila['grupo'] ?></td>
+                                            <td><?= $fila['turno'] ?></td>
+                                            <td>
+                                                <div class="d-flex gap-2 justify-content-center">
+                                                    <button class="btn btn-primary btn-sm d-flex align-items-center"
+                                                            onclick="loadFormHorario('modHorario', '<?= $fila['clave_horario'] ?>');">
+                                                        <i class="fas fa-edit me-1"></i>
+                                                        <span>Editar</span>
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm d-flex align-items-center"
+                                                            onclick="eliminarHorario('<?= $fila['clave_horario'] ?>');">
+                                                        <i class="fas fa-trash me-1"></i>
+                                                        <span>Eliminar</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="alert alert-warning">
+                <?= $res['respuestaSP'] ?? 'No se encontraron horarios registrados.' ?>
             </div>
-            <?php
-        endforeach;
-        ?>
+        <?php endif; ?>
     </div>
 
     <!-- Control de paginación -->
