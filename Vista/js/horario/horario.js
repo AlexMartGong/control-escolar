@@ -575,7 +575,7 @@ function limpiarErrores() {
 }
 
 // Función para mostrar error en un campo específico
-function mostrarError(campo, mensaje) {
+function mostrarErrorHorario(campo, mensaje) {
     $(`#${campo}`).addClass('error-field');
     $(`#error${campo.charAt(0).toUpperCase() + campo.slice(1)}`).text(mensaje).show();
 }
@@ -642,22 +642,22 @@ function validarFormulario() {
     limpiarErrores();
 
     if ($("#claveCarrera").val() === "") {
-        mostrarError("claveCarrera", "Debe seleccionar una carrera");
+        mostrarErrorHorario("claveCarrera", "Debe seleccionar una carrera");
         valido = false;
     }
 
     if ($("#semestre").val() === "") {
-        mostrarError("semestre", "Debe seleccionar un semestre");
+        mostrarErrorHorario("semestre", "Debe seleccionar un semestre");
         valido = false;
     }
 
     if ($("#grupo").val() === "") {
-        mostrarError("grupo", "Debe seleccionar un grupo");
+        mostrarErrorHorario("grupo", "Debe seleccionar un grupo");
         valido = false;
     }
 
     if ($("#turno").val() === "") {
-        mostrarError("turno", "Debe seleccionar un turno");
+        mostrarErrorHorario("turno", "Debe seleccionar un turno");
         valido = false;
     }
 
@@ -665,12 +665,12 @@ function validarFormulario() {
     const cantidadOfertas = parseInt($("#contadorOfertas").text());
 
     if (cantidadAlumnos === 0) {
-        mostrarError("claveCarrera", "No hay alumnos disponibles para la selección");
+        mostrarErrorHorario("claveCarrera", "No hay alumnos disponibles para la selección");
         valido = false;
     }
 
     if (cantidadOfertas === 0) {
-        mostrarError("claveCarrera", "No hay ofertas disponibles para la selección");
+        mostrarErrorHorario("claveCarrera", "No hay ofertas disponibles para la selección");
         valido = false;
     }
 
@@ -1305,22 +1305,22 @@ function validarFormularioModificacion() {
     limpiarErrores();
 
     if ($("#claveCarrera").val() === "") {
-        mostrarError("claveCarrera", "Debe seleccionar una carrera");
+        mostrarErrorHorario("claveCarrera", "Debe seleccionar una carrera");
         valido = false;
     }
 
     if ($("#semestre").val() === "") {
-        mostrarError("semestre", "Debe seleccionar un semestre");
+        mostrarErrorHorario("semestre", "Debe seleccionar un semestre");
         valido = false;
     }
 
     if ($("#grupo").val() === "") {
-        mostrarError("grupo", "Debe seleccionar un grupo");
+        mostrarErrorHorario("grupo", "Debe seleccionar un grupo");
         valido = false;
     }
 
     if ($("#turno").val() === "") {
-        mostrarError("turno", "Debe seleccionar un turno");
+        mostrarErrorHorario("turno", "Debe seleccionar un turno");
         valido = false;
     }
 
@@ -1328,12 +1328,12 @@ function validarFormularioModificacion() {
     const cantidadOfertasAsignadas = parseInt($("#contadorOfertasAsignadas").text());
 
     if (cantidadAlumnos === 0) {
-        mostrarError("claveCarrera", "No hay alumnos con horarios para la selección");
+        mostrarErrorHorario("claveCarrera", "No hay alumnos con horarios para la selección");
         valido = false;
     }
 
     if (cantidadOfertasAsignadas === 0) {
-        mostrarError("claveCarrera", "Debe tener al menos una oferta asignada");
+        mostrarErrorHorario("claveCarrera", "Debe tener al menos una oferta asignada");
         valido = false;
     }
 
@@ -1441,3 +1441,4 @@ async function BuscarHorario(id) {
     mostrarErrorCaptura("Error al buscar el Horario.");
   }
 }
+
