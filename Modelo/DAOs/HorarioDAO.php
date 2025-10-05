@@ -437,43 +437,43 @@ class HorarioDAO
      * @return array Retorna un array con el estado de la operación, mensaje, datos y cantidad de filas obtenidas.
      */
     public function vizualizarHorarios()
-{
-    // Inicializar estado como OK por defecto
-    $resultado['estado'] = "OK";
-    $c = $this->conector;
+    {
+        // Inicializar estado como OK por defecto
+        $resultado['estado'] = "OK";
+        $c = $this->conector;
 
-    try {
-        // Preparar y ejecutar el procedimiento almacenado
-        $sp = $c->prepare("CALL spMostrarHorariosGrupal(@mensaje)");
-        $sp->execute();
+        try {
+            // Preparar y ejecutar el procedimiento almacenado
+            $sp = $c->prepare("CALL spMostrarHorariosGrupal(@mensaje)");
+            $sp->execute();
 
-        // Obtener todos los datos retornados
-        $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
-        $sp->closeCursor(); // Liberar resultado para permitir obtener @mensaje
+            // Obtener todos los datos retornados
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor(); // Liberar resultado para permitir obtener @mensaje
 
-        // Consultar el mensaje de salida del procedimiento almacenado
-        $respuestaSP = $c->query("SELECT @mensaje");
-        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
-        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+            // Consultar el mensaje de salida del procedimiento almacenado
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
 
-        // Registrar en log para depuración
-        error_log("Mensaje spMostrarHorariosGrupal: " . $resultado['respuestaSP']);
+            // Registrar en log para depuración
+            error_log("Mensaje spMostrarHorariosGrupal: " . $resultado['respuestaSP']);
 
-        // Verificar si el procedimiento fue exitoso
-        if ($resultado['respuestaSP'] == 'Estado: Exito') {
-            $resultado['datos'] = $datos;            // Asignar datos recuperados
-            $resultado['filas'] = count($datos);     // Contar registros obtenidos
-        } else {
-            $resultado['filas'] = 0;
-            $resultado['estado'] = "Sin registros de Horarios para mostrar";
+            // Verificar si el procedimiento fue exitoso
+            if ($resultado['respuestaSP'] == 'Estado: Exito') {
+                $resultado['datos'] = $datos;            // Asignar datos recuperados
+                $resultado['filas'] = count($datos);     // Contar registros obtenidos
+            } else {
+                $resultado['filas'] = 0;
+                $resultado['estado'] = "Sin registros de Horarios para mostrar";
+            }
+        } catch (PDOException $e) {
+            // Manejo de excepciones por errores en la base de datos
+            $resultado['estado'] = "Error vizualizarHorarios: " . $e->getMessage();
         }
-    } catch (PDOException $e) {
-        // Manejo de excepciones por errores en la base de datos
-        $resultado['estado'] = "Error vizualizarHorarios: " . $e->getMessage();
-    }
 
-    return $resultado;
-}
+        return $resultado;
+    }
 
 
     /**
@@ -706,22 +706,27 @@ class HorarioDAO
 
 
     /**
-     * Cambia el estado de un horario en la base de datos.
+     * Cambia el estado de los horarios de un grupo de alumnos en la base de datos.
      * 
-     * Este método realiza múltiples validaciones de los datos de entrada
-     * y luego llama al procedimiento almacenado `spModificarEstadoHorario`, que 
-     * se encarga de modificar el estado de la oferta si cumple con las condiciones.
+     * Este método realiza validaciones de los datos de entrada (clave de carrera, semestre,
+     * grupo, turno y estado) y luego llama al procedimiento almacenado `spModificarEstadoHorarioGrupal`,
+     * que se encarga de actualizar el estado de los horarios del grupo correspondiente.
      * 
-     * También interpreta el mensaje de salida del SP y proporciona una
-     * respuesta clara para el usuario final.
+     * También interpreta los mensajes generados por el SP y devuelve una respuesta clara
+     * y amigable para el usuario final.
      *
      * @param object $datos Objeto con las propiedades:
-     *                      - pid: ID del horario a modificar su estado.
-     *                      - pestado: Estado nuevo a asignar ("Asignada" o "No asignada").
-     * @return array Retorna un array asociativo con el estado ('OK' o 'Error') 
-     *               y un mensaje explicativo.
+     *                      - pclavecarrera: Clave de la carrera.
+     *                      - psemestre: Número de semestre (1-12).
+     *                      - pgrupo: Grupo (una sola letra).
+     *                      - pturno: Turno ("Matutino" o "Vespertino").
+     *                      - pestado: Estado a asignar ("Activo" o "Inactivo").
+     * @return array Retorna un array asociativo con:
+     *               - 'estado': "OK" si se realizó la actualización o "Error" si no.
+     *               - 'mensaje': Mensaje explicativo para mostrar al usuario.
      */
-    public function CambiarEstadoHorarios($datos)
+
+    public function CambiarEstadoHorariosPorGrupo($datos)
     {
         // Inicializa el resultado con estado de error por defecto
         $resultado = ['estado' => 'Error'];
@@ -732,14 +737,26 @@ class HorarioDAO
         // -----------------------------------------
 
         // Validar que el estado sea un valor aceptado
-        if (empty($datos->pid) || empty($datos->pestado)) {
-            $resultado['mensaje'] = "No se ha proporcionado todos los datos requeridos (idHorario y Estado) porfavor intentelo mas tarde.";
+        if (empty($datos->pclavecarrera) || empty($datos->psemestre) || empty($datos->pgrupo) || empty($datos->pturno) || empty($datos->pestado)) {
+            $resultado['mensaje'] = "No se han proporcionado todos los datos requeridos. Por favor, inténtelo de nuevo más tarde.";
             return $resultado;
         }
 
-        // Validar que el id del horario sea un número entero positivo
-        if (!filter_var($datos->pid, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]])) {
-            $resultado['mensaje'] = "El ID del horario debe ser un número entero positivo.";
+        // Verifica que el semestre esté entre 1 y 12
+        if (!filter_var($datos->psemestre, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 12]])) {
+            $resultado['mensaje'] = "El semestre debe ser un número entre 1 y 12.";
+            return $resultado;
+        }
+
+        // Verifica que el grupo sea una sola letra
+        if (!preg_match('/^[A-Za-z]$/', $datos->pgrupo)) {
+            $resultado['mensaje'] = "El grupo debe ser una sola letra (por ejemplo: A, B, C).";
+            return $resultado;
+        }
+
+        // Verifica que el turno sea válido
+        if ($datos->pturno !== "Matutino" && $datos->pturno !== "Vespertino") {
+            $resultado['mensaje'] = "El turno debe ser 'Matutino' o 'Vespertino'.";
             return $resultado;
         }
 
@@ -749,27 +766,36 @@ class HorarioDAO
             return $resultado;
         }
 
-        $sp = $c->prepare("CALL spBuscarHorarioByID(:pid, @mensaje)");
-        $sp->bindParam(':pid', $datos->pid, PDO::PARAM_INT);
-        $sp->execute();
-
-
-        $horario = $sp->fetch(PDO::FETCH_ASSOC);
-        $sp->closeCursor();
-
-
-        $respuestaSPV = $c->query("SELECT @mensaje");
-        $mensaje = $respuestaSPV->fetch(PDO::FETCH_ASSOC);
-        $resultado['respuestaSP'] = $mensaje['@mensaje'];
-
-        // Verificar si el estado ingresado es igual al actual
-        if ($mensaje['@mensaje'] === 'Estado: Exito' && $horario['estado'] === $datos->pestado) {
-            $resultado['mensaje'] = "No se realizó ningún cambio porque el estado ingresado es igual al actual.";
+        // Verifica que la clave de carrera tenga el formato correcto
+        if (!preg_match('/^[A-Za-z]{4}-\d{4}-\d{3}$/', $datos->pclavecarrera)) {
+            $resultado['mensaje'] = "La clave de la carrera debe tener este formato: IINF-2010-220 (4 letras, guion, 4 dígitos, guion, 3 dígitos).";
             return $resultado;
         }
 
-        if ($mensaje['@mensaje'] === 'Error: No existe un registro con el parametro solicitado') {
-            $resultado['mensaje'] = "El registro de Horario que se esta intentando modificar no existe, por favor intente con otro.";
+        // ------------------------
+        // Verificación de la carrera
+        // ------------------------
+
+        $sp = $c->prepare("CALL spBuscarCarreraByID(:pid, @mensaje)");
+        $sp->bindParam(':pid', $datos->pclavecarrera, PDO::PARAM_STR);
+        $sp->execute();
+
+        $carrera = $sp->fetch(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        $respuestaSP = $c->query("SELECT @mensaje");
+        $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+        // Verifica si la carrera no existe
+        if ($mensaje['@mensaje'] === 'Error: No existen registros con el parámetro solicitado') {
+            $resultado['mensaje'] = "La carrera ingresada no existe.";
+            return $resultado;
+        }
+
+        // Verifica si la carrera no está activa
+        if ($mensaje['@mensaje'] === 'Estado: Exito' && $carrera['estado'] !== 'Activo') {
+            $resultado['mensaje'] = "La carrera debe estar en estado 'Activo' para realizar esta operación.";
             return $resultado;
         }
 
@@ -780,8 +806,11 @@ class HorarioDAO
         try {
 
             // Preparar llamada al procedimiento almacenado con parámetros
-            $sp = $c->prepare("CALL spModificarEstadoHorario(:pid, :pestado, @mensaje)");
-            $sp->bindParam(':pid', $datos->pid, PDO::PARAM_INT);
+            $sp = $c->prepare("CALL spModificarEstadoHorarioGrupal(:pclavecarrera, :psemestre, :pgrupo, :pturno, :pestado, @mensaje)");
+            $sp->bindParam(':pclavecarrera', $datos->pclavecarrera, PDO::PARAM_STR);
+            $sp->bindParam(':psemestre', $datos->psemestre, PDO::PARAM_INT);
+            $sp->bindParam(':pgrupo', $datos->pgrupo, PDO::PARAM_STR);
+            $sp->bindParam(':pturno', $datos->pturno, PDO::PARAM_STR);
             $sp->bindParam(':pestado', $datos->pestado, PDO::PARAM_STR);
             $sp->execute();
             $sp->closeCursor(); // Cierra el cursor para liberar recursos antes de ejecutar otra consulta
@@ -796,22 +825,31 @@ class HorarioDAO
 
                 case 'Estado: Exito':
                     $resultado['estado'] = "OK";
-                    $resultado['mensaje'] = "El estado del registro fue actualizado exitosamente.";
+                    $resultado['mensaje'] = "Se han eliminado correctamente todos los horarios.";
                     break;
 
-                case 'Error: No se pudo modificar el registro':
-                    $resultado['mensaje'] = "No fue posible el cambio de estado del Horario. Por favor, intente nuevamente más tarde.";
+                case 'Error: El estado no es valido':
+                    $resultado['mensaje'] = "No fue posible eliminar los horarios. Intente nuevamente más tarde.";
+                    error_log("[SP] Error: Estado no válido al intentar actualizar horarios. Estado: " . $datos->pestado);
+                    break;
+
+                case 'Estado: Sin cambios':
+                    $resultado['mensaje'] = "Los horarios que intentó eliminar ya se habían eliminado previamente.";
+                    error_log("[SP] Advertencia: No se realizaron cambios porque los horarios ya estaban inactivos. Grupo: {$datos->pgrupo}, Semestre: {$datos->psemestre}, Carrera: {$datos->pclavecarrera}");
+                    break;
+
+                case 'Error: No se pudo realizar la modificacion':
+                    $resultado['mensaje'] = "No fue posible actualizar el estado de los horarios. Por favor, intente nuevamente más tarde.";
                     break;
 
                 default:
-
-                    $resultado['mensaje'] = "Ocurrió un error inesperado. Contacte al administrador si el problema persiste.";
+                    $resultado['mensaje'] = "No fue posible procesar la solicitud para actualizar el estado de los horarios. Si el problema continúa, comuníquese con el área de soporte.";
                     break;
             }
         } catch (PDOException $e) {
             // Registro detallado de errores para depuración en caso de excepción
-            error_log("Error en la base de datos: " . $e->getMessage());
-            $resultado['mensaje'] = "Hubo un problema al cambiar el estado del Horario. Por favor, intente nuevamente más tarde.";
+            error_log("[BD] Error al cambiar el estado de los horarios. Detalles: " . $e->getMessage());
+            $resultado['mensaje'] = "No fue posible actualizar el estado de los horarios en este momento. Por favor, intente nuevamente más tarde.";
         }
 
         // Devolver resultado final con estado y mensaje
@@ -1007,5 +1045,4 @@ class HorarioDAO
 
         return $resultado;
     }
-
 }

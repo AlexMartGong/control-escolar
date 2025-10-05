@@ -70,14 +70,19 @@ function loadFormHorario(opc, id = "") {
     });
 }
 
-function changeStatusHorario(id, status, currentStatus) {
-    // Si no hay un estado seleccionado (opción por defecto), no hacer nada
-    if (!status || status === "Cambiar estado") {
-        return;
-    }
-
-    // Crear el contenido del modal de confirmación
-    let modalHTML = `
+/**
+ * Función para cambiar el estado de todos los horarios de un grupo específico.
+ * Muestra un modal de confirmación antes de realizar la acción y utiliza Fetch
+ * para comunicarse con el intermediario PHP que actualiza la base de datos.
+ *
+ * @param {string} claveCarrera - Clave de la carrera a la que pertenece el grupo de alumnos.
+ * @param {number|string} semestre - Semestre al que pertenecen los horarios.
+ * @param {string} grupo - Grupo al que pertenecen los horarios.
+ * @param {string} turno - Turno (Matutino/Vespertino) de los horarios.
+ */
+function changeStatusHorario(claveCarrera, semestre, grupo, turno) {
+    // Contenido del modal
+    const modalHTML = `
     <div class="modal fade" id="confirmStatusModal" tabindex="-1" aria-labelledby="confirmStatusModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -88,14 +93,13 @@ function changeStatusHorario(id, status, currentStatus) {
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="text-center mb-3">
-                        <i class="fas fa-sync-alt text-warning fa-4x"></i>
-                    </div>
-                    <p class="text-center">¿Está seguro de cambiar el estado del horario <strong>${id}</strong> a <strong>${status}</strong>?</p>
+                    <p class="text-center">
+                        ¿Está seguro de eliminar todos los horarios del grupo <strong>${grupo}</strong>, semestre <strong>${semestre}</strong> y turno <strong>${turno}</strong>?
+                    </p>
                     <p class="text-center text-danger">Esta acción puede afectar a los procesos académicos en curso.</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCancelar">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" id="btnConfirmar">Confirmar</button>
                 </div>
             </div>
@@ -103,92 +107,63 @@ function changeStatusHorario(id, status, currentStatus) {
     </div>`;
 
     // Remover modal anterior si existe
-    let modalAnterior = document.getElementById("confirmStatusModal");
-    if (modalAnterior) {
-        modalAnterior.remove();
-    }
+    const modalAnterior = document.getElementById("confirmStatusModal");
+    if (modalAnterior) modalAnterior.remove();
 
-    // Agregar el modal al documento
+    // Insertar modal en el body
     document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-    // Mostrar el modal
-    let modalElement = document.getElementById("confirmStatusModal");
-    let modal = new bootstrap.Modal(modalElement);
+    // Inicializar modal
+    const modalElement = document.getElementById("confirmStatusModal");
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 
-    // Configurar acción para el botón cancelar
-    document.getElementById("btnCancelar").addEventListener("click", function () {
-        // Resetear el select al cancelar
-        const selectElement = document.querySelector(
-            `select[onchange="changeStatusAlumno('${id}', this.value, '${currentStatus}')"]`
-        );
-        if (selectElement) {
-            selectElement.value = currentStatus;
-        }
-    });
-
-    // También resetear al cerrar el modal con la X o haciendo clic fuera
-    modalElement.addEventListener("hidden.bs.modal", function () {
-        const selectElement = document.querySelector(
-            `select[onchange="changeStatusAlumno('${id}', this.value, '${currentStatus}')"]`
-        );
-        if (selectElement) {
-            selectElement.value = currentStatus;
-        }
-        modalElement.remove();
-    });
-
-    // Configurar acción para el botón confirmar
-    document.getElementById("btnConfirmar").addEventListener("click", function () {
-        // Cerrar el modal
+    // Botón Confirmar
+    document.getElementById("btnConfirmar").addEventListener("click", async function () {
         modal.hide();
 
-        // Preparar datos para enviar
-        let data = {
-            id: id,
-            status: status,
+        const data = {
+            clavecarrera: claveCarrera,
+            semestre: semestre,
+            grupo: grupo,
+            turno: turno,
+            estado: "Inactivo"
         };
 
-        // Convertir a JSON
-        let json = JSON.stringify(data);
+        try {
+            const response = await fetch("../../Controlador/Intermediarios/Horario/CambiarEstadoHorario.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
 
-        console.log(`Cambiando estado de alumno ${id} a ${status}`);
+            if (!response.ok) {
+                throw new Error("Error en la petición: " + response.statusText);
+            }
 
-        // Realizar petición AJAX para cambiar el estado
-        $.ajax({
-            url: "../../Controlador/Intermediarios/Horario/CambiarEstadoHorario.php",
-            type: "POST",
-            data: json,
-            contentType: "application/json",
-            timeout: 10000, // 10 segundos de timeout
-            success: function (response) {
-                try {
-                    if (typeof response === "string") {
-                        response = JSON.parse(response);
-                    }
+            const resultado = await response.json();
 
-                    if (response.estado === "OK") {
-                        mostrarDatosGuardados(
-                            `El estado del horario ${id} ha sido cambiado a "${status}" correctamente.`,
-                            function () {
-                                option("horario", "");
-                            }
-                        );
-                    } else {
-                        mostrarErrorCaptura(
-                            response.mensaje || "Error al cambiar el estado."
-                        );
-                    }
-                } catch (e) {
-                    mostrarErrorCaptura("Error al procesar la respuesta: " + e.message);
+            if (resultado.estado === "OK") {
+                mostrarDatosGuardados(
+                resultado.mensaje,
+                function () {
+                    option("horario", ""); 
                 }
-            },
-            error: function (xhr, status, error) {
-                mostrarErrorCaptura(
-                    `Error al cambiar el estado: ${status} - ${error}`
-                );
-            },
-        });
+            );
+            } else {
+                 mostrarErrorCaptura(resultado.mensaje);
+            }
+
+        } catch (error) {
+            mostrarErrorCaptura(`Error al cambiar el estado: ${error.message}`);
+        }
+    });
+
+    // Remover modal al cerrar
+    modalElement.addEventListener("hidden.bs.modal", function () {
+        modalElement.remove();
     });
 }
 
