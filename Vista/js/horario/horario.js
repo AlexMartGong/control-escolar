@@ -712,9 +712,7 @@ function cancelarFormulario() {
 
 // Función para mostrar mensaje de éxito
 function mostrarMensajeExito(mensaje) {
-    // Aquí implementarías tu sistema de notificaciones
-    // Por ahora uso alert simple
-    alert(mensaje);
+    mostrarDatosGuardados(mensaje)
 }
 
 // ========== FUNCIONES PARA MODIFICAR HORARIOS ==========
