@@ -496,8 +496,8 @@ class HorarioDAO
 
         try {
             // Llamar al procedimiento almacenado con parámetro de entrada y salida
-            $sp = $c->prepare("CALL spBuscarHorarioByID(:pid, @mensaje)");
-            $sp->bindParam(':pid', $id, PDO::PARAM_STR);
+            $sp = $c->prepare("CALL spBuscarHorarioByIDCarreraGradoGrupo(:pcalveCarrera, @mensaje)");
+            $sp->bindParam(':pcalveCarrera', $id, PDO::PARAM_STR);
             $sp->execute();
 
             // Obtener los datos devueltos por el procedimiento
@@ -523,6 +523,7 @@ class HorarioDAO
 
         return $resultado;
     }
+
 
     //Buscar alumnos que ya tienen horarios registrados
     public function buscarAlumnos($carrera, $semestre, $grupo, $turno)

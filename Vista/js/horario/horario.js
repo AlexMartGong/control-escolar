@@ -836,87 +836,74 @@ function cargarDatosGrupoModificacion() {
 
 // Función para cargar alumnos que tienen horarios registrados
 function cargarAlumnosConHorarios(carrera, semestre, grupo, turno) {
-    fetch('../../Controlador/Intermediarios/Horario/ObtenerAlumnosConHorario.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ carrera, semestre, grupo, turno })
+  fetch('../../Controlador/Intermediarios/Horario/ObtenerAlumnosConHorario.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      claveCarrera: carrera,
+      semestre: Number(semestre),
+      grupo,
+      turno
     })
-        .then(response => response.json())
-        .then(respuesta => {
-            console.log("Respuesta alumnos:", respuesta);
-            mostrarAlumnosConHorarios(respuesta.alumnos);
-        })
-        .catch(error => console.error('Error cargando alumnos:', error));
+  })
+  .then(r => r.json())
+  .then(respuesta => {
+    console.log("Respuesta alumnos:", respuesta);
+    mostrarAlumnosConHorarios(respuesta.alumnos || []);
+  })
+  .catch(err => console.error('Error cargando alumnos:', err));
 }
 
 let ofertasAsignadasInicialKeys = [];
 // funcion para cargar ofertas asignadas a los alumnos de la primera tabla
 function cargarOfertasAsignadas(carrera, semestre, grupo, turno) {
-    fetch('../../Controlador/Intermediarios/Horario/ObtenerOfertasAsignadas.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ carrera, semestre, grupo, turno })
+  fetch('../../Controlador/Intermediarios/Horario/ObtenerOfertasAsignadas.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      claveCarrera: carrera,
+      semestre: Number(semestre),
+      grupo,
+      turno
     })
-    .then(response => {
-        console.log("HTTP status:", response.status);
-        return response.text();
-    })
-    .then(texto => {
-        console.log("Texto recibido del servidor:", texto);
-        try {
-            const respuesta = JSON.parse(texto);
-            console.log("JSON parseado:", respuesta);
-
-            const crudas = respuesta?.data
-                ? (Array.isArray(respuesta.data) ? respuesta.data : Object.values(respuesta.data))
-                : [];
-
-            //Normalizamos y guardamos global
-            ofertasAsignadas = crudas.map(normalizarOferta).filter(o => o.idOferta);
-
-            // Pintamos con datos ya normalizados
-            mostrarOfertasAsignadas(ofertasAsignadas);
-
-            ofertasAsignadasInicialKeys = (ofertasAsignadas || []).map(o => o.uniqueKey);
-        } catch (e) {
-            console.error("Error parseando JSON:", e);
-            ofertasAsignadas = [];
-            mostrarOfertasAsignadas([]);
-        }
-    })
-    .catch(error => {
-        console.error('Error fetch:', error);
-        ofertasAsignadas = [];
-        mostrarOfertasAsignadas([]);
-    });
+  })
+  .then(res => res.text())
+  .then(txt => {
+    console.log("Texto recibido del servidor:", txt);
+    const respuesta = JSON.parse(txt); // deja tu try/catch si quieres
+    const crudas = Array.isArray(respuesta?.data) ? respuesta.data
+                  : respuesta?.data ? Object.values(respuesta.data) : [];
+    ofertasAsignadas = crudas.map(normalizarOferta).filter(o => o.idOferta);
+    mostrarOfertasAsignadas(ofertasAsignadas);
+    ofertasAsignadasInicialKeys = (ofertasAsignadas || []).map(o => o.uniqueKey);
+  })
+  .catch(err => {
+    console.error('Error fetch:', err);
+    ofertasAsignadas = [];
+    mostrarOfertasAsignadas([]);
+  });
 }
 
 // funcion para cargar las ofertas que se pueden agregar
 function cargarOfertasDisponiblesParaAgregar(claveCarrera, semestre, grupo, turno) {
-    fetch('../../Controlador/Intermediarios/Horario/BuscarOfertasHorarioGrupal.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claveCarrera, semestre, grupo, turno })
-    })
-    .then(response => response.json())
-    .then(respuesta => {
-        console.log("Respuesta ofertas disponibles:", respuesta);
-
-        const crudas = respuesta?.datos ?? [];
-        const normalizadas = crudas.map(normalizarOferta).filter(o => o.idOferta);
-
-        // Quitar las que ya están asignadas (comparando por uniqueKey)
-        const keysAsignadas = new Set((ofertasAsignadas || []).map(o => o.uniqueKey));
-        ofertasDisponibles = normalizadas.filter(o => !keysAsignadas.has(o.uniqueKey));
-
-
-        mostrarOfertasDisponibles(ofertasDisponibles);
-    })
-    .catch(error => {
-        console.error('Error cargando ofertas disponibles:', error);
-        ofertasDisponibles = [];
-        mostrarOfertasDisponibles([]);
-    });
+  fetch('../../Controlador/Intermediarios/Horario/BuscarOfertasHorarioGrupal.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ claveCarrera, semestre: Number(semestre), grupo, turno })
+  })
+  .then(r => r.json())
+  .then(respuesta => {
+    const crudas = respuesta?.datos ?? [];
+    const normalizadas = crudas.map(normalizarOferta).filter(o => o.idOferta);
+    const keysAsignadas = new Set((ofertasAsignadas || []).map(o => o.uniqueKey));
+    ofertasDisponibles = normalizadas.filter(o => !keysAsignadas.has(o.uniqueKey));
+    mostrarOfertasDisponibles(ofertasDisponibles);
+  })
+  .catch(err => {
+    console.error('Error cargando ofertas disponibles:', err);
+    ofertasDisponibles = [];
+    mostrarOfertasDisponibles([]);
+  });
 }
 
 // Función para mostrar indicadores de carga
@@ -1151,7 +1138,7 @@ function agregarOfertasSeleccionadas() {
 
     moverOfertasAAsignadas(ofertasSeleccionadas);
     $("#selectAllDisponibles").prop('checked', false);
-    mostrarMensajeExito(`${ofertasSeleccionadas.length} oferta(s) agregada(s) temporalmente`);
+    mostrarDatosGuardados(`${ofertasSeleccionadas.length} oferta(s) agregada(s) temporalmente`);
 }
 
 // Quita las ofertas
@@ -1166,7 +1153,7 @@ function quitarOfertasSeleccionadas() {
 
     moverOfertasADisponibles(ofertasSeleccionadas);
     $("#selectAllAsignadas").prop('checked', false);
-     mostrarMensajeExito(`${ofertasSeleccionadas.length} oferta(s) agregada(s) temporalmente`);
+     mostrarDatosGuardados(`${ofertasSeleccionadas.length} oferta(s) agregada(s) temporalmente`);
 }
 
 
@@ -1414,4 +1401,5 @@ async function BuscarHorario(id) {
     mostrarErrorCaptura("Error al buscar el Horario.");
   }
 }
+
 

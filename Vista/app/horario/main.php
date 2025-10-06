@@ -24,7 +24,7 @@ if ($res['estado'] === "OK" && $res['respuestaSP'] === "Estado: Exito") {
             $horariosData[$carrera] = [];
         }
         $horariosData[$carrera][] = [
-            'clave_horario' => $fila['clave_de_carrera'],
+            'clave_de_carrera' => $fila['clave_de_carrera'],
             'semestre'      => $fila['semestre'],
             'grupo'         => $fila['grupo'],
             'turno'         => $fila['turno'],
@@ -94,7 +94,7 @@ if ($res['estado'] === "OK" && $res['respuestaSP'] === "Estado: Exito") {
                                             <td>
                                                 <div class="d-flex gap-2 justify-content-center">
                                                     <button class="btn btn-primary btn-sm d-flex align-items-center"
-                                                            onclick="loadFormHorario('modHorario', '<?= $fila['clave_horario'] ?>');">
+                                                            onclick="loadFormHorario('modHorario', '<?= $fila['clave_de_carrera'] ?>','<?= $fila['semestre'] ?>','<?= $fila['grupo'] ?>','<?= $fila['turno'] ?>');">
                                                         <i class="fas fa-edit me-1"></i>
                                                         <span>Editar</span>
                                                     </button>
