@@ -295,7 +295,13 @@ function validarSeleccionCompleta() {
     const grupo = $("#grupo").val();
     const turno = $("#turno").val();
 
-    return carrera !== "" && semestre !== "" && grupo !== "" && turno !== "";
+    const valido = carrera !== "" && semestre !== "" && grupo !== "" && turno !== "";
+    
+    console.log("validarSeleccionCompleta:", {
+        carrera, semestre, grupo, turno, valido
+    });
+    
+    return valido;
 }
 
 // Función para cargar datos del grupo (alumnos y ofertas)
@@ -819,9 +825,16 @@ function cargarDatosGrupoModificacion() {
     const grupo = $("#grupo").val();
     const turno = $("#turno").val();
 
+    console.log("cargarDatosGrupoModificacion - Parámetros:", {
+        carrera, semestre, grupo, turno
+    });
+
     if (!validarSeleccionCompleta()) {
+        console.error("Validación fallida - selección incompleta");
         return;
     }
+
+    console.log("Iniciando carga de datos...");
 
     // Mostrar indicadores de carga
     mostrarCargandoAlumnosConHorarios();
@@ -836,6 +849,8 @@ function cargarDatosGrupoModificacion() {
 
 // Función para cargar alumnos que tienen horarios registrados
 function cargarAlumnosConHorarios(carrera, semestre, grupo, turno) {
+  console.log("Buscando alumnos con horarios:", {carrera, semestre, grupo, turno});
+  
   fetch('../../Controlador/Intermediarios/Horario/ObtenerAlumnosConHorario.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -846,17 +861,23 @@ function cargarAlumnosConHorarios(carrera, semestre, grupo, turno) {
       turno
     })
   })
-  .then(r => r.json())
+  .then(r => {
+    console.log("Respuesta HTTP alumnos:", r.status, r.statusText);
+    return r.json();
+  })
   .then(respuesta => {
-    console.log("Respuesta alumnos:", respuesta);
+    console.log("Respuesta alumnos completa:", respuesta);
     mostrarAlumnosConHorarios(respuesta.alumnos || []);
   })
-  .catch(err => console.error('Error cargando alumnos:', err));
+  .catch(err => {
+    console.error('Error cargando alumnos:', err);
+    mostrarAlumnosConHorarios([]);
+  });
 }
 
-let ofertasAsignadasInicialKeys = [];
-// funcion para cargar ofertas asignadas a los alumnos de la primera tabla
 function cargarOfertasAsignadas(carrera, semestre, grupo, turno) {
+  console.log("🔍 Buscando ofertas asignadas:", {carrera, semestre, grupo, turno});
+  
   fetch('../../Controlador/Intermediarios/Horario/ObtenerOfertasAsignadas.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -867,36 +888,48 @@ function cargarOfertasAsignadas(carrera, semestre, grupo, turno) {
       turno
     })
   })
-  .then(res => res.text())
+  .then(res => {
+    console.log("📨 Respuesta HTTP ofertas asignadas:", res.status, res.statusText);
+    return res.text();
+  })
   .then(txt => {
-    console.log("Texto recibido del servidor:", txt);
-    const respuesta = JSON.parse(txt); // deja tu try/catch si quieres
+    console.log("Respuesta ofertas asignadas (texto):", txt);
+    const respuesta = JSON.parse(txt);
+    console.log("Respuesta ofertas asignadas (JSON):", respuesta);
+    
     const crudas = Array.isArray(respuesta?.data) ? respuesta.data
                   : respuesta?.data ? Object.values(respuesta.data) : [];
     ofertasAsignadas = crudas.map(normalizarOferta).filter(o => o.idOferta);
+    console.log("Ofertas asignadas normalizadas:", ofertasAsignadas);
     mostrarOfertasAsignadas(ofertasAsignadas);
     ofertasAsignadasInicialKeys = (ofertasAsignadas || []).map(o => o.uniqueKey);
   })
   .catch(err => {
-    console.error('Error fetch:', err);
+    console.error('Error fetch ofertas asignadas:', err);
     ofertasAsignadas = [];
     mostrarOfertasAsignadas([]);
   });
 }
 
-// funcion para cargar las ofertas que se pueden agregar
 function cargarOfertasDisponiblesParaAgregar(claveCarrera, semestre, grupo, turno) {
+  console.log("Buscando ofertas disponibles:", {claveCarrera, semestre, grupo, turno});
+  
   fetch('../../Controlador/Intermediarios/Horario/BuscarOfertasHorarioGrupal.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ claveCarrera, semestre: Number(semestre), grupo, turno })
   })
-  .then(r => r.json())
+  .then(r => {
+    console.log("Respuesta HTTP ofertas disponibles:", r.status, r.statusText);
+    return r.json();
+  })
   .then(respuesta => {
+    console.log("Respuesta ofertas disponibles completa:", respuesta);
     const crudas = respuesta?.datos ?? [];
     const normalizadas = crudas.map(normalizarOferta).filter(o => o.idOferta);
     const keysAsignadas = new Set((ofertasAsignadas || []).map(o => o.uniqueKey));
     ofertasDisponibles = normalizadas.filter(o => !keysAsignadas.has(o.uniqueKey));
+    console.log("Ofertas disponibles filtradas:", ofertasDisponibles);
     mostrarOfertasDisponibles(ofertasDisponibles);
   })
   .catch(err => {
@@ -1377,29 +1410,49 @@ function limpiarTablasModificacion() {
  * Llenará los campos del formulario con sus datos
  */
 async function BuscarHorario(id) {
-  const url  = "../../Controlador/Intermediarios/Horario/BuscarHorario.php";
-  const json = JSON.stringify({ id, Buscar: true });
+    const url = "../../Controlador/Intermediarios/Horario/BuscarHorario.php";
+    const json = JSON.stringify({ id, Buscar: true });
 
-  try {
-    const response = await $.post(url, json, null, "json");
-    console.log("Respuesta del servidor:", response);
-    if (response?.estado === "OK" && response?.datos) {
-      const { clave_de_carrera, semestre, grupo, turno } = response.datos;
+    try {
+        const response = await $.post(url, json, null, "json");
+        console.log("Respuesta completa del servidor:", response);
+        
+        if (response?.estado === "OK" && response?.datos) {
+            const datos = response.datos;
+            console.log("Datos del horario encontrado:", datos);
+            
+            const { clave_de_carrera, semestre, grupo, turno } = datos;
 
-      await cargarCarrerasfrmAgr();
-      $("#claveCarrera").val(clave_de_carrera);
-      $("#semestre").val(semestre);
-      $("#grupo").val(grupo);
-      $("#turno").val(turno);
+            await cargarCarrerasfrmAgr();
+            
+            setTimeout(() => {
+                $("#claveCarrera").val(clave_de_carrera);
+                $("#semestre").val(String(semestre));
+                $("#grupo").val(grupo);
+                $("#turno").val(turno);
 
-      cargarDatosGrupoModificacion();
-    } else {
-      sinres("Horario no encontrado.");
+                console.log("Valores establecidos:", {
+                    carrera: clave_de_carrera,
+                    semestre: semestre,
+                    grupo: grupo,
+                    turno: turno
+                });
+
+                if (clave_de_carrera && semestre && grupo && turno) {
+                    console.log("Llamando a cargarDatosGrupoModificacion...");
+                    cargarDatosGrupoModificacion();
+                } else {
+                    console.error("Faltan datos para cargar las tablas");
+                }
+            }, 100);
+            
+        } else {
+            console.error("Horario no encontrado:", response);
+            sinres("Horario no encontrado.");
+        }
+    } catch (e) {
+        console.error("Error en BuscarHorario:", e);
+        mostrarErrorCaptura("Error al buscar el Horario.");
     }
-  } catch (e) {
-    console.error("Error en BuscarHorario:", e);
-    mostrarErrorCaptura("Error al buscar el Horario.");
-  }
 }
-
 

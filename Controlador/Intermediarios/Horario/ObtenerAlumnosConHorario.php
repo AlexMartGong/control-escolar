@@ -1,31 +1,27 @@
 <?php
-// Archivo Intermediario para gestionar la búsqueda de alumnos con horarios
 
-require '../../../Modelo/BD/ConexionBD.php';   // Conexión a la base de datos
-require '../../../Modelo/BD/ModeloBD.php';    // Configuración de la BD
-require '../../../Modelo/DAOs/HorarioDAO.php'; // DAO de horarios
+require '../../../Modelo/BD/ConexionBD.php';
+require '../../../Modelo/BD/ModeloBD.php';
+require '../../../Modelo/DAOs/HorarioDAO.php';
 
-// Recibir datos del frontend
-$datos = json_decode(file_get_contents("php://input"), true);
+$input = file_get_contents("php://input");
 
-// Log para debug
-error_log("Datos recibidos en PHP: " . json_encode($datos));
+$datos = json_decode($input, true);
 
-// Crear instancia de conexión y DAO
 $c = new ConexionBD($DatosBD);
 $conexion = $c->Conectar();
 $objDaoHorario = new HorarioDAO($conexion);
 
-// Extraer parámetros
-$carrera  = $datos['carrera'] ?? null;
+$carrera  = $datos['claveCarrera'] ?? null;
 $semestre = $datos['semestre'] ?? null;
 $grupo    = $datos['grupo'] ?? null;
 $turno    = $datos['turno'] ?? 'Matutino';
 
+
 try {
     $resultado = $objDaoHorario->buscarAlumnos($carrera, $semestre, $grupo, $turno);
-
     echo json_encode($resultado);
 } catch (Exception $e) {
     echo json_encode(["error" => $e->getMessage()]);
 }
+?>
