@@ -351,7 +351,6 @@ class HorarioDAO
             $sp->bindParam(':psemestre', $psemestre, PDO::PARAM_INT);
             $sp->bindParam(':pgrupo', $pgrupo, PDO::PARAM_STR);
             $sp->bindParam(':pturno', $pturno, PDO::PARAM_STR);
-
             $sp->execute();
 
             // Obtener todos los registros devueltos por el procedimiento
@@ -670,6 +669,12 @@ class HorarioDAO
         array $finales,
         array $quitadas
     ): array {
+
+        // DEBUG
+    error_log("DAO - Parámetros recibidos:");
+    error_log("carrera: $carrera, semestre: $semestre, grupo: $grupo, turno: $turno");
+    error_log("alumnos: " . count($alumnos) . ", finales: " . count($finales) . ", quitadas: " . count($quitadas));
+    
 
         foreach ($finales as $o) {
             $id = (string)($o['idOferta'] ?? $o['clave_oferta'] ?? '');

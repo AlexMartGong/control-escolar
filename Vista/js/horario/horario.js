@@ -1253,21 +1253,20 @@ async function guardarModificacionHorarios() {
   const turno    = $("#turno").val();
 
   const alumnos  = obtenerAlumnosTablaModificacion().map(a => a.numeroControl);
-  const ofertasFinales = obtenerOfertasAsignadasTabla(); // ya saca idOferta de la tabla
+  const ofertasFinales = obtenerOfertasAsignadasTabla(); 
 
   const { agregadas, quitadas } = getDeltasOfertas();
 
   const payload = {
-  Modificar: true,                 // 👈 requerido por PHP
-  idCarrera: carrera,              // 👈 el intermediario usa idCarrera
+  Modificar: true,
+  idCarrera: carrera,
   semestre: Number(semestre),
   grupo,
   turno,
-  alumnos,                         // ["1789...", "7823...", ...]
+  alumnos,
   finales:  ofertasFinales.map(o => ({ idOferta: Number(o.idOferta) })),
   quitadas:  quitadas.map(o => ({ idOferta: Number(o.clave_de_oferta) }))
 };
-
 
   $("#btnGuardarModificacion").prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
 
