@@ -99,7 +99,7 @@ if ($res['estado'] === "OK" && $res['respuestaSP'] === "Estado: Exito") {
                                                         <span>Editar</span>
                                                     </button>
                                                     <button class="btn btn-danger btn-sm d-flex align-items-center"
-                                                            onclick="changeStatusHorario('<?= $fila['clave_horario'] ?>','<?= $fila['semestre'] ?>','<?= $fila['grupo'] ?>','<?= $fila['turno'] ?>');">
+                                                            onclick="changeStatusHorario('<?= $fila['clave_de_carrera'] ?>','<?= $fila['semestre'] ?>','<?= $fila['grupo'] ?>','<?= $fila['turno'] ?>');">
                                                         <i class="fas fa-trash me-1"></i>
                                                         <span>Eliminar</span>
                                                     </button>

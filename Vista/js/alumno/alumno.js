@@ -554,7 +554,7 @@ function changeStatusAlumno(id, status, currentStatus) {
 
             if (response.estado === "OK") {
               mostrarDatosGuardados(
-                `El estado de la oferta ${id} ha sido cambiado a "${status}" correctamente.`,
+                `El estado del alumno ${id} ha sido cambiado a "${status}" correctamente.`,
                 function () {
                   option("student", "");
                 }

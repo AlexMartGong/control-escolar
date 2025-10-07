@@ -229,7 +229,7 @@
 
                 if (respuesta.estado === 'OK' && Array.isArray(respuesta.datos)) {
                     ofertasAsignadasActuales = [...respuesta.datos];
-                    mostrarOfertasAsignadas(respuesta.datos);
+                    mostrarOfertasAsignadasIndiv(respuesta.datos);
                     $('#seccionOfertasAsignadas').show();
                 } else {
                     $('#seccionOfertasAsignadas').text('No se pudieron cargar las ofertas asignadas. Intente nuevamente más tarde.');
@@ -274,7 +274,7 @@
     }
 
     // Mostrar ofertas asignadas en tabla
-    function mostrarOfertasAsignadas(ofertas) {
+    function mostrarOfertasAsignadasIndiv(ofertas) {
         const tbody = $('#cuerpoOfertasAsignadas');
         tbody.empty();
 
@@ -297,7 +297,12 @@
                         <td>${oferta.clave_de_oferta}</td>
                         <td>${oferta.clave_de_materia}</td>
                         <td>${oferta.nombre_de_materia}</td>
+                        <td>${oferta.semestre}</td>
+                        <td>${oferta.grupo}</td>
+                        <td>${oferta.turno}</td>
                         <td>${oferta.docente}</td>
+                        <td>${oferta.nombre_de_carrera}</td>
+                        <td>${oferta.periodo}</td>
                         <td class="text-center">
                             <small>${oferta.horario || 'N/A'}</small>
                         </td>
@@ -335,7 +340,12 @@
                         <td>${oferta.clave_de_oferta}</td>
                         <td>${oferta.clave_de_materia}</td>
                         <td>${oferta.nombre_de_materia}</td>
+                        <td>${oferta.semestre}</td>
+                        <td>${oferta.grupo}</td>
+                        <td>${oferta.turno}</td>
                         <td>${oferta.docente}</td>
+                        <td>${oferta.nombre_de_carrera}</td>
+                        <td>${oferta.periodo}</td>
                         <td class="text-center">
                             <small>${oferta.horario || 'N/A'}</small>
                         </td>
@@ -375,7 +385,7 @@
         ofertasDisponibles.push(...ofertasAMover);
 
         // Actualizar tablas
-        mostrarOfertasAsignadas(ofertasAsignadasActuales);
+        mostrarOfertasAsignadasIndiv(ofertasAsignadasActuales);
         mostrarOfertasDisponibles(ofertasDisponibles);
 
         detectarCambios();
@@ -408,7 +418,7 @@
         ofertasAsignadasActuales.push(...ofertasAMover);
 
         // Actualizar tablas
-        mostrarOfertasAsignadas(ofertasAsignadasActuales);
+        mostrarOfertasAsignadasIndiv(ofertasAsignadasActuales);
         mostrarOfertasDisponibles(ofertasDisponibles);
 
         detectarCambios();
@@ -485,11 +495,15 @@
                 // Evaluar la respuesta del servidor
                 if (response.estado === "OK") {
                     // Mostrar mensaje de éxito al usuario
-                    mostrarMensaje('success', 'Horario modificado correctamente.');
-                    option("horario", ""); // Limpiar u actualizar la interfaz según sea necesario
+                    mostrarDatosGuardados(
+                        "El horario se modificó de manera individual correctamente.",
+                        function () {
+                            option("horario", "");
+                        }
+                    );
                 } else {
-                    // Mostrar mensaje de error si el servidor devuelve estado distinto a OK
-                    mostrarMensaje('error', 'No se pudo modificar el horario. Intente nuevamente más tarde.');
+                    
+                    mostrarErrorCaptura("Ocurrió un problema al realizar la modificación individual. Por favor, inténtelo nuevamente más tarde.");
                 }
             },
             error: function (xhr, status, error) {
