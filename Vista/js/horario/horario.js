@@ -876,7 +876,7 @@ function cargarAlumnosConHorarios(carrera, semestre, grupo, turno) {
 }
 
 function cargarOfertasAsignadas(carrera, semestre, grupo, turno) {
-  console.log("🔍 Buscando ofertas asignadas:", {carrera, semestre, grupo, turno});
+  console.log("Buscando ofertas asignadas:", {carrera, semestre, grupo, turno});
   
   fetch('../../Controlador/Intermediarios/Horario/ObtenerOfertasAsignadas.php', {
     method: 'POST',
@@ -889,7 +889,7 @@ function cargarOfertasAsignadas(carrera, semestre, grupo, turno) {
     })
   })
   .then(res => {
-    console.log("📨 Respuesta HTTP ofertas asignadas:", res.status, res.statusText);
+    console.log("Respuesta HTTP ofertas asignadas:", res.status, res.statusText);
     return res.text();
   })
   .then(txt => {
