@@ -19,24 +19,38 @@ $objDaoHorario = new HorarioDAO($conexion);
 
 try {
   if (isset($datos['Modificar']) && filter_var($datos['Modificar'], FILTER_VALIDATE_BOOLEAN)) {
+        
     if (isset($datos['idCarrera'], $datos['semestre'], $datos['grupo'], $datos['turno'])) {
 
-      $carrera  = $datos['idCarrera'];
+      $carrera  = trim($datos['idCarrera']);
       $semestre = (int)$datos['semestre'];
-      $grupo    = $datos['grupo'];
-      $turno    = $datos['turno'];
+      $grupo    = trim($datos['grupo']);
+      $turno    = trim($datos['turno']);
 
-      $alumnos  = $datos['alumnos']  ?? [];
-      $finales  = $datos['finales']  ?? [];
-      $quitadas = $datos['quitadas'] ?? [];
+      // Validar que no estén vacíos después del trim
+      if (empty($carrera) || empty($semestre) || empty($grupo) || empty($turno)) {
+        $resultado = ['estado'=>'Error', 'mensaje'=>'Error: Campos obligatorios no pueden estar vacíos'];
+      } else {
+        $alumnos  = $datos['alumnos']  ?? [];
+        $finales  = $datos['finales']  ?? [];
+        $quitadas = $datos['quitadas'] ?? [];
 
-      //aquí llamas al DAO
-      $resultado = $objDaoHorario->aplicarModificacionGrupal(
-        $carrera, $semestre, $grupo, $turno, $alumnos, $finales, $quitadas
-      );
+        $resultado = $objDaoHorario->aplicarModificacionGrupal(
+          $carrera, $semestre, $grupo, $turno, $alumnos, $finales, $quitadas
+        );
+      }
 
     } else {
-      $resultado = ['estado'=>'Error', 'mensaje'=>'Error Modificar Horario: Datos insuficientes.'];
+      $camposFaltantes = [];
+      if (!isset($datos['idCarrera'])) $camposFaltantes[] = 'idCarrera';
+      if (!isset($datos['semestre'])) $camposFaltantes[] = 'semestre';
+      if (!isset($datos['grupo'])) $camposFaltantes[] = 'grupo';
+      if (!isset($datos['turno'])) $camposFaltantes[] = 'turno';
+      
+      $resultado = [
+        'estado'=>'Error', 
+        'mensaje'=>'Error Modificar Horario: Datos insuficientes. Faltan: ' . implode(', ', $camposFaltantes)
+      ];
     }
   } else {
     $resultado = ['estado'=>'Error', 'mensaje'=>'Solicitud inválida: envía {"Modificar": true, ...}'];
@@ -44,6 +58,8 @@ try {
 
 } catch (PDOException $e) {
   $resultado = ['estado'=>'Error', 'mensaje'=>'Error Modificar Horario: BD; ' . $e->getMessage()];
+} catch (Exception $e) {
+  $resultado = ['estado'=>'Error', 'mensaje'=>'Error Modificar Horario: ' . $e->getMessage()];
 }
 
 echo json_encode($resultado);

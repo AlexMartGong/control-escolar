@@ -126,7 +126,7 @@ function validarFormularioParcial(opc) {
       break;
     case "modificar":
       // Usar la validación específica para modificación
-      if (validarFormularioModificacion()) {
+      if (validarFormularioModificacionParcial()) {
         const btnModificar = document.getElementById("btnModificarJ");
         btnModificar.disabled = true; // Deshabilitar el botón para evitar múltiples envíos
         //logica para modificar el parcial
@@ -459,7 +459,7 @@ function validarPeriodoParaModificacion(estadoPeriodo) {
 }
 
 // Función para validar el formulario de modificación específicamente
-function validarFormularioModificacion() {
+function validarFormularioModificacionParcial() {
   const nombre_parcial = document.querySelector("#nombre_parcial");
   const periodo_Id = document.querySelector("#periodo_Id");
   const estado_parcial = document.querySelector("#estado_parcial");
@@ -858,7 +858,6 @@ $(document).on('ajaxComplete DOMContentLoaded', function () {
   if (sel && sel.value) onPeriodoChange();
 });
 
-/* ===== Estado + helpers (colócalo cerca del inicio de parcial.js) ===== */
 window.ParcialCtx = { parciales: [], periodo: null };
 
 function _parseDate(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
@@ -923,7 +922,7 @@ async function onPeriodoChange() {
     ParcialCtx.periodo = ctx.periodo || null;
 
     // Máximo 4
-    if (ctx.parcialesRegistrados >= 4) {
+    if (ctx.parcialesRegistrados > 4) {
       btn && (btn.disabled = true);
       if (ini) { ini.value = ''; ini.disabled = true; }
       if (fin) { fin.value = ''; fin.disabled = true; }
@@ -1101,6 +1100,7 @@ async function guardarParcial() {
     if (j.estado === 'OK') {
       (window.toastOk || window.mostrarDatosGuardados || alert)(j.mensaje || 'Parcial guardado.');
       resetFormularioParcial();
+      onPeriodoChange();
       return;
     }
     (window.mostrarErrorCaptura || alert)(j.mensaje || 'No se pudo guardar.');

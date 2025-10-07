@@ -947,7 +947,7 @@ class OfertaDAO
 
         try {
             // Ejecutar el procedimiento principal
-            $sp = $c->prepare("CALL spBuscarOfertasByCarreraSemestreGrupoTurnoNoControl(:pnoControl, :pclavecarrera, :psemestre, :pgrupo, :pturno, @mensaje)");
+            $sp = $c->prepare("CALL spBuscarOfertasByCarreraSemestreGrupoTurno(:pnoControl, :pclavecarrera, :psemestre, :pgrupo, :pturno, @mensaje)");
             $sp->bindParam(':pnoControl', $pnoControl, PDO::PARAM_STR);
             $sp->bindParam(':pclavecarrera', $pclavecarrera, PDO::PARAM_STR);
             $sp->bindParam(':psemestre', $psemestre, PDO::PARAM_INT);

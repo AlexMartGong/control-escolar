@@ -351,7 +351,6 @@ class HorarioDAO
             $sp->bindParam(':psemestre', $psemestre, PDO::PARAM_INT);
             $sp->bindParam(':pgrupo', $pgrupo, PDO::PARAM_STR);
             $sp->bindParam(':pturno', $pturno, PDO::PARAM_STR);
-
             $sp->execute();
 
             // Obtener todos los registros devueltos por el procedimiento
@@ -496,8 +495,8 @@ class HorarioDAO
 
         try {
             // Llamar al procedimiento almacenado con parámetro de entrada y salida
-            $sp = $c->prepare("CALL spBuscarHorarioByID(:pid, @mensaje)");
-            $sp->bindParam(':pid', $id, PDO::PARAM_STR);
+            $sp = $c->prepare("CALL spBuscarHorarioByIDCarreraGradoGrupo(:pcalveCarrera, @mensaje)");
+            $sp->bindParam(':pcalveCarrera', $id, PDO::PARAM_STR);
             $sp->execute();
 
             // Obtener los datos devueltos por el procedimiento
@@ -523,6 +522,7 @@ class HorarioDAO
 
         return $resultado;
     }
+
 
     //Buscar alumnos que ya tienen horarios registrados
     public function buscarAlumnos($carrera, $semestre, $grupo, $turno)
@@ -669,6 +669,12 @@ class HorarioDAO
         array $finales,
         array $quitadas
     ): array {
+
+        // DEBUG
+    error_log("DAO - Parámetros recibidos:");
+    error_log("carrera: $carrera, semestre: $semestre, grupo: $grupo, turno: $turno");
+    error_log("alumnos: " . count($alumnos) . ", finales: " . count($finales) . ", quitadas: " . count($quitadas));
+    
 
         foreach ($finales as $o) {
             $id = (string)($o['idOferta'] ?? $o['clave_oferta'] ?? '');
