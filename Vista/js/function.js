@@ -49,6 +49,12 @@ function option(opc, filter) {
       case "parcial":
         url = "parcial/main.php";
         break;
+      case "baja":
+        url = "baja/main.php";
+        break;
+      case "bajaTemporal":
+        url = "baja/bajaTemporal.html";
+        break;
       default:
         mainContent.html(
           '<div class="alert alert-warning">Opción no válida</div>'
@@ -242,6 +248,16 @@ function option(opc, filter) {
                       { searchable: true, targets: [1] },
                       { searchable: false, targets: "_all" },
                      ],
+                    })
+                }
+                if (opc === "bajaTemporal" && $("#bajaTemporal").length) {
+                    $("#bajaTemporal").DataTable({
+                    ...commonConfig,
+                    language: {
+                      url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json",
+                      emptyTable:
+                        "No hay registros por el momento de Baja Temporal para Mostrar",
+                    }
                     })
                 }
 
