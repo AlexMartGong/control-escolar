@@ -281,7 +281,7 @@
         if (ofertas.length === 0) {
             tbody.append(`
                 <tr>
-                    <td colspan="6" class="empty-state">
+                    <td colspan="10" class="empty-state text-center">
                         <i class="fas fa-clipboard fa-2x mb-2"></i>
                         <p class="mb-0">El alumno no tiene ofertas asignadas</p>
                     </td>
@@ -303,9 +303,6 @@
                         <td>${oferta.docente}</td>
                         <td>${oferta.nombre_de_carrera}</td>
                         <td>${oferta.periodo}</td>
-                        <td class="text-center">
-                            <small>${oferta.horario || 'N/A'}</small>
-                        </td>
                     </tr>
                 `);
             });
@@ -324,7 +321,7 @@
         if (ofertas.length === 0) {
             tbody.append(`
                 <tr>
-                    <td colspan="6" class="empty-state">
+                    <td colspan="10" class="empty-state text-center">
                         <i class="fas fa-search fa-2x mb-2"></i>
                         <p class="mb-0">No hay ofertas disponibles para agregar</p>
                     </td>
