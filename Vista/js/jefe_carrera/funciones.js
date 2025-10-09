@@ -505,30 +505,6 @@ function verificarInputmod(idetiqueta, idbtn) {
 
 }
 
-//funcion para mostrar el error de escritura
-function mostrarError( input ,mensaje) {
-
-  const contenedorCampo = input.closest('.mb-4');
-
-  // Eliminamos mensaje anterior si ya existe
-  const errorPrevio = contenedorCampo.querySelector('.errorscaracter');
-  if (errorPrevio) errorPrevio.remove();
-
-  const alerta = document.createElement('p');
-  alerta.textContent = mensaje;
-  alerta.classList.add('errorscaracter'); 
-  contenedorCampo.appendChild(alerta); // Insertamos debajo del input group
-  /* por si quieren despues de 5 seg desarapecer el parrafo
-  setTimeout(() => {
-      alerta.remove();
-  }, 5000);*/
-}
-
-
-
-
-
-
 //funcion para habilitar o desabilitar en timpo real
 function deshabilitar(estado, botonId) {
   let boton = document.getElementById(botonId);

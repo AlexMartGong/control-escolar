@@ -76,12 +76,12 @@ function verificarInputAlumno(idetiqueta, idbtn) {
   switch (idetiqueta) {
     case "noControl":
       if (estaVacio) {
-        mostrarError(input, "El número de control no puede estar vacío.");
+        mostrarErrorAlumno(input, "El número de control no puede estar vacío.");
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
       } 
       else if (!regexNoControl.test(valor)) {
-        mostrarError(
+        mostrarErrorAlumno(
           input,
           'Formato incorrecto. Debe tener 8 caracteres máximo, puede iniciar con "C". Ej: C1234567'
         );
@@ -104,11 +104,11 @@ function verificarInputAlumno(idetiqueta, idbtn) {
 
     case "nombreAlumno":
       if (estaVacio) {
-        mostrarError(input, "El nombre no puede estar vacío.");
+        mostrarErrorAlumno(input, "El nombre no puede estar vacío.");
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
       } else if (!soloLetras.test(valor)) {
-        mostrarError(
+        mostrarErrorAlumno(
           input,
           "No se permiten números ni caracteres especiales. Solo letras y espacios."
         );
@@ -120,11 +120,11 @@ function verificarInputAlumno(idetiqueta, idbtn) {
     case "grado":
       const gradoNum = parseInt(valor);
       if (estaVacio) {
-        mostrarError(input, "El grado no puede estar vacío.");
+        mostrarErrorAlumno(input, "El grado no puede estar vacío.");
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
       } else if (!soloNumeros.test(valor) || gradoNum < 1 || gradoNum > 12) {
-        mostrarError(input, "El grado debe ser un número entre 1 y 12.");
+        mostrarErrorAlumno(input, "El grado debe ser un número entre 1 y 12.");
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
       }
@@ -136,7 +136,7 @@ function verificarInputAlumno(idetiqueta, idbtn) {
         valor !== "" &&
         (!soloNumeros.test(valor) || periodosNum < 0 || periodosNum > 3)
       ) {
-        mostrarError(
+        mostrarErrorAlumno(
           input,
           "Los períodos en baja deben ser un número entre 0 y 3."
         );
@@ -148,7 +148,7 @@ function verificarInputAlumno(idetiqueta, idbtn) {
     default:
       // Para otros campos de texto
       if (estaVacio) {
-        mostrarError(input, "Este campo no puede estar vacío.");
+        mostrarErrorAlumno(input, "Este campo no puede estar vacío.");
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
       }
@@ -178,7 +178,7 @@ function verificarSelectAlumno(idetiqueta, idbtn) {
   const camposObligatorios = ["grupo", "genero", "turno"];
 
   if (camposObligatorios.includes(idetiqueta) && estaVacio) {
-    mostrarError(select, "Este campo es obligatorio.");
+    mostrarErrorAlumno(select, "Este campo es obligatorio.");
     select.classList.add("entrada-error");
     select.classList.add("is-invalid");
   }
@@ -250,12 +250,12 @@ function verificarNoControlAlumno(noControl, callback) {
 
 
 function claveExistenteAlumno(iconerror, input) {
-  mostrarError(input, "Este número de control ya está registrado.");
+  mostrarErrorAlumno(input, "Este número de control ya está registrado.");
   input.classList.add("entrada-error");
   iconerror.classList.add("is-invalid");
 }
 
-function mostrarError(elemento, mensaje) {
+function mostrarErrorAlumno(elemento, mensaje) {
   const contenedor = elemento.closest(".mb-3");
   const errorDiv = document.createElement("div");
   errorDiv.className = "errorscaracter text-danger mt-1";
