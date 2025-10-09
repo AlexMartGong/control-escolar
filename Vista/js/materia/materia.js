@@ -279,7 +279,6 @@ function verificarInputmateria(idetiqueta, idbtn, contenido) {
         return evaluarEstadoFormularioMateria(idbtn);
       }
       if (regexClavec.test(valor)) {
-        //Ingresa el nombre de la funcion que se encarga de revisar si la clave ya esta en la base de datos y borra el comentario Gracias :)
          verificarClaveMateria(valor, function (existe) {
           if (existe) claveExiste(iconerror, input, contenido);
            evaluarEstadoFormularioMateria(idbtn);
@@ -339,7 +338,7 @@ function verificarInputmateria(idetiqueta, idbtn, contenido) {
         iconerror.classList.add("is-invalid");
         return evaluarEstadoFormularioMateria(idbtn);
       }
-      if (valor < 0 || valor > 5) {
+      if (valor < 0 || valor > 6) {
         mostrarError(input, "El rango de horas practicas es de Max 6 y Min 0 ", contenido);
         input.classList.add("entrada-error");
         iconerror.classList.add("is-invalid");
