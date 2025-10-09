@@ -68,7 +68,8 @@
                     <!-- Enlaces directos sin submenús -->
                     <a href="javascript:void(0);" onclick="option('period', '');" class="nav-link"><i
                                 class="fas fa-calendar me-2"></i>Periodo</a>
-                    <a href="javascript:void(0);" onclick="option('parcial', '');" class="nav-link"><i class="fas fa-tasks me-2"></i>Parcial</a>
+                    <a href="javascript:void(0);" onclick="option('parcial', '');" class="nav-link"><i
+                                class="fas fa-tasks me-2"></i>Parcial</a>
                 </div>
             </div>
 
@@ -82,8 +83,10 @@
                     <a href="javascript:void(0);" onclick="option('oferta', '')" class="nav-link"><i
                                 class="fas fa-clipboard-list me-2"></i>Oferta</a>
                     <a href="javascript:void(0);" class="nav-link"><i class="fas fa-edit me-2"></i>Captura</a>
-                    <a href="javascript:void(0);" onclick="option('horario', '')" class="nav-link"><i class="fas fa-clock me-2"></i>Horario</a>
-                    <a href="javascript:void(0);" class="nav-link"><i class="fas fa-user-minus me-2"></i>Baja</a>
+                    <a href="javascript:void(0);" onclick="option('horario', '')" class="nav-link"><i
+                                class="fas fa-clock me-2"></i>Horario</a>
+                    <a href="javascript:void(0);" onclick="option('baja', '')" class="nav-link"><i
+                                class="fas fa-user-minus me-2"></i>Baja</a>
                 </div>
             </div>
         </div>
@@ -133,5 +136,8 @@
 <script src="../js/horario/horarioVistaPrincipal.js"></script>
 <script src="../js/horario/horarioIndividual.js"></script>
 <script src="../js/parcial/parcial.js"></script>
+<script src="../js/baja/baja.js"></script>
+<script src="../js/baja/bajaTemporal.js"></script>
+<script src="../js/baja/modBaja.js"></script>
 </body>
 </html>

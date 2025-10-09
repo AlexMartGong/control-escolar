@@ -159,7 +159,7 @@
             url: '../../Controlador/Intermediarios/Alumno/ModificarAlumno.php',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ Buscar: true, id: noControl }),
+            data: JSON.stringify({Buscar: true, id: noControl}),
             dataType: 'json',
             success: function (respuesta) {
                 mostrarCargando(false);
@@ -229,16 +229,25 @@
 
                 if (respuesta.estado === 'OK' && Array.isArray(respuesta.datos)) {
                     ofertasAsignadasActuales = [...respuesta.datos];
+                    ofertasAsignadasOriginales = [...respuesta.datos];
                     mostrarOfertasAsignadasIndiv(respuesta.datos);
-                    $('#seccionOfertasAsignadas').show();
                 } else {
-                    $('#seccionOfertasAsignadas').text('No se pudieron cargar las ofertas asignadas. Intente nuevamente más tarde.');
+                    // Si no hay datos, mostrar tabla vacía en lugar de destruir el HTML
+                    ofertasAsignadasActuales = [];
+                    ofertasAsignadasOriginales = [];
+                    mostrarOfertasAsignadasIndiv([]);
                 }
+                $('#seccionOfertasAsignadas').show();
             },
 
             error: function (xhr, status, error) {
                 console.error("Error AJAX:", status, error);
-                $('#seccionOfertasAsignadas').text('Error al cargar las ofertas asignadas.');
+                // Mostrar tabla vacía en caso de error
+                ofertasAsignadasActuales = [];
+                ofertasAsignadasOriginales = [];
+                mostrarOfertasAsignadasIndiv([]);
+                $('#seccionOfertasAsignadas').show();
+                mostrarMensaje('error', 'Error al cargar las ofertas asignadas.');
             }
         });
     }
@@ -261,14 +270,20 @@
                 if (respuesta.estado === 'OK' && Array.isArray(respuesta.datos)) {
                     ofertasDisponibles = [...respuesta.datos];
                     mostrarOfertasDisponibles(respuesta.datos);
-                    $('#seccionOfertasDisponibles').show();
                 } else {
-                    $('#seccionOfertasDisponibles').text('No se pudieron cargar las ofertas disponibles. Intente nuevamente más tarde.');
+                    // Si no hay datos, mostrar tabla vacía en lugar de destruir el HTML
+                    ofertasDisponibles = [];
+                    mostrarOfertasDisponibles([]);
                 }
+                $('#seccionOfertasDisponibles').show();
             },
             error: function (xhr, status, error) {
                 console.error("Error AJAX al cargar ofertas disponibles:", status, error);
-                $('#seccionOfertasDisponibles').text('Error al cargar las ofertas disponibles.');
+                // Mostrar tabla vacía en caso de error
+                ofertasDisponibles = [];
+                mostrarOfertasDisponibles([]);
+                $('#seccionOfertasDisponibles').show();
+                mostrarMensaje('error', 'Error al cargar las ofertas disponibles.');
             }
         });
     }
@@ -281,7 +296,7 @@
         if (ofertas.length === 0) {
             tbody.append(`
                 <tr>
-                    <td colspan="6" class="empty-state">
+                    <td colspan="10" class="empty-state text-center">
                         <i class="fas fa-clipboard fa-2x mb-2"></i>
                         <p class="mb-0">El alumno no tiene ofertas asignadas</p>
                     </td>
@@ -303,9 +318,6 @@
                         <td>${oferta.docente}</td>
                         <td>${oferta.nombre_de_carrera}</td>
                         <td>${oferta.periodo}</td>
-                        <td class="text-center">
-                            <small>${oferta.horario || 'N/A'}</small>
-                        </td>
                     </tr>
                 `);
             });
@@ -324,7 +336,7 @@
         if (ofertas.length === 0) {
             tbody.append(`
                 <tr>
-                    <td colspan="6" class="empty-state">
+                    <td colspan="10" class="empty-state text-center">
                         <i class="fas fa-search fa-2x mb-2"></i>
                         <p class="mb-0">No hay ofertas disponibles para agregar</p>
                     </td>
@@ -346,9 +358,6 @@
                         <td>${oferta.docente}</td>
                         <td>${oferta.nombre_de_carrera}</td>
                         <td>${oferta.periodo}</td>
-                        <td class="text-center">
-                            <small>${oferta.horario || 'N/A'}</small>
-                        </td>
                     </tr>
                 `);
             });
@@ -452,14 +461,14 @@
 
     /**
      * Envía al servidor los datos de los horarios de un alumno.
-     * 
+     *
      * Flujo del método:
      *  1. Verifica si hay cambios detectados; si no, muestra mensaje y detiene la función.
      *  2. Extrae las claves de oferta de los horarios asignados actualmente.
      *  3. Arma el objeto de datos a enviar al intermediario en formato JSON.
      *  4. Realiza una llamada AJAX al intermediario para hacer la modificacion individual.
      *  5. Muestra mensajes al usuario según la respuesta del servidor.
-    */
+     */
     function guardarModificaciones() {
         // Verificar si existen cambios para guardar
         if (!cambiosDetectados) {
@@ -502,7 +511,7 @@
                         }
                     );
                 } else {
-                    
+
                     mostrarErrorCaptura("Ocurrió un problema al realizar la modificación individual. Por favor, inténtelo nuevamente más tarde.");
                 }
             },
