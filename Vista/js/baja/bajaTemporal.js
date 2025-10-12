@@ -271,8 +271,8 @@ function ejecutarBajaAutomatica() {
 
     mostrarDatosGuardados('Baja automática ejecutada exitosamente.\n\nSe aplicó la baja a ' +
         document.getElementById('totalAlumnos').textContent + ' alumnos.', function () {
-        cancelarBajaAutomatica();
-    });
+            cancelarBajaAutomatica();
+        });
 }
 
 // Función para cancelar y regresar

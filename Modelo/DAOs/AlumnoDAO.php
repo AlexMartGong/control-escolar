@@ -642,4 +642,64 @@ class AlumnoDAO
             return false;
         }
     }
+
+    
+    function BuscarAlumnosPorEstado($pestado)
+    {
+
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // -----------------------------------------
+        // Validaciones básicas
+        // -----------------------------------------
+
+        if (empty($pestado)) {
+            error_log("Error: No se recibió el valor del estado en la función.");
+            $resultado['mensaje'] = "Ocurrió un problema al cargar los alumnos. Por favor, intenta nuevamente.";
+            return $resultado;
+        }
+   
+        // Validar que el estado sea un valor aceptado   
+        if ($pestado !== "Activo" && $pestado !== "Baja Temporal" && $pestado !== "Baja" && $pestado !== "Baja Definitiva") {
+            error_log("Error: Estado no válido recibido ('$pestado').");
+            $resultado['mensaje'] = "Ocurrió un problema al cargar los alumnos. Por favor, intenta nuevamente.";
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Llamada al SP para obtener los Alumnos
+        // -----------------------------------------
+        try {
+            $sp = $c->prepare("CALL spBuscarAlumnoByEstado(:pestado, @mensaje)");
+            $sp->bindParam(':pestado', $pestado, PDO::PARAM_STR);
+            $sp->execute();
+
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+
+            $sp->closeCursor();
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Ocurrió un problema al cargar los alumnos. Por favor, intenta nuevamente.";
+                    error_log("[BuscarAlumnosPorEstado] SP BuscarAlumnosPorEstado devolvió estado inesperado: " . $resultado['respuestaSP']);
+                    break;
+            }
+
+        } catch (PDOException $e) {
+            $resultado['mensaje'] = "No se pudieron obtener los alumnos en este momento. Por favor, inténtalo de nuevo más tarde.";
+            error_log("[BuscarAlumnosPorEstado] Error de base de datos: " . $e->getMessage());
+        }
+
+        return $resultado;
+    }
+
 }
