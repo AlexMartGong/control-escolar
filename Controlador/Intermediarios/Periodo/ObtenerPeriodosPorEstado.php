@@ -1,27 +1,27 @@
 <?php
 // --------------------------------------------------------------------------------------
-// Intermediario para buscar alumnos según el estado.
+// Intermediario para buscar periodos según el estado.
 // Recibe JSON del frontend y llama al DAO para obtener los datos.
 // --------------------------------------------------------------------------------------
 
 require '../../../Modelo/BD/ConexionBD.php';
 require '../../../Modelo/BD/ModeloBD.php';
-require '../../../Modelo/DAOs/AlumnoDAO.php';
+require '../../../Modelo/DAOs/PeriodoDAO.php';
 
 // Obtener el estado enviado desde el cliente
 $datos = json_decode(file_get_contents("php://input"));
-$estadoA = $datos->estadoA ?? null;
+$estadoP = $datos->estadoP ?? null;
 
-error_log("[Intermediario BuscarAlumnosPorEstado] Estado recibido: " . ($estadoA ?? "null"));
+error_log("[Intermediario BuscarPeriodoPorEstado] Estado recibido: " . ($estadoP ?? "null"));
 
 // Conexión a la base de datos y creación del DAO
 $c = new ConexionBD($DatosBD);
 $pdo = $c->Conectar();
-$objDaoAlumno = new AlumnoDAO($pdo);
+$objDaoPeriodo = new PeriodoDAO($pdo);
 
 try {
     // Llamar al DAO para obtener los alumnos
-    $resultado = $objDaoAlumno->BuscarAlumnosPorEstado($estadoA);
+    $resultado = $objDaoPeriodo->BuscarPeriodoPorEstado($estadoP);
 
     // Preparar respuesta según el resultado
     if ($resultado['estado'] === "OK") {
@@ -37,8 +37,8 @@ try {
     }
 } catch (PDOException $e) {
     // Manejo de errores de base de datos
-    $respuesta = ['estado' => 'Error', 'mensaje' => 'No se pudieron obtener los alumnos.'];
-    error_log("[Intermediario BuscarAlumnosPorEstado] Error BD: " . $e->getMessage());
+    $respuesta = ['estado' => 'Error', 'mensaje' => $resultado['mensaje']];
+    error_log("[Intermediario BuscarPeriodoPorEstado] Error BD: " . $e->getMessage());
 }
 
 // Enviar respuesta al cliente

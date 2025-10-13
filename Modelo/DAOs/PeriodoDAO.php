@@ -348,4 +348,55 @@ class PeriodoDAO
         }
         return true; // Si todos los campos están llenos
     }
+
+    function BuscarPeriodoPorEstado($pestado)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        // -----------------------------------------
+        // Validaciones básicas
+        // -----------------------------------------
+        if (empty($pestado)) {
+            error_log("Error: No se recibió el valor del estado en la función.");
+            $resultado['mensaje'] = "Ocurrió un problema al cargar los datos del periodo. Por favor, intenta nuevamente.";
+            return $resultado;
+        }
+
+        // Validar que el estado sea un valor aceptado
+        if ($pestado !== "Abierto" && $pestado !== "Cerrado" && $pestado !== "Cancelado" && $pestado !== "Pendiente") {
+            error_log("Error: Estado no válido recibido ('$pestado').");
+            $resultado['mensaje'] = "No se pudieron cargar los datos del periodo en este momento. Intenta nuevamente en unos instantes.";
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Llamada al SP para obtener los periodos
+        // -----------------------------------------
+        try {
+            $sp = $c->prepare("CALL spBuscarPeriodoByEstado(:pestado)");
+            $sp->bindParam(':pestado', $pestado, PDO::PARAM_STR);
+            $sp->execute();
+
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+
+            // -----------------------------------------
+            // Validación de resultados
+            // -----------------------------------------
+            if ($datos && count($datos) > 0) {
+                // Si sí hay resultados
+                $resultado['estado'] = "OK";
+                $resultado['datos'] = $datos;
+            } else {
+                // Si no llegó nada
+                $resultado['mensaje'] = "No se encontraron registros disponibles del periodo en este momento.";
+                error_log("[BuscarPeriodoPorEstado] No se encontraron resultados para el estado '$pestado'.");
+            }
+        } catch (PDOException $e) {
+            $resultado['mensaje'] = "No se pudieron obtener los periodos en este momento. Por favor, inténtalo de nuevo más tarde.";
+            error_log("[BuscarPeriodoPorEstado] Error de base de datos: " . $e->getMessage());
+        }
+
+        return $resultado;
+    }
 }
