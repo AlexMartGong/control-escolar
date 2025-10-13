@@ -251,6 +251,12 @@ function option(opc, filter) {
                     })
                 }
                 if (opc === "bajaTemporal" && $("#bajaTemporal").length) {
+                    // Primero cargar los datos
+                    if (typeof cargarPeriodoActivo === 'function') {
+                        cargarPeriodoActivo();
+                    }
+
+                    // Luego inicializar DataTable
                     $("#bajaTemporal").DataTable({
                     ...commonConfig,
                     language: {

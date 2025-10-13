@@ -12,41 +12,31 @@
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <!-- Sección de selección de periodo -->
-                    <div class="mb-4">
-                        <label for="listaPeriodos" class="form-label">Seleccionar Periodo</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-blue-light"><i class="fas fa-calendar-alt"></i></span>
-                            <select id="listaPeriodos" class="form-select listaDespliege" onchange="cargarResumenBaja()">
-                                <option value="">-- Seleccione un periodo --</option>
-                                <option value="ENE-JUN-2024">ENE-JUN-2024 (Cerrado)</option>
-                                <option value="AGO-DIC-2024">AGO-DIC-2024 (Cerrado)</option>
-                                <option value="ENE-JUN-2025">ENE-JUN-2025 (Cerrado)</option>
-                            </select>
-                        </div>
-                        <small class="text-muted">Solo se muestran periodos cerrados sin bajas aplicadas</small>
-                    </div>
-
-                    <!-- Información del periodo seleccionado -->
-                    <div id="infoPeriodo" class="mb-4" style="display: none;">
-                        <div class="alert alert-info">
-                            <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Información del Periodo</h6>
+                    <!-- Información del periodo activo -->
+                    <div id="infoPeriodo" class="mb-4">
+                        <div class="alert alert-success">
+                            <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Periodo Activo</h6>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p class="mb-1"><strong>Periodo:</strong> <span id="periodoSeleccionado">ENE-JUN-2024</span></p>
-                                    <p class="mb-1"><strong>Fecha de cierre:</strong> <span id="fechaCierre">15/01/2024</span></p>
+                                    <p class="mb-1"><strong>Periodo:</strong> <span id="periodoSeleccionado">AGO-DIC-2025</span>
+                                    </p>
+                                    <p class="mb-1"><strong>Fecha de inicio:</strong> <span
+                                            id="fechaInicio">01/08/2025</span></p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1"><strong>Estado:</strong> <span class="badge bg-secondary">Cerrado</span></p>
-                                    <p class="mb-1"><strong>Bajas aplicadas:</strong> <span class="badge bg-success">No</span></p>
+                                    <p class="mb-1"><strong>Estado:</strong> <span
+                                            class="badge bg-success">Activo</span></p>
+                                    <p class="mb-1"><strong>Fecha de cierre:</strong> <span
+                                            id="fechaCierre">15/12/2025</span></p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Resumen de alumnos a dar de baja -->
-                    <div id="resumenBaja" class="mb-4" style="display: none;">
-                        <h6 class="mb-3"><i class="fas fa-list-alt me-2"></i>Resumen de Bajas a Aplicar</h6>
+                    <div id="resumenBaja" class="mb-4">
+                        <h6 class="mb-3"><i class="fas fa-list-alt me-2"></i>Alumnos No Inscritos en el Periodo Activo
+                        </h6>
 
                         <div class="row g-3 mb-4">
                             <div class="col-md-4">
@@ -79,72 +69,16 @@
                         <div class="table-responsive">
                             <table id="bajaTemporal" class="table table-striped table-hover">
                                 <thead class="table-dark">
-                                    <tr>
-                                        <th>No. Control</th>
-                                        <th>Nombre</th>
-                                        <th>Carrera</th>
-                                        <th>Bajas Previas</th>
-                                        <th>Tipo de Baja</th>
-                                    </tr>
+                                <tr>
+                                    <th>No. Control</th>
+                                    <th>Nombre</th>
+                                    <th>Carrera</th>
+                                    <th>Bajas Previas</th>
+                                    <th>Tipo de Baja</th>
+                                </tr>
                                 </thead>
                                 <tbody id="tablaAlumnosBajaBody">
-                                    <!-- Datos de ejemplo -->
-                                    <tr>
-                                        <td>20400123</td>
-                                        <td>García López Juan Carlos</td>
-                                        <td>Ing. Informática</td>
-                                        <td><span class="badge bg-info">0</span></td>
-                                        <td><span class="badge bg-warning">Temporal</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>20400245</td>
-                                        <td>Martínez Rodríguez María Elena</td>
-                                        <td>Ing. Industrial</td>
-                                        <td><span class="badge bg-info">1</span></td>
-                                        <td><span class="badge bg-warning">Temporal</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>20400367</td>
-                                        <td>Hernández Silva Pedro Antonio</td>
-                                        <td>Ing. Sistemas</td>
-                                        <td><span class="badge bg-info">2</span></td>
-                                        <td><span class="badge bg-warning">Temporal</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>20400489</td>
-                                        <td>López Ramírez Ana Gabriela</td>
-                                        <td>Ing. Gestión</td>
-                                        <td><span class="badge bg-danger">3</span></td>
-                                        <td><span class="badge bg-danger">Definitiva</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>20400512</td>
-                                        <td>Sánchez Torres Luis Fernando</td>
-                                        <td>Ing. Informática</td>
-                                        <td><span class="badge bg-info">0</span></td>
-                                        <td><span class="badge bg-warning">Temporal</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>20400634</td>
-                                        <td>Ramírez Gutiérrez Carmen Rosa</td>
-                                        <td>Ing. Industrial</td>
-                                        <td><span class="badge bg-info">1</span></td>
-                                        <td><span class="badge bg-warning">Temporal</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>20400756</td>
-                                        <td>González Medina Jorge Alberto</td>
-                                        <td>Ing. Sistemas</td>
-                                        <td><span class="badge bg-danger">3</span></td>
-                                        <td><span class="badge bg-danger">Definitiva</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>20400878</td>
-                                        <td>Flores Castillo Diana Patricia</td>
-                                        <td>Ing. Gestión</td>
-                                        <td><span class="badge bg-info">0</span></td>
-                                        <td><span class="badge bg-warning">Temporal</span></td>
-                                    </tr>
+                                <!-- Los datos se cargarán dinámicamente -->
                                 </tbody>
                             </table>
                         </div>
@@ -152,13 +86,14 @@
                         <!-- Advertencia -->
                         <div class="alert alert-warning mt-3">
                             <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Advertencia:</strong> Esta acción aplicará la baja automática a todos los alumnos listados.
+                            <strong>Advertencia:</strong> Esta acción aplicará la baja automática a todos los alumnos
+                            listados.
                             Los alumnos con 3 bajas previas recibirán baja definitiva. Esta acción no se puede deshacer.
                         </div>
                     </div>
 
                     <!-- Botones de acción -->
-                    <div class="row" id="botonesAccion" style="display: none;">
+                    <div class="row" id="botonesAccion">
                         <div class="col-12 separarBotones gap-2">
                             <button type="button"
                                     id="btnEjecutarBaja"
@@ -180,24 +115,27 @@
 </div>
 
 <!-- Modal de confirmación -->
-<div class="modal fade" id="modalConfirmacionBaja" tabindex="-1" aria-labelledby="modalConfirmacionBajaLabel" aria-hidden="true">
+<div class="modal fade" id="modalConfirmacionBaja" tabindex="-1" aria-labelledby="modalConfirmacionBajaLabel"
+     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="modalConfirmacionBajaLabel">
                     <i class="fas fa-exclamation-circle me-2"></i>Confirmar Baja Automática
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p class="mb-3">¿Está seguro de que desea ejecutar la baja automática?</p>
                 <div class="alert alert-info mb-3">
-                    <p class="mb-1"><strong>Periodo:</strong> <span id="modalPeriodo">ENE-JUN-2024</span></p>
-                    <p class="mb-1"><strong>Total de alumnos:</strong> <span id="modalTotal">8</span></p>
-                    <p class="mb-1"><strong>Bajas temporales:</strong> <span id="modalTemporal">6</span></p>
-                    <p class="mb-0"><strong>Bajas definitivas:</strong> <span id="modalDefinitiva">2</span></p>
+                    <p class="mb-1"><strong>Periodo:</strong> <span id="modalPeriodo">AGO-DIC-2025</span></p>
+                    <p class="mb-1"><strong>Total de alumnos:</strong> <span id="modalTotal">0</span></p>
+                    <p class="mb-1"><strong>Bajas temporales:</strong> <span id="modalTemporal">0</span></p>
+                    <p class="mb-0"><strong>Bajas definitivas:</strong> <span id="modalDefinitiva">0</span></p>
                 </div>
-                <p class="text-danger mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Esta acción no se puede deshacer.</p>
+                <p class="text-danger mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Esta acción no se puede
+                    deshacer.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -210,4 +148,3 @@
         </div>
     </div>
 </div>
-

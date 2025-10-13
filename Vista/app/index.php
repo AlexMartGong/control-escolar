@@ -136,8 +136,8 @@
 <script src="../js/horario/horarioVistaPrincipal.js"></script>
 <script src="../js/horario/horarioIndividual.js"></script>
 <script src="../js/parcial/parcial.js"></script>
-<script src="../js/baja/bajaTemporal.js"></script>
 <script src="../js/baja/modBaja.js"></script>
 <script src="../js/baja/bajaAlumno.js"></script>
+<script src="../js/baja/bajaTemporal.js"></script>
 </body>
 </html>
