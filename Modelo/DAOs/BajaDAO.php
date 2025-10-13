@@ -31,7 +31,7 @@ class BajaDAO
                 if ($mensajeSP === 'No es tiempo') {
                     $resultado['mensaje'] = "Todavía no se ha alcanzado la fecha de cierre de inscripciones, no se pueden aplicar las bajas.";
                 } elseif ($mensajeSP === 'Ya se aplicó') {
-                    $resultado['mensaje'] = "La baja por no inscripción ya se aplicó anteriormente.";
+                    $resultado['mensaje'] = "La baja por no inscripción ya se aplicó para el periodo actual. No se puede realizar nuevamente.";
                 }
             } else {
                 $resultado['estado'] = 'OK';
