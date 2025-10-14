@@ -81,35 +81,117 @@ const periodoActivo = {
 // Función para cargar automáticamente el periodo activo al iniciar
 function cargarPeriodoActivo() {
     // Mostrar información del periodo
-    document.getElementById('periodoSeleccionado').textContent = periodoActivo.periodo;
-    document.getElementById('fechaInicio').textContent = periodoActivo.fechaInicio;
-    document.getElementById('fechaCierre').textContent = periodoActivo.fechaCierre;
+
+    const datosEnvio = {
+        estadoP: "Abierto"
+    };
+
+    $.ajax({
+        url: '../../Controlador/Intermediarios/Periodo/ObtenerPeriodosPorEstado.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(datosEnvio),
+        dataType: 'json',
+        success: function (respuesta) {
+
+            console.log("Respuesta del Intermediario Buscar Periodos por Estado:", respuesta);
+
+            if (respuesta.estado === 'OK') {
+
+                const periodo = respuesta.datos[0]; // <- la primera entrada del array
+
+                document.getElementById('periodoSeleccionado').textContent = periodo.periodo;
+                document.getElementById('fechaInicio').textContent = periodo.fecha_de_inicio;
+                document.getElementById('fechaCierre').textContent = periodo.fecha_de_termino;
+
+            } else {
+                mostrarErrorCaptura(respuesta.mensaje);
+            }
+        },
+
+        error: function (xhr, status, error) {
+            console.error("Error AJAX:", status, error);
+            mostrarErrorCaptura("Ups… algo salió mal al cargar los datos del Periodo. Por favor, inténtalo otra vez.");
+
+        }
+    });
 
     // Cargar tabla y resumen
-    cargarTablaAlumnos(periodoActivo.alumnos);
-    actualizarResumen(periodoActivo.alumnos);
+    cargarTablaAlumnos();
+
 }
 
 // Función para cargar la tabla de alumnos
-function cargarTablaAlumnos(alumnos) {
-    const tbody = document.getElementById('tablaAlumnosBajaBody');
-    tbody.innerHTML = '';
+function cargarTablaAlumnos() {
 
-    alumnos.forEach(alumno => {
-        const badgeBajas = alumno.bajasPrevias >= 3 ? 'bg-danger' : 'bg-info';
-        const badgeTipo = alumno.tipoBaja === 'Definitiva' ? 'bg-danger' : 'bg-warning';
+    const datosEnvio = {
+        estadoA: "Baja"
+    };
 
-        const row = `
+    $.ajax({
+        url: '../../Controlador/Intermediarios/Alumno/ObtenerAlumnosPorEstado.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(datosEnvio),
+        dataType: 'json',
+        success: function (respuesta) {
+
+            console.log("Respuesta del Intermediario Buscar Alumnos por Estado:", respuesta);
+
+            if (respuesta.estado === 'OK') {
+
+                const alumnos = respuesta.datos;
+
+                const tbody = document.getElementById('tablaAlumnosBajaBody');
+                tbody.innerHTML = '';
+
+                alumnos.forEach(alumno => {
+                    const badgeBajas = alumno.periodos_en_baja >= 3 ? 'bg-danger' : 'bg-info';
+
+                    let badgeTipo;
+                    switch (alumno.estado) {
+                        case 'Activo':
+                            badgeTipo = 'bg-success';
+                            break;
+                        case 'Baja Temporal':
+                            badgeTipo = 'bg-warning';
+                            break;
+                        case 'Baja':
+                            badgeTipo = 'bg-danger';
+                            break;
+                        case 'Baja Definitiva':
+                            badgeTipo = 'bg-danger';
+                            break;
+                        default:
+                            badgeTipo = 'bg-secondary';
+                    }
+
+                    const row = `
             <tr>
-                <td>${alumno.noControl}</td>
-                <td>${alumno.nombre}</td>
-                <td>${alumno.carrera}</td>
-                <td><span class="badge ${badgeBajas}">${alumno.bajasPrevias}</span></td>
-                <td><span class="badge ${badgeTipo}">${alumno.tipoBaja}</span></td>
+                <td>${alumno.numero_de_control}</td>
+                <td>${alumno.nombre_de_alumno}</td>
+                <td>${alumno.nombre_de_carrera}</td>
+                <td><span class="badge ${badgeBajas}">${alumno.periodos_en_baja}</span></td>
+                <td><span class="badge ${badgeTipo}">${alumno.estado}</span></td>
             </tr>
         `;
-        tbody.innerHTML += row;
+                    tbody.innerHTML += row;
+                });
+
+                actualizarResumen(alumnos);
+
+            } else {
+                mostrarErrorCaptura(respuesta.mensaje);
+            }
+        },
+
+        error: function (xhr, status, error) {
+            console.error("Error AJAX:", status, error);
+            mostrarErrorCaptura("Ups… algo salió mal al cargar la información de los Alumnos. Por favor, inténtalo otra vez.");
+
+        }
     });
+
 }
 
 // Función para actualizar el resumen numérico
@@ -128,9 +210,10 @@ function confirmarBajaAutomatica() {
     const total = document.getElementById('totalAlumnos').textContent;
     const temporal = document.getElementById('bajasTemporal').textContent;
     const definitiva = document.getElementById('bajasDefinitiva').textContent;
+    const nombreperiodo = document.getElementById('periodoSeleccionado').textContent;
 
     // Actualizar datos del modal
-    document.getElementById('modalPeriodo').textContent = periodoActivo.periodo;
+    document.getElementById('modalPeriodo').textContent = nombreperiodo;
     document.getElementById('modalTotal').textContent = total;
     document.getElementById('modalTemporal').textContent = temporal;
     document.getElementById('modalDefinitiva').textContent = definitiva;
@@ -147,20 +230,34 @@ function ejecutarBajaAutomatica() {
     const modal = bootstrap.Modal.getInstance(modalElement);
     modal.hide();
 
-    // Aquí se conectaría con el backend para ejecutar la baja
-    // Por ahora solo mostramos un mensaje de éxito
+    $.ajax({
+        url: '../../Controlador/Intermediarios/Baja/AplicarBajasPorNoInscripcion.php',
+        method: 'POST',
+        contentType: 'application/json',
+        dataType: 'json',
+        success: function (respuesta) {
 
-    // Simular proceso de ejecución
-    const btnEjecutar = document.getElementById('btnEjecutarBaja');
-    btnEjecutar.disabled = true;
-    btnEjecutar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+            console.log("Respuesta del Intermediario Aplicar Bajas:", respuesta);
 
-    setTimeout(function () {
-        mostrarDatosGuardados('Baja automática ejecutada exitosamente.\n\nSe aplicó la baja a ' +
-            document.getElementById('totalAlumnos').textContent + ' alumnos del periodo ' + periodoActivo.periodo, function () {
-            cancelarBajaAutomatica();
-        });
-    }, 500);
+            if (respuesta.estado === 'OK') {
+
+                mostrarDatosGuardados('Baja automática ejecutada exitosamente.\n\nSe aplicó la baja a ' +
+                    document.getElementById('totalAlumnos').textContent + ' alumnos del periodo ' + document.getElementById('periodoSeleccionado').textContent, function () {
+                        cancelarBajaAutomatica();
+                    });
+
+            } else {
+                mostrarErrorCaptura(respuesta.mensaje);
+            }
+        },
+
+        error: function (xhr, status, error) {
+            console.error("Error AJAX:", status, error);
+            mostrarErrorCaptura("Ups… algo salió mal al intentar aplicar las bajas. Por favor, inténtalo otra vez.");
+
+        }
+    });
+
 }
 
 // Función para cancelar y regresar

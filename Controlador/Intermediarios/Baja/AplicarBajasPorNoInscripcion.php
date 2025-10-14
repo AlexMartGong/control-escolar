@@ -20,8 +20,7 @@ try {
     // Preparar respuesta según el resultado del DAO
     if ($resultado['estado'] === "OK") {
         $respuesta = [
-            'estado' => 'OK',
-            'datos'  => $resultado['datos'] ?? [], 
+            'estado' => 'OK', 
             'mensaje'=> $resultado['mensaje']
         ];
     } else {
