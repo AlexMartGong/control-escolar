@@ -44,4 +44,50 @@ class BajaDAO
         return $resultado;
     }
 
+    /**
+     * Función para mostrar todos las bajas registradas en el sistema.
+     * Llama al procedimiento almacenado spMostrarBajas.
+     * 
+     * @return array Retorna un array con el estado de la operación, mensaje, datos y cantidad de filas obtenidas.
+     */
+    public function MostrarBajas()
+{
+    $resultado = [
+        'estado' => 'OK',
+        'filas' => 0,
+        'datos' => [],
+        'respuestaSP' => ''
+    ];
+    
+    $c = $this->conector;
+
+    try {
+        // Preparar y ejecutar el procedimiento almacenado
+        $sp = $c->prepare("CALL spMostrarBajas(@mensaje)");
+        $sp->execute();
+
+        // Obtener todos los datos retornados
+        $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+        $sp->closeCursor();
+
+        $respuestaSP = $c->query("SELECT @mensaje as mensaje");
+        $mensajeData = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensajeData['mensaje'];
+
+        error_log("Mensaje spBaja: " . $resultado['respuestaSP']);
+
+        if (!empty($datos) && strpos($resultado['respuestaSP'], 'exitosamente') !== false) {
+            $resultado['datos'] = $datos;
+            $resultado['filas'] = count($datos);
+        } else {
+            $resultado['estado'] = "Sin registros";
+            $resultado['filas'] = 0;
+        }
+        
+    } catch (PDOException $e) {
+        $resultado['estado'] = "Error: " . $e->getMessage();
+    }
+
+    return $resultado;
+}
 }
