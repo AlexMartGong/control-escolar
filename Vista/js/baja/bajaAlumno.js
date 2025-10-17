@@ -379,7 +379,10 @@ function iniciarFuncionesBajaAlumnos(opc, id) {
       buscarAlumnoBaja();
       break;
     case "modBaja":
-      cargarDatosBaja(id);
+      cargarDatosSelectPeriodosMod(function() {
+       
+        cargarDatosBaja(id);
+    });
       break;
   }
 }
