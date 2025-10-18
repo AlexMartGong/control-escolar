@@ -377,7 +377,7 @@ class ParcialDAO
 
         try {
             // -----------------------------------------
-            // Ejecutar el SP una sola vez
+            // Ejecutar el SP 
             // -----------------------------------------
             $sp = $c->prepare("CALL spBuscarParcialByID(:pidParcial, @mensaje)");
             $sp->bindParam(':pidParcial', $pidParcial, PDO::PARAM_INT);
@@ -582,7 +582,7 @@ class ParcialDAO
             }
         } catch (PDOException $e) {
             $resultado['mensaje'] = "No fue posible completar la operación en este momento. Por favor, intenta nuevamente en unos instantes.";
-            error_log("[ModificarPeriodo] Error en BD al modificar periodo: " . $e->getMessage());
+            error_log("[ModificarPeriodo] Error en BD al modificar parcial: " . $e->getMessage());
         }
 
         return $resultado;

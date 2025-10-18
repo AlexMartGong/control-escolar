@@ -15,16 +15,15 @@ class HorarioDAO
     }
 
     /**
-     * Busca el periodo que este entre el rango de fechas valido para modificar horarios.
+     * Obtiene el primer periodo con el estado 'Abierto' o 'Pendiente'.
      *
-     * Este método ejecuta el procedimiento almacenado `spBuscarPeriodoValido`
-     * que devuelve los periodos cuyo estado coincide con el parámetro recibido.
-     * Valida que el parámetro no esté vacío antes de realizar la consulta y maneja
-     * errores de base de datos con mensajes adecuados.
+     * No requiere parámetros de entrada y maneja errores de base de datos
+     * registrándolos en el log y devolviendo un mensaje de error amigable.
      *
-     * @param string $pestado Estado del periodo a buscar (por ejemplo: 'Abierto', 'Pendiente').
-     *
-     * @return array Arreglo con los periodos encontrados o un arreglo con 'estado' => 'Error' y mensaje.
+     * @return array Arreglo que contiene:
+     *               - 'datos': arreglo con el periodo válido encontrado (si existe),
+     *               - 'estado': 'Error' en caso de fallas,
+     *               - 'mensaje': mensaje descriptivo en caso de error.
      */
     public function BuscarPeriodoValido()
     {
@@ -39,7 +38,27 @@ class HorarioDAO
             // Obtener todos los registros devueltos por el procedimiento
             $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
 
-            $resultado['datos'] = $datos;
+            $sp->closeCursor();
+
+            // Obtener el mensaje de salida
+            $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Valido':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
+
+                case 'Estado: No valido':
+                    $resultado['mensaje'] = "No se encontraron periodos en estado 'Abierto' o 'Pendiente' disponibles para modificación.";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al buscar el periodo valido. Inténtalo nuevamente más tarde.";
+                    error_log("[BuscarPeriodoValido] Estado inesperado devuelto por SP: " . $resultado['respuestaSP']);
+                    break;
+            }
         } catch (PDOException $e) {
             // Registrar el error para fines de depuración interna
             error_log("Error en la base de datos (BuscarPeriodoValido): " . $e->getMessage());
@@ -671,10 +690,10 @@ class HorarioDAO
     ): array {
 
         // DEBUG
-    error_log("DAO - Parámetros recibidos:");
-    error_log("carrera: $carrera, semestre: $semestre, grupo: $grupo, turno: $turno");
-    error_log("alumnos: " . count($alumnos) . ", finales: " . count($finales) . ", quitadas: " . count($quitadas));
-    
+        error_log("DAO - Parámetros recibidos:");
+        error_log("carrera: $carrera, semestre: $semestre, grupo: $grupo, turno: $turno");
+        error_log("alumnos: " . count($alumnos) . ", finales: " . count($finales) . ", quitadas: " . count($quitadas));
+
 
         foreach ($finales as $o) {
             $id = (string)($o['idOferta'] ?? $o['clave_oferta'] ?? '');

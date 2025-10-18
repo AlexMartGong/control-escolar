@@ -36,43 +36,87 @@ const bajasEjemplo = {
 };
 
 // Función para cargar los datos de la baja en el formulario
+function cargarDatosSelectPeriodosMod(callback) {
+    $.ajax({
+        url: '../../Controlador/Intermediarios/Periodo/ObtenerPeriodos.php',
+        method: 'POST',
+        contentType: 'application/json',
+        dataType: 'json',
+        success: function (respuesta) {
+
+            console.log("Respuesta del Intermediario Buscar Periodo Valido:", respuesta);
+
+            if (respuesta.estado === 'OK' && respuesta.datos && respuesta.datos.length > 0) {
+
+                const select = document.getElementById('idPeriodo');
+                select.innerHTML = '<option disabled selected>Seleccione un Periodo</option>';
+
+                respuesta.datos.forEach(periodo => {
+                    const option = document.createElement('option');
+                    option.value = periodo.clave_periodo;
+                    option.textContent = `${periodo.periodo} (${periodo.estado})`;
+                    select.appendChild(option);
+                });
+            } else {
+                mostrarErrorCaptura(respuesta.mensaje);
+                console.log("Error en cargar select de periodos");
+            }
+
+            if (callback) callback();
+        },
+        error: function () {
+            mostrarErrorCaptura("Ups… algo salió mal al cargar los datos de los periodos. Por favor, inténtalo otra vez.");
+        }
+    });
+}
+
+// Función para cargar los datos de la baja en el formulario
 function cargarDatosBaja(idBaja) {
-    try {
-        // Simular obtención de datos (en producción sería una petición al servidor)
-        const baja = bajasEjemplo[idBaja];
 
-        if (!baja) {
-            mostrarErrorCaptura("No se encontró la baja con el ID especificado.");
-            return;
+    const datosEnvio = {
+        pclaveBaja: idBaja, Buscar: true
+    };
+
+    $.ajax({
+        url: '../../Controlador/Intermediarios/Baja/ModificarBaja.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(datosEnvio),
+        dataType: 'json',
+        success: function (respuesta) {
+
+            console.log("Respuesta del Intermediario Buscar Baja por id:", respuesta);
+
+            if (respuesta.estado === 'OK') {
+
+                const baja = respuesta.datos;
+
+                // Cargar datos en campos de solo lectura
+                $("#idBaja").val(baja.clave_baja);
+                $("#idAlumno").val(baja.numero_de_control);
+                $("#nombreAlumno").val(baja.nombre_de_alumno);
+                $("#tipoBaja").val(baja.tipo_de_baja);
+                $("#estatus").val(baja.estado);
+
+                // Cargar datos en campos editables
+                $("#fecha").val(baja.fecha_de_baja);
+                $("#motivo").val(baja.motivo);
+                $("#idPeriodo").val(baja.clave_periodo);
+
+
+            } else {
+                mostrarErrorCaptura(respuesta.mensaje);
+                console.log("Error en cargar datos baja");
+            }
+        },
+
+        error: function (xhr, status, error) {
+            console.error("Error AJAX:", status, error);
+            mostrarErrorCaptura("Ups… algo salió mal al cargar los datos de la baja. Por favor, inténtalo otra vez.");
+
         }
+    });
 
-        // Verificar que el estatus sea "Aplicada"
-        if (baja.estatus !== "Aplicada") {
-            mostrarErrorCaptura("Solo se pueden modificar bajas con estatus 'Aplicada'.");
-            setTimeout(() => {
-                clearArea('modbaja');
-                option('baja', '');
-            }, 2000);
-            return;
-        }
-
-        // Cargar datos en campos de solo lectura
-        document.getElementById("idBaja").value = baja.idBaja;
-        document.getElementById("idAlumno").value = baja.idAlumno;
-        document.getElementById("nombreAlumno").value = baja.nombreAlumno;
-        document.getElementById("tipoBaja").value = baja.tipoBaja;
-        document.getElementById("estatus").value = baja.estatus;
-
-        // Cargar datos en campos editables
-        document.getElementById("fecha").value = baja.fecha;
-        document.getElementById("motivo").value = baja.motivo;
-        document.getElementById("idPeriodo").value = baja.idPeriodo;
-
-        console.log("Datos de baja cargados exitosamente para ID: " + idBaja);
-    } catch (error) {
-        console.error("Error al cargar datos de baja:", error);
-        mostrarErrorCaptura("Error al cargar los datos de la baja.");
-    }
 }
 
 // Función para verificar campos en tiempo real
@@ -208,6 +252,8 @@ function validarCamposBaja(opc) {
                 return;
             }
 
+            /*
+
             // Validar que la fecha no sea futura
             let fechaSeleccionada = new Date(fecha);
             let fechaActual = new Date();
@@ -221,6 +267,9 @@ function validarCamposBaja(opc) {
                 return;
             }
 
+            */
+
+            /*
             // Validar que no exista otra baja para el mismo alumno en el mismo periodo
             if (validarBajaDuplicada(idAlumno, periodo, idBaja)) {
                 mostrarErrorCaptura("Ya existe una baja registrada para este alumno en el periodo seleccionado.");
@@ -230,10 +279,13 @@ function validarCamposBaja(opc) {
                 return;
             }
 
+            */
+
             // Si todo está correcto, proceder a guardar
             deshabilitarboton(true, "btnGuardarBaja");
             intentarGuardarDatosBaja("mod");
             break;
+            
     }
 }
 
@@ -264,7 +316,7 @@ function intentarGuardarDatosBaja(opc) {
     }
 }
 
-// Función para modificar la baja (simulada)
+// Función para modificar la baja 
 function modificarBaja() {
     // Obtener datos del formulario
     let idBaja = document.getElementById("idBaja").value;
@@ -272,16 +324,43 @@ function modificarBaja() {
     let motivo = document.getElementById("motivo").value.trim();
     let idPeriodo = document.getElementById("idPeriodo").value;
 
-    // Simular envío al servidor
-    console.log("Modificando baja:", {
-        idBaja: idBaja,
-        fecha: fecha,
-        motivo: motivo,
-        idPeriodo: idPeriodo
-    });
+    const datosEnvio = {
+        Modificar: true,
+        pclaveBaja: idBaja,
+        pfecha: fecha,
+        pmotivo: motivo,
+        pidPeriodo: idPeriodo
+    };
 
-    mostrarDatosGuardados('Baja modificada exitosamente.', function () {
-        option('baja', '');
+    console.log("Datos:", datosEnvio);
+
+    $.ajax({
+        url: '../../Controlador/Intermediarios/Baja/ModificarBaja.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(datosEnvio),
+        dataType: 'json',
+        success: function (respuesta) {
+
+            console.log("Respuesta del Intermediario Modificar Baja:", respuesta);
+
+            if (respuesta.estado === 'OK') {
+
+                mostrarDatosGuardados(respuesta.mensaje, function () {
+                    option('baja', '');
+                });
+
+            } else {
+                mostrarErrorCaptura(respuesta.mensaje);
+                console.log("Error en cargar datos baja");
+            }
+        },
+
+        error: function (xhr, status, error) {
+            console.error("Error AJAX:", status, error);
+            mostrarErrorCaptura("Ups… algo salió mal al cargar los datos de la baja. Por favor, inténtalo otra vez.");
+
+        }
     });
 
 }

@@ -23,23 +23,11 @@ try {
     // Llamar al DAO para obtener los alumnos
     $resultado = $objDaoPeriodo->BuscarPeriodoPorEstado($estadoP);
 
-    // Preparar respuesta según el resultado
-    if ($resultado['estado'] === "OK") {
-        $respuesta = [
-            'estado' => 'OK',
-            'datos' => $resultado['datos']
-        ];
-    } else {
-        $respuesta = [
-            'estado' => 'Error',
-            'mensaje' => $resultado['mensaje']
-        ];
-    }
 } catch (PDOException $e) {
-    // Manejo de errores de base de datos
-    $respuesta = ['estado' => 'Error', 'mensaje' => $resultado['mensaje']];
-    error_log("[Intermediario BuscarPeriodoPorEstado] Error BD: " . $e->getMessage());
+    // Manejo de errores de base de datos.
+    $resultado['mensaje'] = "No fue posible completar la operación en este momento. Por favor, intenta nuevamente en unos instantes." . $e->getMessage();
+    error_log("Excepción PDO al buscar periodo por: " . $e->getMessage()); 
 }
 
-// Enviar respuesta al cliente
-echo json_encode($respuesta);
+// Enviar resultado al cliente
+echo json_encode($resultado);
