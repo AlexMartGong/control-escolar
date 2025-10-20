@@ -131,8 +131,8 @@
                                             onchange="validarCamposRestantesBaja('tipoBaja', 'btnGuardarJ', 'mb-3')"
                                             required>
                                             <option selected disabled value="">Seleccione...</option>
-                                            <option value="Definitiva">Definitiva</option>
-                                            <option value="Temporal">Temporal</option>
+                                            <option value="Baja Definitiva">Definitiva</option>
+                                            <option value="Baja Temporal">Temporal</option>
                                         </select>
                                     </div>
                                 </div>
