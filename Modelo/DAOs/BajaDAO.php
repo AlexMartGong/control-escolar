@@ -354,4 +354,99 @@ class BajaDAO
 
         return $resultado;
     }
+
+/**
+ * Agrega una baja manualmente a un alumno en la base de datos.
+ *
+ * Validaciones realizadas:
+ *  - Que ningún parámetro obligatorio esté vacío.
+ *  - Que el alumno exista en el sistema.
+ *  - Que el periodo exista en el sistema.
+ *  - Que no exista ya una baja para el mismo alumno en el mismo periodo.
+ *  - Que el motivo no esté vacío.
+ *  - Que el tipo de baja sea válido ('Baja Temporal' o 'Baja Definitiva').
+ *
+ * @param string $pnoControl Número de control del alumno.
+ * @param int    $pidPeriodo ID del periodo académico.
+ * @param string $pmotivo    Motivo de la baja.
+ * @param string $ptipo      Tipo de baja ('Baja Temporal' o 'Baja Definitiva').
+ * @return array Retorna un array con:
+ *               - 'estado': 'OK' si la operación fue exitosa, 'Error' en caso contrario.
+ *               - 'mensaje': Mensaje explicativo para el usuario.
+ *               - 'respuestaSP': Mensaje original devuelto por el procedimiento almacenado.
+ */
+public function AgregarBajaManual($pnoControl, $pidPeriodo, $pmotivo, $ptipo)
+{
+    $resultado = ['estado' => 'Error'];
+    $c = $this->conector;
+
+    // -----------------------------------------
+    // Validaciones básicas
+    // -----------------------------------------
+    if (empty($pnoControl) || empty($pidPeriodo) || empty($pmotivo) || empty($ptipo)) {
+        $resultado['mensaje'] = "Faltan datos necesarios para completar la operación. Por favor revisa la información proporcionada y asegúrate de llenar todos los campos obligatorios.";
+        return $resultado;
+    }
+
+    // -----------------------------------------
+    // Llamada al SP para agregar la baja manual
+    // -----------------------------------------
+    try {
+        $sp = $c->prepare("CALL spAgregarBajaManual(:pnoControl, :pidPeriodo, :pmotivo, :ptipo, @mensaje)");
+        $sp->bindParam(':pnoControl', $pnoControl, PDO::PARAM_STR);
+        $sp->bindParam(':pidPeriodo', $pidPeriodo, PDO::PARAM_INT);
+        $sp->bindParam(':pmotivo', $pmotivo, PDO::PARAM_STR);
+        $sp->bindParam(':ptipo', $ptipo, PDO::PARAM_STR);
+        $sp->execute();
+        $sp->closeCursor();
+
+        // Obtener el mensaje de salida del SP
+        $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+        $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+        // -----------------------------------------
+        // Validar mensaje del SP
+        // -----------------------------------------
+        switch ($resultado['respuestaSP']) {
+            case 'Estado: Exito':
+                $resultado['estado'] = "OK";
+                $resultado['mensaje'] = "La baja se ha registrado correctamente.";
+                break;
+
+            case 'Error: El alumno no existe':
+                $resultado['mensaje'] = "El número de control proporcionado no corresponde a ningún alumno registrado.";
+                break;
+
+            case 'Error: El periodo no existe':
+                $resultado['mensaje'] = "El periodo seleccionado no existe. Verifique los datos ingresados.";
+                break;
+
+            case 'Error: El alumno y la baja ya cuentan con una baja aplicada':
+                $resultado['mensaje'] = "El alumno ya cuenta con una baja aplicada en el periodo seleccionado.";
+                break;
+
+            case 'Error: El motivo se encuentra vacio':
+                $resultado['mensaje'] = "El motivo de la baja no puede estar vacío. Por favor, proporciona una descripción del motivo.";
+                break;
+
+            case 'Error: Tipo de baja invalido':
+                $resultado['mensaje'] = "El tipo de baja seleccionado no es válido. Debe ser 'Baja Temporal' o 'Baja Definitiva'.";
+                break;
+
+            case 'Error: No se pudo agregar el registro':
+                $resultado['mensaje'] = "Ocurrió un problema al registrar la baja. Por favor, inténtelo nuevamente.";
+                break;
+
+            default:
+                $resultado['mensaje'] = "Ocurrió un error inesperado al registrar la baja. Contacta al administrador si el problema persiste.";
+                error_log("[AgregarBajaManual] SP devolvió estado inesperado: " . $resultado['respuestaSP']);
+                break;
+        }
+    } catch (PDOException $e) {
+        $resultado['mensaje'] = "No fue posible completar la operación en este momento. Por favor, intenta nuevamente en unos instantes.";
+        error_log("[AgregarBajaManual] Error en BD al agregar baja: " . $e->getMessage());
+    }
+
+    return $resultado;
+}
 }
