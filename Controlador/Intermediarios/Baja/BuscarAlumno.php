@@ -8,10 +8,17 @@ require '../../../Modelo/BD/ConexionBD.php';
 require '../../../Modelo/BD/ModeloBD.php';
 require '../../../Modelo/DAOs/AlumnoDAO.php';
 
+header('Content-Type: application/json');
+
 // Conexión a la base de datos y creación del DAO
 $c = new ConexionBD($DatosBD);
 $pdo = $c->Conectar();
 $objDaoAlumno = new AlumnoDAO($pdo);
+
+$respuesta = [
+    'estado' => 'Error',
+    'mensaje' => 'No se pudo procesar la solicitud.'
+];
 
 try {
     // Obtener número de control del POST
@@ -19,23 +26,23 @@ try {
 
     // Validar que no esté vacío
     if (empty($noControl)) {
-        $respuesta = [
+        echo json_encode([
             'estado' => 'Error',
             'mensaje' => 'El número de control no puede estar vacío.'
-        ];
-        echo json_encode($respuesta);
+        ]);
         exit;
     }
 
-    // Llamar al DAO para buscar el alumno
-    $resultado = $objDaoAlumno->BuscarAlumno($noControl);
+    // Llamar al DAO para buscar el alumno con historial
+    $resultado = $objDaoAlumno->BuscarAlumnoConHistorial($noControl);
 
     // Preparar respuesta según el resultado del DAO
     if ($resultado['estado'] === "OK") {
         $respuesta = [
-            'estado' => 'OK', 
-            'mensaje' => $resultado['mensaje'] ?? 'Alumno encontrado exitosamente.',
-            'datos' => $resultado['datos']
+            'estado'    => 'OK', 
+            'mensaje'   => $resultado['mensaje'] ?? 'Alumno encontrado exitosamente.',
+            'datos'     => $resultado['datos'] ?? [],
+            'historial' => $resultado['historial'] ?? []  //  Incluimos el historial aquí
         ];
     } else {
         $respuesta = [
@@ -49,7 +56,7 @@ try {
         'estado'  => 'Error',
         'mensaje' => 'Ocurrió un error al buscar el alumno. Inténtalo de nuevo más tarde.'
     ];
-    error_log("[Intermediario BuscarAlumno] Error BD: " . $e->getMessage());
+    error_log("[Intermediario BuscarAlumnoConHistorial] Error BD: " . $e->getMessage());
 }
 
 // Enviar respuesta al cliente

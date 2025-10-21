@@ -268,6 +268,48 @@ class AlumnoDAO
         return $resultado;
     }
 
+    //Busca un alumno en la base de datos utilizando su número de control
+    //Tambien obtener su Historial de bajas
+
+    public function BuscarAlumnoConHistorial($id)
+{
+    $resultado = ['estado' => 'Error'];
+    $c = $this->conector;
+
+    try {
+        $sp = $c->prepare("CALL spBuscarAlumnoConHistorial(:pid, @mensaje)");
+        $sp->bindParam(':pid', $id, PDO::PARAM_STR);
+        $sp->execute();
+
+        // Primer resultset → datos del alumno
+        $datos = $sp->fetch(PDO::FETCH_ASSOC);
+
+        // Segundo resultset → historial
+        $sp->nextRowset();
+        $historial = $sp->fetchAll(PDO::FETCH_ASSOC);
+
+        // Cerrar cursor
+        $sp->closeCursor();
+
+        // Consultar mensaje
+        $m = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+
+        $resultado = [
+            'estado' => 'OK',
+            'mensaje' => $m['@mensaje'],
+            'datos' => $datos,
+            'historial' => $historial ?? []
+        ];
+
+    } catch (PDOException $e) {
+        error_log("[BuscarAlumnoConHistorial] Error en BD: " . $e->getMessage());
+        $resultado['mensaje'] = 'Error al buscar alumno con historial.';
+    }
+
+    return $resultado;
+}
+
+
     /**
      * Modifica los datos de un alumno en la base de datos.
      * 
