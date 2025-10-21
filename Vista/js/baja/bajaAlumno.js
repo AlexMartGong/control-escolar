@@ -50,31 +50,31 @@ function loadFormBajaAlumnos(opc, id = "") {
 
 // Función para validar los campos antes de enviar el formulario
 function validarFormularioBaja() {
-    const nombreAlumno = document.getElementById("nombreAlumno").value.trim();
-    const carreraAlumno = document.getElementById("carreraAlumno").value.trim();
-    const periodoAlumno = document.getElementById("periodo_nombre").value.trim();
-    const motivoBaja = document.getElementById("motivoBaja").value.trim();
-    const tipoBaja = document.getElementById("tipoBaja").value;
-    const idperiodo = document.getElementById("idperiodo").value;
+  const nombreAlumno = document.getElementById("nombreAlumno").value.trim();
+  const carreraAlumno = document.getElementById("carreraAlumno").value.trim();
+  const periodoAlumno = document.getElementById("periodo_nombre").value.trim();
+  const motivoBaja = document.getElementById("motivoBaja").value.trim();
+  const tipoBaja = document.getElementById("tipoBaja").value;
+  const idperiodo = document.getElementById("idperiodo").value;
 
-    // validar que los campos no esten vacios y que no tengan errores
-    if (
-        nombreAlumno === "" ||
-        carreraAlumno === "" ||
-        periodoAlumno === "" ||
-        motivoBaja === "" ||
-        tipoBaja === "" ||
-        idperiodo === ""
-    ) {
-        // Mostrar mensaje de error
-        mostrarFaltaDatos(
-            "No se pueden dejar campos vacíos. Verifique e intente de nuevo."
-        );
-        return false;
-    } else {
-        // Si todo es correcto, enviar los datos al backend
-        enviarBajaManual();
-    }
+  // validar que los campos no esten vacios y que no tengan errores
+  if (
+    nombreAlumno === "" ||
+    carreraAlumno === "" ||
+    periodoAlumno === "" ||
+    motivoBaja === "" ||
+    tipoBaja === "" ||
+    idperiodo === ""
+  ) {
+    // Mostrar mensaje de error
+    mostrarFaltaDatos(
+      "No se pueden dejar campos vacíos. Verifique e intente de nuevo."
+    );
+    return false;
+  } else {
+    // Si todo es correcto, enviar los datos al backend
+    enviarBajaManual();
+  }
 }
 
 //funcion para validar el numero de control al escribir
@@ -205,90 +205,115 @@ function activarBotonSiTodoCorrectoBaja(btnId) {
 }
 
 //funcion para buscar alumno y mostrar sus datos,
-function buscarAlumnoBaja() {
-    if (!limpiarDatosDeCampo()) {
-        mostrarMensajeBaja("Error, no se encontraron los campos para limpiarlos");
-        setEstadoBajas("Error");
-        return;
+async function buscarAlumnoBaja() {
+  let url = "../../Controlador/Intermediarios/Baja/BuscarAlumno.php";
+
+  if (!limpiarDatosDeCampo()) {
+    mostrarMensajeBaja("Error, no se encontraron los campos para limpiarlos");
+    setEstadoBajas("Error");
+    return;
+  }
+
+  const noControl = document.getElementById("id_alumno").value.trim();
+  const loader = document.getElementById("loader");
+
+  // hacer peticion con Fetch para buscar el alumno
+  try {
+    loader.classList.remove("d-none");
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ noControl }),
+    });
+
+    const data = await response.json();
+
+    if (
+      !data ||
+      data.estado !== "OK" ||
+      !data.datos ||
+      Object.keys(data.datos).length === 0
+    ) {
+      mostrarMensajeBaja(
+        "No se encontró ningún alumno con ese número de control."
+      );
+      setEstadoBajas("Error");
+      // Limpia los campos para que no queden residuos
+      document.getElementById("nombreAlumno").value = "";
+      document.getElementById("carreraAlumno").value = "";
+      document.getElementById("tablaHistorial").innerHTML = "";
+      return;
     }
 
-    const noControl = document.getElementById("id_alumno").value.trim();
-    const loader = document.getElementById("loader");
+    // Alumno válido encontrado
+    mostrarMensajeBaja(
+      "El estado de la baja será 'Aplicada' por defecto",
+      true
+    );
+    setEstadoBajas("encontrado");
 
-    // Ocultar datos previos y mostrar loader
-    document.getElementById("alumnoInfo").classList.add("d-none");
-    document.getElementById("datosAlumno").classList.add("d-none");
-    document.getElementById("contenedorHistorial").classList.add("d-none");
-    loader.classList.remove("d-none");
+    // Rellenar datos
+    document.getElementById("nombreAlumno").value = data.datos.nombre_alumno;
+    document.getElementById("carreraAlumno").value = data.datos.nombre_carrera;
+    //cargar periodos disponibles
+    cargarPeriodosDisponiblesBaja();
 
-    // Llamar al backend para buscar alumno real
-    $.ajax({
-        url: '../../Controlador/Intermediarios/Baja/BuscarAlumno.php',
-        type: 'POST',
-        data: { noControl: noControl },
-        dataType: 'json',
-        success: function(response) {
-            loader.classList.add("d-none"); // ocultar loader
+    // Mostrar historial de bajas en la tabla
+    const tablaHistorial = document.getElementById("tablaHistorial");
+    tablaHistorial.innerHTML = "";
 
-            console.log('Respuesta del backend:', response); // ← PARA DEBUG
-
-            if (response.estado === 'OK') {
-                // Alumno válido encontrado
-                mostrarMensajeBaja(
-                    "El estado de la baja será 'Aplicada' por defecto",
-                    true
-                );
-                setEstadoBajas("encontrado");
-
-                document.getElementById("nombreAlumno").value = response.datos.nombre_de_alumno;
-                document.getElementById("carreraAlumno").value = response.datos.nombre_de_carrera;
-
-                // Cargar periodos disponibles
-                cargarPeriodosDisponiblesBaja();
-
-            } else {
-                mostrarMensajeBaja(response.mensaje);
-                setEstadoBajas("Error");
-            }
-        },
-        error: function(xhr, status, error) {
-            loader.classList.add("d-none");
-            mostrarMensajeBaja("Error de conexión al buscar alumno.");
-            setEstadoBajas("Error");
-            console.error('Error en AJAX:', error);
-        }
-    });
+    if (data.historial.length === 0) {
+      tablaHistorial.innerHTML =
+        '<tr><td colspan="2" class="text-muted text-center">No tiene bajas registradas</td></tr>';
+    } else {
+      data.historial.forEach((periodo) => {
+        tablaHistorial.innerHTML += `
+          <tr>
+            <td>${periodo.id}</td>
+            <td>${periodo.nombre_periodo}</td>
+          </tr>
+        `;
+      });
+    }
+  } catch (error) {
+    console.error("Error al buscar alumno:", error);
+    mostrarMensajeBaja("Error al buscar alumno.");
+    setEstadoBajas("Error");
+  } finally {
+    loader.classList.add("d-none");
+  }
 }
 // Función para cargar periodos disponibles
 function cargarPeriodosDisponiblesBaja() {
-    $.ajax({
-        url: '../../Controlador/Intermediarios/Parcial/ObtenerPeriodosDisponibles.php',
-        type: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            console.log('Periodos recibidos:', response);
-            
-            if (response.estado === 'OK') {
-                const selectPeriodo = document.getElementById("periodo_nombre");
-                selectPeriodo.innerHTML = '<option value="" disabled selected>Seleccione un periodo</option>';
-                
-                response.datos.forEach(periodo => {
-                    const option = document.createElement("option");
-                    option.value = periodo[0];
-                    option.textContent = periodo[1];
-                    selectPeriodo.appendChild(option);
-                });
-                
-                console.log('Periodos cargados en select:', selectPeriodo.innerHTML);
-            } else {
-                mostrarErrorCaptura("Error al cargar periodos: " + response.mensaje);
-            }
-        },
-        error: function(xhr, status, error) {
-            mostrarErrorCaptura("Error de conexión al cargar periodos.");
-            console.error('Error cargando periodos:', error);
-        }
-    });
+  $.ajax({
+    url: "../../Controlador/Intermediarios/Parcial/ObtenerPeriodosDisponibles.php",
+    type: "GET",
+    dataType: "json",
+    success: function (response) {
+      console.log("Periodos recibidos:", response);
+
+      if (response.estado === "OK") {
+        const selectPeriodo = document.getElementById("periodo_nombre");
+        selectPeriodo.innerHTML =
+          '<option value="" disabled selected>Seleccione un periodo</option>';
+
+        response.datos.forEach((periodo) => {
+          const option = document.createElement("option");
+          option.value = periodo[0];
+          option.textContent = periodo[1];
+          selectPeriodo.appendChild(option);
+        });
+      } else {
+        mostrarErrorCaptura("Error al cargar periodos: " + response.mensaje);
+      }
+    },
+    error: function (xhr, status, error) {
+      mostrarErrorCaptura("Error de conexión al cargar periodos.");
+      console.error("Error cargando periodos:", error);
+    },
+  });
 }
 
 // Funcion que limpia los campos antes de mostrar nuevos datos
@@ -386,72 +411,74 @@ function iniciarFuncionesBajaAlumnos(opc, id) {
       buscarAlumnoBaja();
       break;
     case "modBaja":
-      cargarDatosSelectPeriodosMod(function() {
-       
+      cargarDatosSelectPeriodosMod(function () {
         cargarDatosBaja(id);
-    });
+      });
       break;
   }
 }
 
 // Función para enviar los datos de baja manual al backend
 function enviarBajaManual() {
-    // Obtener datos del formulario
-    const noControl = document.getElementById("id_alumno").value.trim();
-    const idPeriodo = document.getElementById("idperiodo").value.trim();
-    const motivo = document.getElementById("motivoBaja").value.trim();
-    const tipo = document.getElementById("tipoBaja").value;
+  // Obtener datos del formulario
+  const noControl = document.getElementById("id_alumno").value.trim();
+  const idPeriodo = document.getElementById("idperiodo").value.trim();
+  const motivo = document.getElementById("motivoBaja").value.trim();
+  const tipo = document.getElementById("tipoBaja").value;
 
-    // Validar que todos los campos estén llenos
-    if (!noControl || !idPeriodo || !motivo || !tipo) {
-        mostrarErrorCaptura("Faltan datos necesarios para completar la operación.");
-        return;
-    }
+  // Validar que todos los campos estén llenos
+  if (!noControl || !idPeriodo || !motivo || !tipo) {
+    mostrarErrorCaptura("Faltan datos necesarios para completar la operación.");
+    return;
+  }
 
-    // Mostrar loader o indicador de carga
-    const btnGuardar = document.getElementById("btnGuardarJ");
-    const originalText = btnGuardar.innerHTML;
-    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
-    btnGuardar.disabled = true;
+  // Mostrar loader o indicador de carga
+  const btnGuardar = document.getElementById("btnGuardarJ");
+  const originalText = btnGuardar.innerHTML;
+  btnGuardar.innerHTML =
+    '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+  btnGuardar.disabled = true;
 
-    // Preparar datos para enviar
-    const datos = {
-        noControl: noControl,
-        idPeriodo: idPeriodo,
-        motivo: motivo,
-        tipo: tipo
-    };
+  // Preparar datos para enviar
+  const datos = {
+    noControl: noControl,
+    idPeriodo: idPeriodo,
+    motivo: motivo,
+    tipo: tipo,
+  };
 
-    // Enviar datos al backend
-    $.ajax({
-        url: '../../Controlador/Intermediarios/Baja/AplicarBajaManual.php', // Ajusta la ruta según tu estructura
-        type: 'POST',
-        data: datos,
-        dataType: 'json',
-        success: function(response) {
-            if (response.estado === 'OK') {
-                mostrarDatosGuardados(response.mensaje);
-                // Deshabilitar el formulario después de guardar exitosamente
-                btnGuardar.disabled = true;
-                
-                // Opcional: Limpiar formulario después de éxito
-                setTimeout(() => {
-                    clearArea("frmArea");
-                    option('baja','');
-                }, 2000);
-            } else {
-                mostrarErrorCaptura(response.mensaje);
-                // Rehabilitar botón en caso de error
-                btnGuardar.innerHTML = originalText;
-                btnGuardar.disabled = false;
-            }
-        },
-        error: function(xhr, status, error) {
-            mostrarErrorCaptura("Error de conexión al registrar la baja. Inténtalo de nuevo.");
-            console.error("Error AJAX:", error);
-            // Rehabilitar botón en caso de error
-            btnGuardar.innerHTML = originalText;
-            btnGuardar.disabled = false;
-        }
-    });
+  // Enviar datos al backend
+  $.ajax({
+    url: "../../Controlador/Intermediarios/Baja/AplicarBajaManual.php", // Ajusta la ruta según tu estructura
+    type: "POST",
+    data: datos,
+    dataType: "json",
+    success: function (response) {
+      if (response.estado === "OK") {
+        mostrarDatosGuardados(response.mensaje);
+        // Deshabilitar el formulario después de guardar exitosamente
+        btnGuardar.disabled = true;
+
+        // Opcional: Limpiar formulario después de éxito
+        setTimeout(() => {
+          clearArea("frmArea");
+          option("baja", "");
+        }, 2000);
+      } else {
+        mostrarErrorCaptura(response.mensaje);
+        // Rehabilitar botón en caso de error
+        btnGuardar.innerHTML = originalText;
+        btnGuardar.disabled = false;
+      }
+    },
+    error: function (xhr, status, error) {
+      mostrarErrorCaptura(
+        "Error de conexión al registrar la baja. Inténtalo de nuevo."
+      );
+      console.error("Error AJAX:", error);
+      // Rehabilitar botón en caso de error
+      btnGuardar.innerHTML = originalText;
+      btnGuardar.disabled = false;
+    },
+  });
 }
