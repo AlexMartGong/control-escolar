@@ -268,46 +268,85 @@ class AlumnoDAO
         return $resultado;
     }
 
-    //Busca un alumno en la base de datos utilizando su número de control
-    //Tambien obtener su Historial de bajas
-
+    /**
+     * Busca un alumno junto con su historial de periodos de baja
+     * 
+     * Ejecuta un procedimiento almacenado que verifica la existencia del alumno
+     * y determina si cuenta con periodos de baja. Retorna información estructurada
+     * que incluye: datos del alumno, historial de bajas y mensaje de estado.
+     * 
+     * @param string $id Número de control del alumno
+     * @return array Resultado con:
+     *   - estado: 'OK' o 'ERROR'
+     *   - mensaje: Descripción del resultado
+     *   - datos: Información del alumno (nombre, carrera) o null
+     *   - historial: Array con periodos de baja o array vacío
+     */
     public function BuscarAlumnoConHistorial($id)
-{
-    $resultado = ['estado' => 'Error'];
-    $c = $this->conector;
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
 
-    try {
-        $sp = $c->prepare("CALL spBuscarAlumnoConHistorial(:pid, @mensaje)");
-        $sp->bindParam(':pid', $id, PDO::PARAM_STR);
-        $sp->execute();
+        try {
+            // PRIMERO: Obtener datos del alumno usando la función existente
+            $datosAlumno = $this->BuscarAlumno($id);
+            
+            if ($datosAlumno['estado'] === 'Error') {
+                $resultado = [
+                    'estado' => 'ERROR',
+                    'mensaje' => $datosAlumno['mensaje'],
+                    'datos' => null,
+                    'historial' => []
+                ];
+                return $resultado;
+            }
 
-        // Primer resultset → datos del alumno
-        $datos = $sp->fetch(PDO::FETCH_ASSOC);
+            // SEGUNDO: Verificar periodos de baja
+            $sp = $c->prepare("CALL spBuscarAlumnoConHistorial(:pid, @mensaje)");
+            $sp->bindParam(':pid', $id, PDO::PARAM_STR);
+            $sp->execute();
 
-        // Segundo resultset → historial
-        $sp->nextRowset();
-        $historial = $sp->fetchAll(PDO::FETCH_ASSOC);
+            // Obtener el resultset (solo habrá uno si el alumno tiene bajas)
+            $historial = $sp->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Cerrar cursor
+            $sp->closeCursor();
 
-        // Cerrar cursor
-        $sp->closeCursor();
+            // Consultar mensaje de salida
+            $m = $c->query("SELECT @mensaje AS mensaje")->fetch(PDO::FETCH_ASSOC);
+            
+            // Estructurar la respuesta
+            if (strpos($m['mensaje'], 'Error') !== false) {
+                $resultado = [
+                    'estado' => 'ERROR',
+                    'mensaje' => $m['mensaje'],
+                    'datos' => null,
+                    'historial' => []
+                ];
+            } else if (strpos($m['mensaje'], 'no cuenta con periodos') !== false) {
+                $resultado = [
+                    'estado' => 'OK',
+                    'mensaje' => $m['mensaje'],
+                    'datos' => $datosAlumno['datos'], // Usamos los datos del alumno obtenidos
+                    'historial' => []
+                ];
+            } else {
+                // El alumno tiene bajas
+                $resultado = [
+                    'estado' => 'OK',
+                    'mensaje' => $m['mensaje'],
+                    'datos' => $datosAlumno['datos'], // Usamos los datos del alumno obtenidos
+                    'historial' => $historial // Periodos de baja
+                ];
+            }
 
-        // Consultar mensaje
-        $m = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("[BuscarAlumnoConHistorial] Error en BD: " . $e->getMessage());
+            $resultado['mensaje'] = 'Error al buscar alumno con historial.';
+        }
 
-        $resultado = [
-            'estado' => 'OK',
-            'mensaje' => $m['@mensaje'],
-            'datos' => $datos,
-            'historial' => $historial ?? []
-        ];
-
-    } catch (PDOException $e) {
-        error_log("[BuscarAlumnoConHistorial] Error en BD: " . $e->getMessage());
-        $resultado['mensaje'] = 'Error al buscar alumno con historial.';
+        return $resultado;
     }
-
-    return $resultado;
-}
 
 
     /**

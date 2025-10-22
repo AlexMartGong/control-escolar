@@ -204,7 +204,7 @@ function activarBotonSiTodoCorrectoBaja(btnId) {
   btnId.disabled = !camposValidos;
 }
 
-//funcion para buscar alumno y mostrar sus datos,
+//
 async function buscarAlumnoBaja() {
   let url = "../../Controlador/Intermediarios/Baja/BuscarAlumno.php";
 
@@ -230,6 +230,9 @@ async function buscarAlumnoBaja() {
 
     const data = await response.json();
 
+    // DEBUG: Verifica la estructura completa de la respuesta
+    console.log("Respuesta completa:", data);
+
     if (
       !data ||
       data.estado !== "OK" ||
@@ -247,6 +250,11 @@ async function buscarAlumnoBaja() {
       return;
     }
 
+    // DEBUG: Verifica los datos específicos del alumno
+    console.log("Datos del alumno:", data.datos);
+    console.log("Nombre alumno:", data.datos.nombre_de_alumno);
+    console.log("Carrera alumno:", data.datos.nombre_de_carrera);
+
     // Alumno válido encontrado
     mostrarMensajeBaja(
       "El estado de la baja será 'Aplicada' por defecto",
@@ -254,9 +262,9 @@ async function buscarAlumnoBaja() {
     );
     setEstadoBajas("encontrado");
 
-    // Rellenar datos
-    document.getElementById("nombreAlumno").value = data.datos.nombre_alumno;
-    document.getElementById("carreraAlumno").value = data.datos.nombre_carrera;
+    document.getElementById("nombreAlumno").value = data.datos.nombre_de_alumno || "No disponible";
+    document.getElementById("carreraAlumno").value = data.datos.nombre_de_carrera || "No disponible";
+    
     //cargar periodos disponibles
     cargarPeriodosDisponiblesBaja();
 
@@ -268,11 +276,12 @@ async function buscarAlumnoBaja() {
       tablaHistorial.innerHTML =
         '<tr><td colspan="2" class="text-muted text-center">No tiene bajas registradas</td></tr>';
     } else {
+      // CORRECCIÓN: Usar los nombres correctos de las propiedades del historial
       data.historial.forEach((periodo) => {
         tablaHistorial.innerHTML += `
           <tr>
-            <td>${periodo.id}</td>
-            <td>${periodo.nombre_periodo}</td>
+            <td>${periodo.idPeriodo || periodo.clave_periodo || 'N/A'}</td>
+            <td>${periodo.nombrePeriodo || periodo.periodo || 'N/A'}</td>
           </tr>
         `;
       });
@@ -285,6 +294,7 @@ async function buscarAlumnoBaja() {
     loader.classList.add("d-none");
   }
 }
+
 // Función para cargar periodos disponibles
 function cargarPeriodosDisponiblesBaja() {
   $.ajax({
