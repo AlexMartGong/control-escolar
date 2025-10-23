@@ -87,6 +87,8 @@
                                 class="fas fa-clock me-2"></i>Horario</a>
                     <a href="javascript:void(0);" onclick="option('baja', '')" class="nav-link"><i
                                 class="fas fa-user-minus me-2"></i>Baja</a>
+                    <a href="javascript:void(0);" onclick="aplicarCierreAjustes()" class="nav-link"><i
+                                class="fas fa-calendar-check me-2"></i>Aplicar Cierre de Ajustes</a>
                 </div>
             </div>
         </div>

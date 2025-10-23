@@ -9,80 +9,6 @@
     let ofertasDisponibles = [];
     let cambiosDetectados = false;
 
-    // Datos de prueba
-    const DATOS_PRUEBA = {
-        alumno: {
-            noControl: "20401234",
-            nombre: "Juan Carlos",
-            apellidoPaterno: "García",
-            apellidoMaterno: "López",
-            semestre: 6,
-            grupo: "A",
-            claveCarrera: "ISC",
-            nombreCarrera: "Ingeniería en Sistemas Computacionales",
-            turno: "Matutino",
-            estado: "Activo"
-        },
-        ofertasAsignadas: [
-            {
-                idOferta: 101,
-                claveMateria: "SCC-1018",
-                nombreMateria: "Programación Orientada a Objetos",
-                nombreDocente: "Dr. María Fernández",
-                horario: "Lun-Mie 08:00-10:00"
-            },
-            {
-                idOferta: 102,
-                claveMateria: "SCG-1009",
-                nombreMateria: "Matemáticas Discretas",
-                nombreDocente: "Ing. Roberto Sánchez",
-                horario: "Mar-Jue 10:00-12:00"
-            },
-            {
-                idOferta: 103,
-                claveMateria: "ACA-0909",
-                nombreMateria: "Taller de Ética",
-                nombreDocente: "Lic. Ana Torres",
-                horario: "Vie 14:00-16:00"
-            }
-        ],
-        ofertasDisponibles: [
-            {
-                idOferta: 104,
-                claveMateria: "SCD-1020",
-                nombreMateria: "Fundamentos de Base de Datos",
-                nombreDocente: "M.C. Carlos Ruiz",
-                horario: "Lun-Vie 12:00-14:00"
-            },
-            {
-                idOferta: 105,
-                claveMateria: "SCH-1024",
-                nombreMateria: "Fundamentos de Telecomunicaciones",
-                nombreDocente: "Ing. Laura Méndez",
-                horario: "Mar-Jue 14:00-16:00"
-            },
-            {
-                idOferta: 106,
-                claveMateria: "SCC-1017",
-                nombreMateria: "Programación Web",
-                nombreDocente: "M.C. Fernando Vega",
-                horario: "Lun-Mie 16:00-18:00"
-            },
-            {
-                idOferta: 107,
-                claveMateria: "AEC-1058",
-                nombreMateria: "Probabilidad y Estadística",
-                nombreDocente: "Dr. Patricia Morales",
-                horario: "Mar-Jue 08:00-10:00"
-            }
-        ],
-        periodo: {
-            nombre: "Agosto - Diciembre 2024",
-            fechaInicio: "2024-08-26",
-            fechaFin: "2024-12-20"
-        }
-    };
-
     // Inicializar página
     $(document).ready(function () {
         inicializarEventos();
@@ -120,6 +46,19 @@
         // Detectar cambios en checkboxes
         $(document).on('change', '#cuerpoOfertasAsignadas input[type="checkbox"], #cuerpoOfertasDisponibles input[type="checkbox"]', function () {
             actualizarEstadoBotones();
+        });
+
+        // Detectar cambios en selectores de oportunidad
+        $(document).on('change', '.oportunidad-select', function () {
+            const claveOferta = parseInt($(this).data('oferta'));
+            const nuevaOportunidad = parseInt($(this).val());
+
+            // Actualizar la oportunidad en el arreglo de ofertas asignadas
+            const oferta = ofertasAsignadasActuales.find(o => o.clave_de_oferta === claveOferta);
+            if (oferta) {
+                oferta.oportunidad = nuevaOportunidad;
+                detectarCambios();
+            }
         });
     }
 
@@ -296,7 +235,7 @@
         if (ofertas.length === 0) {
             tbody.append(`
                 <tr>
-                    <td colspan="10" class="empty-state text-center">
+                    <td colspan="11" class="empty-state text-center">
                         <i class="fas fa-clipboard fa-2x mb-2"></i>
                         <p class="mb-0">El alumno no tiene ofertas asignadas</p>
                     </td>
@@ -304,6 +243,9 @@
             `);
         } else {
             ofertas.forEach(oferta => {
+                // Determinar la oportunidad actual o establecer 1 por defecto
+                const oportunidadActual = oferta.oportunidad || 1;
+
                 tbody.append(`
                     <tr>
                         <td>
@@ -318,6 +260,13 @@
                         <td>${oferta.docente}</td>
                         <td>${oferta.nombre_de_carrera}</td>
                         <td>${oferta.periodo}</td>
+                        <td>
+                            <select class="form-select form-select-sm oportunidad-select" data-oferta="${oferta.clave_de_oferta}">
+                                <option value="1" ${oportunidadActual === 1 ? 'selected' : ''}>1ra</option>
+                                <option value="2" ${oportunidadActual === 2 ? 'selected' : ''}>2da</option>
+                                <option value="3" ${oportunidadActual === 3 ? 'selected' : ''}>3ra</option>
+                            </select>
+                        </td>
                     </tr>
                 `);
             });
@@ -336,7 +285,7 @@
         if (ofertas.length === 0) {
             tbody.append(`
                 <tr>
-                    <td colspan="10" class="empty-state text-center">
+                    <td colspan="11" class="empty-state text-center">
                         <i class="fas fa-search fa-2x mb-2"></i>
                         <p class="mb-0">No hay ofertas disponibles para agregar</p>
                     </td>
@@ -344,6 +293,9 @@
             `);
         } else {
             ofertas.forEach(oferta => {
+                // Oportunidad por defecto es 1
+                const oportunidadActual = oferta.oportunidad || 1;
+
                 tbody.append(`
                     <tr>
                         <td>
@@ -358,6 +310,13 @@
                         <td>${oferta.docente}</td>
                         <td>${oferta.nombre_de_carrera}</td>
                         <td>${oferta.periodo}</td>
+                        <td>
+                            <select class="form-select form-select-sm oportunidad-select" data-oferta="${oferta.clave_de_oferta}">
+                                <option value="1" ${oportunidadActual === 1 ? 'selected' : ''}>1ra</option>
+                                <option value="2" ${oportunidadActual === 2 ? 'selected' : ''}>2da</option>
+                                <option value="3" ${oportunidadActual === 3 ? 'selected' : ''}>3ra</option>
+                            </select>
+                        </td>
                     </tr>
                 `);
             });
@@ -413,10 +372,17 @@
             return;
         }
 
-        // Mover ofertas de disponibles a asignadas
+        // Mover ofertas de disponibles a asignadas, capturando la oportunidad seleccionada
         const ofertasAMover = ofertasDisponibles.filter(oferta =>
             ofertasSeleccionadas.includes(oferta.clave_de_oferta)
-        );
+        ).map(oferta => {
+            // Capturar la oportunidad seleccionada en el combobox
+            const oportunidadSeleccionada = parseInt($(`#cuerpoOfertasDisponibles select[data-oferta="${oferta.clave_de_oferta}"]`).val()) || 1;
+            return {
+                ...oferta,
+                oportunidad: oportunidadSeleccionada
+            };
+        });
 
         // Remover de disponibles
         ofertasDisponibles = ofertasDisponibles.filter(oferta =>
@@ -436,10 +402,26 @@
 
     // Detectar cambios en las ofertas
     function detectarCambios() {
+        // Comparar IDs de ofertas
         const ofertasOriginalesIds = ofertasAsignadasOriginales.map(o => o.clave_de_oferta).sort();
         const ofertasActualesIds = ofertasAsignadasActuales.map(o => o.clave_de_oferta).sort();
 
-        cambiosDetectados = JSON.stringify(ofertasOriginalesIds) !== JSON.stringify(ofertasActualesIds);
+        const cambioEnOfertas = JSON.stringify(ofertasOriginalesIds) !== JSON.stringify(ofertasActualesIds);
+
+        // Comparar oportunidades de las ofertas que siguen presentes
+        let cambioEnOportunidades = false;
+        ofertasAsignadasActuales.forEach(ofertaActual => {
+            const ofertaOriginal = ofertasAsignadasOriginales.find(o => o.clave_de_oferta === ofertaActual.clave_de_oferta);
+            if (ofertaOriginal) {
+                const oportunidadOriginal = ofertaOriginal.oportunidad || 1;
+                const oportunidadActual = ofertaActual.oportunidad || 1;
+                if (oportunidadOriginal !== oportunidadActual) {
+                    cambioEnOportunidades = true;
+                }
+            }
+        });
+
+        cambiosDetectados = cambioEnOfertas || cambioEnOportunidades;
 
         if (cambiosDetectados) {
             $('#alertaCambios').show();
