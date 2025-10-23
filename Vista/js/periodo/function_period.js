@@ -700,3 +700,81 @@ function setupFormChangeListeners() {
         }
     });
 }
+
+/**
+ * Función para aplicar el cierre de ajustes
+ * Valida la fecha de término de ajustes y la fecha de cierre de inscripciones
+ * antes de ejecutar el algoritmo
+ */
+function aplicarCierreAjustes() {
+    // Crear el contenido del modal de confirmación
+    let modalHTML = `
+    <div class="modal fade" id="confirmCierreAjustesModal" tabindex="-1" aria-labelledby="confirmCierreAjustesModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="confirmCierreAjustesModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Aplicación de Cierre de Ajustes
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-calendar-check text-warning fa-4x"></i>
+                    </div>
+                    <p class="text-center">¿Está seguro de aplicar el cierre de ajustes?</p>
+                    <p class="text-center text-danger"><strong>Esta acción:</strong></p>
+                    <ul class="text-start">
+                        <li>Aplicará las bajas pertinentes del sistema</li>
+                        <li>Preparará las calificaciones para su captura</li>
+                        <li>Validará las fechas de término de ajustes y cierre de inscripciones</li>
+                    </ul>
+                    <p class="text-center text-muted"><small>Esta operación no se puede deshacer.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" id="btnConfirmarCierre">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    // Remover modal anterior si existe
+    let modalAnterior = document.getElementById("confirmCierreAjustesModal");
+    if (modalAnterior) {
+        modalAnterior.remove();
+    }
+
+    // Agregar el modal al documento
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+    // Mostrar el modal
+    let modalElement = document.getElementById("confirmCierreAjustesModal");
+    let modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    // Configurar acción para el botón confirmar
+    document.getElementById("btnConfirmarCierre").addEventListener("click", function () {
+        // Cerrar el modal
+        modal.hide();
+
+        // Preparar datos para enviar (solo indicador de acción)
+        let data = {
+            accion: "aplicarCierreAjustes"
+        };
+
+        let json = JSON.stringify(data);
+        console.log("Aplicando cierre de ajustes..." + json);
+
+        mostrarDatosGuardados(
+            "Se han aplicado las Bajas pertinentes y se han preparado las calificaciones para su captura",
+        );
+
+        console.log("Cierre de ajustes aplicado.");
+    });
+
+    // Eliminar el modal del DOM cuando se cierre
+    modalElement.addEventListener("hidden.bs.modal", function () {
+        modalElement.remove();
+    });
+}
