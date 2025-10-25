@@ -98,7 +98,7 @@
             url: '../../Controlador/Intermediarios/Alumno/ModificarAlumno.php',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({Buscar: true, id: noControl}),
+            data: JSON.stringify({ Buscar: true, id: noControl }),
             dataType: 'json',
             success: function (respuesta) {
                 mostrarCargando(false);
@@ -234,41 +234,41 @@
 
         if (ofertas.length === 0) {
             tbody.append(`
+            <tr>
+                <td colspan="11" class="empty-state text-center">
+                    <i class="fas fa-clipboard fa-2x mb-2"></i>
+                    <p class="mb-0">El alumno no tiene ofertas asignadas</p>
+                </td>
+            </tr>
+        `);
+        } else {
+            ofertas.forEach(oferta => {
+
+                tbody.append(`
                 <tr>
-                    <td colspan="11" class="empty-state text-center">
-                        <i class="fas fa-clipboard fa-2x mb-2"></i>
-                        <p class="mb-0">El alumno no tiene ofertas asignadas</p>
+                    <td>
+                        <input type="checkbox" class="form-check-input" value="${oferta.clave_de_oferta}">
+                    </td>
+                    <td>${oferta.clave_de_oferta}</td>
+                    <td>${oferta.clave_de_materia}</td>
+                    <td>${oferta.nombre_de_materia}</td>
+                    <td>${oferta.semestre}</td>
+                    <td>${oferta.grupo}</td>
+                    <td>${oferta.turno}</td>
+                    <td>${oferta.docente}</td>
+                    <td>${oferta.nombre_de_carrera}</td>
+                    <td>${oferta.periodo}</td>
+                    <td>
+                        <select class="form-select form-select-sm oportunidad-select" data-oferta="${oferta.clave_de_oferta}">
+                            <option value="Primera Oportunidad" ${oferta.opcion === "Primera Oportunidad" ? "selected" : ""}>Primera</option>
+                            <option value="Segunda Oportunidad" ${oferta.opcion === "Segunda Oportunidad" ? "selected" : ""}>Segunda</option>
+                            <option value="Tercera Oportunidad" ${oferta.opcion === "Tercera Oportunidad" ? "selected" : ""}>Tercera</option>
+                            <option value="Cuarta Oportunidad" ${oferta.opcion === "Cuarta Oportunidad" ? "selected" : ""}>Cuarta</option>
+                            <option value="Especial" ${oferta.opcion === "Especial" ? "selected" : ""}>Especial</option>
+                        </select>
                     </td>
                 </tr>
             `);
-        } else {
-            ofertas.forEach(oferta => {
-                // Determinar la oportunidad actual o establecer 1 por defecto
-                const oportunidadActual = oferta.oportunidad || 1;
-
-                tbody.append(`
-                    <tr>
-                        <td>
-                            <input type="checkbox" class="form-check-input" value="${oferta.clave_de_oferta}">
-                        </td>
-                        <td>${oferta.clave_de_oferta}</td>
-                        <td>${oferta.clave_de_materia}</td>
-                        <td>${oferta.nombre_de_materia}</td>
-                        <td>${oferta.semestre}</td>
-                        <td>${oferta.grupo}</td>
-                        <td>${oferta.turno}</td>
-                        <td>${oferta.docente}</td>
-                        <td>${oferta.nombre_de_carrera}</td>
-                        <td>${oferta.periodo}</td>
-                        <td>
-                            <select class="form-select form-select-sm oportunidad-select" data-oferta="${oferta.clave_de_oferta}">
-                                <option value="1" ${oportunidadActual === 1 ? 'selected' : ''}>1ra</option>
-                                <option value="2" ${oportunidadActual === 2 ? 'selected' : ''}>2da</option>
-                                <option value="3" ${oportunidadActual === 3 ? 'selected' : ''}>3ra</option>
-                            </select>
-                        </td>
-                    </tr>
-                `);
             });
         }
 
@@ -310,13 +310,7 @@
                         <td>${oferta.docente}</td>
                         <td>${oferta.nombre_de_carrera}</td>
                         <td>${oferta.periodo}</td>
-                        <td>
-                            <select class="form-select form-select-sm oportunidad-select" data-oferta="${oferta.clave_de_oferta}">
-                                <option value="1" ${oportunidadActual === 1 ? 'selected' : ''}>1ra</option>
-                                <option value="2" ${oportunidadActual === 2 ? 'selected' : ''}>2da</option>
-                                <option value="3" ${oportunidadActual === 3 ? 'selected' : ''}>3ra</option>
-                            </select>
-                        </td>
+                        
                     </tr>
                 `);
             });
@@ -458,10 +452,17 @@
             return;
         }
 
-        // Extraer solo las claves de oferta del arreglo final
-        const ofertasFinales = ofertasAsignadasActuales.map(oferta => oferta.clave_de_oferta);
+        // Crear arreglo con la clave de la oferta y la oportunidad seleccionada
+        const ofertasFinales = [];
+        $('#cuerpoOfertasAsignadas .oportunidad-select').each(function () {
+            const claveOferta = $(this).data('oferta');
+            const oportunidad = $(this).val(); // valor seleccionado del select
+            ofertasFinales.push({
+                claveOferta: claveOferta,
+                oportunidad: oportunidad
+            });
+        });
 
-        // Preparar el objeto de datos a enviar al intermediario
         const datos = {
             pnoControl: alumnoActual.numero_de_control,
             psemestre: alumnoActual.semestre,
@@ -487,20 +488,19 @@
                 if (response.estado === "OK") {
                     // Mostrar mensaje de éxito al usuario
                     mostrarDatosGuardados(
-                        "El horario se modificó de manera individual correctamente.",
+                        "La modificación individual del horario se realizó exitosamente.",
                         function () {
                             option("horario", "");
                         }
                     );
                 } else {
 
-                    mostrarErrorCaptura("Ocurrió un problema al realizar la modificación individual. Por favor, inténtelo nuevamente más tarde.");
+                    mostrarErrorCaptura(response.mensaje);
                 }
             },
             error: function (xhr, status, error) {
                 // Mostrar errores en consola y mensaje al usuario en caso de fallo de conexión
                 console.error("Error AJAX al guardar horario:", xhr.responseText);
-                console.error("Respuesta recibida pero con error:", xhr.responseText);
                 mostrarMensaje('error', 'No se pudo conectar con el servidor. Inténtelo más tarde.');
             }
         });

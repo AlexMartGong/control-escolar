@@ -33,7 +33,7 @@ $res = $objBaDAO->MostrarBajas();
             <!-- Botón baja por no inscripción -->
             <button type="button" class="btn btn-warning"
                 onclick="option('bajaTemporal','');">
-                <i class="fas fa-user-minus me-2"></i> Baja por no Inscripción
+                <i class="fas fa-user-minus me-2"></i> Ver bajas del periodo
             </button>
         </div>
     </div>

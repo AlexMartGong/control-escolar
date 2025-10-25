@@ -8,7 +8,7 @@
                 <div class="card-header bg-danger text-white">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-user-minus me-2"></i>
-                        Baja Automática por No Inscripción
+                        Bajas del periodo
                     </h5>
                 </div>
                 <div class="card-body p-4">
@@ -35,7 +35,7 @@
 
                     <!-- Resumen de alumnos a dar de baja -->
                     <div id="resumenBaja" class="mb-4">
-                        <h6 class="mb-3"><i class="fas fa-list-alt me-2"></i>Alumnos No Inscritos en el Periodo Abierto
+                        <h6 class="mb-3"><i class="fas fa-list-alt me-2"></i>Bajas realizadas durante el periodo
                         </h6>
 
                         <div class="row g-3 mb-4">
@@ -73,8 +73,10 @@
                                     <th>No. Control</th>
                                     <th>Nombre</th>
                                     <th>Carrera</th>
+                                    <th>Semestre</th>
+                                    <th>Grupo</th>
                                     <th>Bajas Previas</th>
-                                    <th>Estado</th>
+                                    <th>Tipo de Baja</th>
                                 </tr>
                                 </thead>
                                 <tbody id="tablaAlumnosBajaBody">
@@ -83,13 +85,6 @@
                             </table>
                         </div>
 
-                        <!-- Advertencia -->
-                        <div class="alert alert-warning mt-3">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Advertencia:</strong> Esta acción aplicará la baja automática a todos los alumnos
-                            listados.
-                            Los alumnos con 3 bajas previas recibirán baja definitiva. Esta acción no se puede deshacer.
-                        </div>
                     </div>
 
                     <!-- Botones de acción -->
