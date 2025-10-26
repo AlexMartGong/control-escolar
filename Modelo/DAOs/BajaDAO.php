@@ -14,33 +14,83 @@ class BajaDAO
         $this->conector = $conector;
     }
 
+    /**
+     * Aplica el cierre de inscripciones del periodo actual.
+     *
+     * Este método realiza bajas automáticas para los alumnos cuyo estado sea "Baja" mediante
+     * el procedimiento almacenado `sp_Inscripciones_Cierre`.
+     * 
+     * 1. Aplica bajas temporales o definitivas a los alumnos en estado "Baja".
+     * 2. Si un alumno tiene 3 o más bajas temporales consecutivas, se asigna "Baja Definitiva".
+     * 3. Si ya se aplicó la baja para el periodo vigente, se devuelve un mensaje informativo.
+     * 4. Si el periodo de inscripciones o ajustes no ha concluido, se devuelve un mensaje indicando que no se puede aplicar aún.
+     * 5. Ante cualquier error durante el proceso, se devuelve un mensaje de error genérico.
+     *
+     * El método interpreta el mensaje devuelto por el SP y lo transforma en un mensaje
+     * amigable para el usuario final.
+     *
+     * @return array $resultado Contiene:
+     *  - 'estado'  => 'OK' si se aplicó correctamente, 'Error' en caso contrario.
+     *  - 'mensaje' => Mensaje explicativo para el usuario final.
+     *  - 'respuestaSP' => Mensaje crudo devuelto por el SP.
+     */
     public function AplicarBajasPorNoInscripcion()
     {
-        $resultado = ['estado' => 'Error', 'mensaje' => 'Ocurrió un error desconocido.'];
+        // Inicializar resultado con estado por defecto
+        $resultado = ['estado' => 'Error'];
         $c = $this->conector;
 
         try {
-            $sp = $c->prepare("CALL sp_Inscripciones_Cierre()");
+            // -----------------------------------------
+            // Ejecutar el SP con su parámetro de salida (@mensaje)
+            // -----------------------------------------
+            $sp = $c->prepare("CALL sp_Inscripciones_Cierre(@mensaje)");
             $sp->execute();
-            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
 
-            if (!empty($datos) && count($datos) === 1 && count($datos[0]) === 1) {
+            // Cerrar el cursor para liberar la conexión y permitir nuevas consultas
+            $sp->closeCursor();
 
-                $mensajeSP = reset($datos)[array_key_first($datos[0])];
+            // -----------------------------------------
+            // Recuperar el mensaje devuelto por el SP
+            // -----------------------------------------
+            $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
 
-                if ($mensajeSP === 'No es tiempo') {
-                    $resultado['mensaje'] = "Todavía no se ha alcanzado la fecha de cierre de inscripciones, no se pueden aplicar las bajas.";
-                } elseif ($mensajeSP === 'Ya se aplicó') {
-                    $resultado['mensaje'] = "La baja por no inscripción ya se aplicó para el periodo actual. No se puede realizar nuevamente.";
-                }
-            } else {
-                $resultado['estado'] = 'OK';
+            // -----------------------------------------
+            // Interpretar el mensaje del SP y asignar mensajes amigables al usuario
+            // -----------------------------------------
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    break;
+
+                case 'Ya se aplicó':
+                    $resultado['mensaje'] = "El cierre de ajustes ya se aplicó para el periodo actual. No se puede realizar nuevamente.";
+                    break;
+
+                case 'Error: Aun no concluyen inscripciones o ajustes':
+                    $resultado['mensaje'] = "No es posible realizar el cierre mientras el periodo de inscripciones o de ajustes siga activo.";
+                    break;
+
+                case 'Error: Ocurrio un error al intentar la operacion':
+                    $resultado['mensaje'] = "Ocurrió un error al aplicar el cierre de ajustes. Inténtalo nuevamente más tarde.";
+                    break;
+
+                default:
+                    // Mensaje para estados inesperados devueltos por el SP
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al aplicar el cierre de ajustes. Inténtalo nuevamente más tarde.";
+                    error_log("[AplicarBajasPorNoInscripcion] Estado inesperado devuelto por SP: " . $resultado['respuestaSP']);
+                    break;
             }
         } catch (PDOException $e) {
-            error_log("Error BD (AplicarBajasPorNoInscripcion): " . $e->getMessage());
-            $resultado['mensaje'] = "Se produjo un error al intentar aplicar las bajas por no inscripción. Inténtalo nuevamente más tarde.";
+            // -----------------------------------------
+            // Manejo de errores de base de datos
+            // -----------------------------------------
+            error_log("[AplicarBajasPorNoInscripcion] Error en BD: " . $e->getMessage());
+            $resultado['mensaje'] = "Se produjo un error al intentar aplicar el cierre de ajustes. Inténtalo nuevamente más tarde.";
         }
 
+        // Retornar resultado final con estado y mensaje
         return $resultado;
     }
 
@@ -355,98 +405,142 @@ class BajaDAO
         return $resultado;
     }
 
-/**
- * Agrega una baja manualmente a un alumno en la base de datos.
- *
- * Validaciones realizadas:
- *  - Que ningún parámetro obligatorio esté vacío.
- *  - Que el alumno exista en el sistema.
- *  - Que el periodo exista en el sistema.
- *  - Que no exista ya una baja para el mismo alumno en el mismo periodo.
- *  - Que el motivo no esté vacío.
- *  - Que el tipo de baja sea válido ('Baja Temporal' o 'Baja Definitiva').
- *
- * @param string $pnoControl Número de control del alumno.
- * @param int    $pidPeriodo ID del periodo académico.
- * @param string $pmotivo    Motivo de la baja.
- * @param string $ptipo      Tipo de baja ('Baja Temporal' o 'Baja Definitiva').
- * @return array Retorna un array con:
- *               - 'estado': 'OK' si la operación fue exitosa, 'Error' en caso contrario.
- *               - 'mensaje': Mensaje explicativo para el usuario.
- *               - 'respuestaSP': Mensaje original devuelto por el procedimiento almacenado.
- */
-public function AgregarBajaManual($pnoControl, $pidPeriodo, $pmotivo, $ptipo)
-{
-    $resultado = ['estado' => 'Error'];
-    $c = $this->conector;
+    /**
+     * Agrega una baja manualmente a un alumno en la base de datos.
+     *
+     * Validaciones realizadas:
+     *  - Que ningún parámetro obligatorio esté vacío.
+     *  - Que el alumno exista en el sistema.
+     *  - Que el periodo exista en el sistema.
+     *  - Que no exista ya una baja para el mismo alumno en el mismo periodo.
+     *  - Que el motivo no esté vacío.
+     *  - Que el tipo de baja sea válido ('Baja Temporal' o 'Baja Definitiva').
+     *
+     * @param string $pnoControl Número de control del alumno.
+     * @param int    $pidPeriodo ID del periodo académico.
+     * @param string $pmotivo    Motivo de la baja.
+     * @param string $ptipo      Tipo de baja ('Baja Temporal' o 'Baja Definitiva').
+     * @return array Retorna un array con:
+     *               - 'estado': 'OK' si la operación fue exitosa, 'Error' en caso contrario.
+     *               - 'mensaje': Mensaje explicativo para el usuario.
+     *               - 'respuestaSP': Mensaje original devuelto por el procedimiento almacenado.
+     */
+    public function AgregarBajaManual($pnoControl, $pidPeriodo, $pmotivo, $ptipo)
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
 
-    // -----------------------------------------
-    // Validaciones básicas
-    // -----------------------------------------
-    if (empty($pnoControl) || empty($pidPeriodo) || empty($pmotivo) || empty($ptipo)) {
-        $resultado['mensaje'] = "Faltan datos necesarios para completar la operación. Por favor revisa la información proporcionada y asegúrate de llenar todos los campos obligatorios.";
+        // -----------------------------------------
+        // Validaciones básicas
+        // -----------------------------------------
+        if (empty($pnoControl) || empty($pidPeriodo) || empty($pmotivo) || empty($ptipo)) {
+            $resultado['mensaje'] = "Faltan datos necesarios para completar la operación. Por favor revisa la información proporcionada y asegúrate de llenar todos los campos obligatorios.";
+            return $resultado;
+        }
+
+        // -----------------------------------------
+        // Llamada al SP para agregar la baja manual
+        // -----------------------------------------
+        try {
+            $sp = $c->prepare("CALL spAgregarBajaManual(:pnoControl, :pidPeriodo, :pmotivo, :ptipo, @mensaje)");
+            $sp->bindParam(':pnoControl', $pnoControl, PDO::PARAM_STR);
+            $sp->bindParam(':pidPeriodo', $pidPeriodo, PDO::PARAM_INT);
+            $sp->bindParam(':pmotivo', $pmotivo, PDO::PARAM_STR);
+            $sp->bindParam(':ptipo', $ptipo, PDO::PARAM_STR);
+            $sp->execute();
+            $sp->closeCursor();
+
+            // Obtener el mensaje de salida del SP
+            $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+            // -----------------------------------------
+            // Validar mensaje del SP
+            // -----------------------------------------
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['mensaje'] = "La baja se ha registrado correctamente.";
+                    break;
+
+                case 'Error: El alumno no existe':
+                    $resultado['mensaje'] = "El número de control proporcionado no corresponde a ningún alumno registrado.";
+                    break;
+
+                case 'Error: El periodo no existe':
+                    $resultado['mensaje'] = "El periodo seleccionado no existe. Verifique los datos ingresados.";
+                    break;
+
+                case 'Error: El alumno y la baja ya cuentan con una baja aplicada':
+                    $resultado['mensaje'] = "El alumno ya cuenta con una baja aplicada en el periodo seleccionado.";
+                    break;
+
+                case 'Error: El motivo se encuentra vacio':
+                    $resultado['mensaje'] = "El motivo de la baja no puede estar vacío. Por favor, proporciona una descripción del motivo.";
+                    break;
+
+                case 'Error: Tipo de baja invalido':
+                    $resultado['mensaje'] = "El tipo de baja seleccionado no es válido. Debe ser 'Baja Temporal' o 'Baja Definitiva'.";
+                    break;
+
+                case 'Error: No se pudo agregar el registro':
+                    $resultado['mensaje'] = "Ocurrió un problema al registrar la baja. Por favor, inténtelo nuevamente.";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al registrar la baja. Contacta al administrador si el problema persiste.";
+                    error_log("[AgregarBajaManual] SP devolvió estado inesperado: " . $resultado['respuestaSP']);
+                    break;
+            }
+        } catch (PDOException $e) {
+            $resultado['mensaje'] = "No fue posible completar la operación en este momento. Por favor, intenta nuevamente en unos instantes.";
+            error_log("[AgregarBajaManual] Error en BD al agregar baja: " . $e->getMessage());
+        }
+
         return $resultado;
     }
 
-    // -----------------------------------------
-    // Llamada al SP para agregar la baja manual
-    // -----------------------------------------
-    try {
-        $sp = $c->prepare("CALL spAgregarBajaManual(:pnoControl, :pidPeriodo, :pmotivo, :ptipo, @mensaje)");
-        $sp->bindParam(':pnoControl', $pnoControl, PDO::PARAM_STR);
-        $sp->bindParam(':pidPeriodo', $pidPeriodo, PDO::PARAM_INT);
-        $sp->bindParam(':pmotivo', $pmotivo, PDO::PARAM_STR);
-        $sp->bindParam(':ptipo', $ptipo, PDO::PARAM_STR);
-        $sp->execute();
-        $sp->closeCursor();
+    public function MostrarBajasRealizadas()
+    {
 
-        // Obtener el mensaje de salida del SP
-        $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
-        $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
 
         // -----------------------------------------
-        // Validar mensaje del SP
+        // Llamada al SP para obtener las Bajas
         // -----------------------------------------
-        switch ($resultado['respuestaSP']) {
-            case 'Estado: Exito':
-                $resultado['estado'] = "OK";
-                $resultado['mensaje'] = "La baja se ha registrado correctamente.";
-                break;
+        try {
+            $sp = $c->prepare("CALL spMostrarBajasEjecutadas(@mensaje)");
+            $sp->execute();
 
-            case 'Error: El alumno no existe':
-                $resultado['mensaje'] = "El número de control proporcionado no corresponde a ningún alumno registrado.";
-                break;
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
 
-            case 'Error: El periodo no existe':
-                $resultado['mensaje'] = "El periodo seleccionado no existe. Verifique los datos ingresados.";
-                break;
+            $sp->closeCursor();
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
 
-            case 'Error: El alumno y la baja ya cuentan con una baja aplicada':
-                $resultado['mensaje'] = "El alumno ya cuenta con una baja aplicada en el periodo seleccionado.";
-                break;
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = $datos;
+                    break;
 
-            case 'Error: El motivo se encuentra vacio':
-                $resultado['mensaje'] = "El motivo de la baja no puede estar vacío. Por favor, proporciona una descripción del motivo.";
-                break;
+                case 'Error: No existen registros':
+                    $resultado['mensaje'] = "No se han realizado bajas de alumnos.";
+                    break;
 
-            case 'Error: Tipo de baja invalido':
-                $resultado['mensaje'] = "El tipo de baja seleccionado no es válido. Debe ser 'Baja Temporal' o 'Baja Definitiva'.";
-                break;
-
-            case 'Error: No se pudo agregar el registro':
-                $resultado['mensaje'] = "Ocurrió un problema al registrar la baja. Por favor, inténtelo nuevamente.";
-                break;
-
-            default:
-                $resultado['mensaje'] = "Ocurrió un error inesperado al registrar la baja. Contacta al administrador si el problema persiste.";
-                error_log("[AgregarBajaManual] SP devolvió estado inesperado: " . $resultado['respuestaSP']);
-                break;
+                default:
+                    $resultado['mensaje'] = "Ocurrió un problema al cargar las bajas realizadas. Por favor, intenta nuevamente.";
+                    error_log("[MostrarBajasRealizadas] spMostrarBajasEjecutadas devolvió estado inesperado: " . $resultado['respuestaSP']);
+                    break;
+            }
+        } catch (PDOException $e) {
+            $resultado['mensaje'] = "No se pudieron obtener las bajas realizadas en este momento. Por favor, inténtalo de nuevo más tarde.";
+            error_log("[MostrarBajasRealizadas] Error de base de datos: " . $e->getMessage());
         }
-    } catch (PDOException $e) {
-        $resultado['mensaje'] = "No fue posible completar la operación en este momento. Por favor, intenta nuevamente en unos instantes.";
-        error_log("[AgregarBajaManual] Error en BD al agregar baja: " . $e->getMessage());
+
+        return $resultado;
     }
 
-    return $resultado;
-}
 }

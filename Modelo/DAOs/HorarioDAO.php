@@ -899,7 +899,7 @@ class HorarioDAO
      *                            'Error' si ocurrió una falla o validación incorrecta.
      *               - 'respuestaSP': Mensaje textual devuelto por el SP (para trazabilidad y logs).
      */
-    public function ModificarHorarioIndividual($pnoControl, $pidOferta, $psemestre)
+    public function ModificarHorarioIndividual($pnoControl, $pidOferta, $psemestre, $popcion)
     {
         $resultado = ['estado' => 'Error'];
         $c = $this->conector;
@@ -918,14 +918,18 @@ class HorarioDAO
             return $resultado;
         }
 
+        if (!filter_var($pidOferta, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]])) {
+            error_log("[ModificarHorarioIndividual] ID de oferta inválido: {$pidOferta}");
+            return $resultado;
+        }
+
         if (!filter_var($psemestre, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 12]])) {
             error_log("[ModificarHorarioIndividual] Semestre inválido: {$psemestre}");
             return $resultado;
         }
 
-        if (!filter_var($pidOferta, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]])) {
-            error_log("[ModificarHorarioIndividual] ID de oferta inválido: {$pidOferta}");
-            return $resultado;
+        if ($popcion !== "Primera Oportunidad" && $popcion !== "Segunda Oportunidad" && $popcion !== "Tercera Oportunidad" && $popcion !== "Cuarta Oportunidad" && $popcion !== "Especial") {
+            error_log("[ModificarHorarioIndividual] Opcion inválida: {$popcion}");
         }
 
         // -----------------------------------------
@@ -967,10 +971,11 @@ class HorarioDAO
         // -----------------------------------------
 
         try {
-            $sp = $c->prepare("CALL spAgregarHorarioIndividual(:pnoControl, :pidOferta, :psemestre, @mensaje)");
+            $sp = $c->prepare("CALL spAgregarHorarioIndividual(:pnoControl, :pidOferta, :psemestre, :popcion, @mensaje)");
             $sp->bindParam(':pnoControl', $pnoControl, PDO::PARAM_STR);
             $sp->bindParam(':pidOferta', $pidOferta, PDO::PARAM_INT);
             $sp->bindParam(':psemestre', $psemestre, PDO::PARAM_INT);
+            $sp->bindParam(':popcion', $popcion, PDO::PARAM_STR);
             $sp->execute();
             $sp->closeCursor();
 
@@ -980,15 +985,27 @@ class HorarioDAO
             switch ($resultado['respuestaSP']) {
                 case 'Estado: Exito':
                     $resultado['estado'] = "OK";
-                    error_log("Exito Insertar Nuevos Horarios");
+                    error_log("[ModificarHorarioIndividual] Éxito: Se insertaron los nuevos horarios para el alumno {$pnoControl} en la oferta {$pidOferta}, semestre {$psemestre}.");
                     break;
 
                 case 'Error: No se pudo agregar el registro':
-                    error_log("[ModificarHorarioIndividual] No se pudo registrar agregar el horario: {$pnoControl}, {$pidOferta}, {$psemestre}");
+                    $resultado['mensaje'] = "No fue posible registrar los nuevos horarios. Intente nuevamente más tarde.";
+                    error_log("[ModificarHorarioIndividual] Error: Fallo al insertar el horario para el alumno {$pnoControl}, oferta {$pidOferta}, semestre {$psemestre}.");
+                    break;
+
+                case 'Error: La oferta adjuntada no esta disponible para el periodo en curso':
+                    $resultado['mensaje'] = "La oferta seleccionada no está disponible en el periodo actual. Verifique e intente de nuevo.";
+                    error_log("[ModificarHorarioIndividual] Error: La oferta {$pidOferta} no está disponible en el periodo actual para el alumno {$pnoControl}, semestre {$psemestre}.");
+                    break;
+
+                case 'Error: El registro ya existe':
+                    $resultado['mensaje'] = "El alumno ya tiene registrado este horario. No es posible duplicarlo.";
+                    error_log("[ModificarHorarioIndividual] Error: El horario ya existe para el alumno {$pnoControl}, oferta {$pidOferta}, semestre {$psemestre}.");
                     break;
 
                 default:
-                    error_log("[ModificarHorarioIndividual] SP devolvió estado inesperado: " . $resultado['respuestaSP']);
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al registrar los horarios de manera individual. Contacte al administrador.";
+                    error_log("[ModificarHorarioIndividual] Advertencia: El procedimiento almacenado devolvió un estado inesperado: '{$resultado['respuestaSP']}' para el alumno {$pnoControl}, oferta {$pidOferta}, semestre {$psemestre}.");
                     break;
             }
         } catch (PDOException $e) {

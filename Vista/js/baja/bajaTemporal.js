@@ -129,7 +129,7 @@ function cargarTablaAlumnos() {
     };
 
     $.ajax({
-        url: '../../Controlador/Intermediarios/Alumno/ObtenerAlumnosPorEstado.php',
+        url: '../../Controlador/Intermediarios/Baja/MostrarBajasRealizadas.php',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(datosEnvio),
@@ -149,15 +149,9 @@ function cargarTablaAlumnos() {
                     const badgeBajas = alumno.periodos_en_baja >= 3 ? 'bg-danger' : 'bg-info';
 
                     let badgeTipo;
-                    switch (alumno.estado) {
-                        case 'Activo':
-                            badgeTipo = 'bg-success';
-                            break;
+                    switch (alumno.tipo_de_baja) {
                         case 'Baja Temporal':
                             badgeTipo = 'bg-warning';
-                            break;
-                        case 'Baja':
-                            badgeTipo = 'bg-danger';
                             break;
                         case 'Baja Definitiva':
                             badgeTipo = 'bg-danger';
@@ -171,8 +165,10 @@ function cargarTablaAlumnos() {
                 <td>${alumno.numero_de_control}</td>
                 <td>${alumno.nombre_de_alumno}</td>
                 <td>${alumno.nombre_de_carrera}</td>
+                <td>${alumno.semestre}</td>
+                <td>${alumno.grupo}</td>
                 <td><span class="badge ${badgeBajas}">${alumno.periodos_en_baja}</span></td>
-                <td><span class="badge ${badgeTipo}">${alumno.estado}</span></td>
+                <td><span class="badge ${badgeTipo}">${alumno.tipo_de_baja}</span></td>
             </tr>
         `;
                     tbody.innerHTML += row;
@@ -187,7 +183,7 @@ function cargarTablaAlumnos() {
 
         error: function (xhr, status, error) {
             console.error("Error AJAX:", status, error);
-            mostrarErrorCaptura("Ups… algo salió mal al cargar la información de los Alumnos. Por favor, inténtalo otra vez.");
+            mostrarErrorCaptura("Ups… algo salió mal al cargar la información de las bajas. Por favor, inténtalo otra vez.");
 
         }
     });
@@ -197,8 +193,8 @@ function cargarTablaAlumnos() {
 // Función para actualizar el resumen numérico
 function actualizarResumen(alumnos) {
     const total = alumnos.length;
-    const temporal = alumnos.filter(a => a.tipoBaja === 'Temporal').length;
-    const definitiva = alumnos.filter(a => a.tipoBaja === 'Definitiva').length;
+    const temporal = alumnos.filter(a => a.tipo_de_baja === 'Baja Temporal').length;
+    const definitiva = alumnos.filter(a => a.tipo_de_baja === 'Baja Definitiva').length;
 
     document.getElementById('totalAlumnos').textContent = total;
     document.getElementById('bajasTemporal').textContent = temporal;

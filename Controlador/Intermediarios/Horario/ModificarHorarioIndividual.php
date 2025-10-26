@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Intermediario para la modificación individual de horarios de un alumno.
  * 
@@ -18,9 +19,11 @@
  * @return JSON Estado del proceso:
  *               - 'estado': 'OK' si todas las operaciones fueron exitosas, 'Error' en caso contrario
  */
- 
-error_reporting(0);             // Desactiva la salida de errores para no interferir con la respuesta JSON
-ini_set('display_errors', 0);   // No mostrar errores en pantalla
+
+//error_reporting(0);             // Desactiva la salida de errores para no interferir con la respuesta JSON
+//ini_set('display_errors', 0);   // No mostrar errores en pantalla
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 header('Content-Type: application/json; charset=utf-8'); // Indica que la respuesta será JSON
 
 require '../../../Modelo/BD/ConexionBD.php';
@@ -29,15 +32,10 @@ require '../../../Modelo/DAOs/HorarioDAO.php';
 require '../../../Modelo/DAOs/OfertaDAO.php';
 
 // Decodificar los datos JSON recibidos desde el front-end
-$datos = json_decode(file_get_contents("php://input"));  
+$datos = json_decode(file_get_contents("php://input"));
 
 // Inicializar la respuesta por defecto con error
 $resultado = ['estado' => 'Error'];
-
-// Validar datos recibidos y asignar valores nulos si no existen
-$datos->pnoControl = $datos->pnoControl ?? null;
-$datos->psemestre  = $datos->psemestre ?? null;
-$datos->ofertas    = $datos->ofertas ?? [];
 
 // Crear conexión a la base de datos y objetos DAO
 $c = new ConexionBD($DatosBD);
@@ -49,22 +47,24 @@ try {
     // ------------------------------------------------
     // 1) Registrar bajas parciales para cada oferta
     // ------------------------------------------------
-    foreach ($datos->ofertas as $idOferta) {
-        // Llamar al método que registra la baja parcial en la oferta
+    foreach ($datos->ofertas as $oferta) {
+        $claveOferta = $oferta->claveOferta;   // extraemos la clave correctamente
+        $oportunidad = $oferta->oportunidad;
+
+        // Registrar baja parcial
         $respBaja = $objDaoOferta->RegistrarBajaParcialOferta(
             $datos->pnoControl,
-            $idOferta,
+            $claveOferta,  // <-- ahora es string/numero correcto
             $datos->psemestre
         );
 
-        // Verificar si ocurrió un error al registrar la baja
         if ($respBaja['estado'] !== "OK") {
-            error_log("Intermediario: error al registrar baja parcial en oferta $idOferta para alumno {$datos->pnoControl}");
+            error_log("Intermediario: error al registrar baja parcial en oferta $claveOferta para alumno {$datos->pnoControl}");
             $resultado['estado'] = 'Error';
-            break; // Detener el proceso si hay error
+            break;
         } else {
             $resultado['estado'] = "OK";
-            error_log("Intermediario: éxito registrar baja parcial en oferta $idOferta para alumno {$datos->pnoControl}");
+            error_log("Intermediario: éxito registrar baja parcial en oferta $claveOferta para alumno {$datos->pnoControl}");
         }
     }
 
@@ -74,7 +74,7 @@ try {
     if ($resultado['estado'] !== 'Error') {
         // Llamar al DAO para eliminar horarios existentes del alumno
         $respRestablecer = $objDaoHorario->RestablecerHorarios($datos->pnoControl);
-       
+
         if ($respRestablecer['estado'] !== "OK") {
             error_log("Intermediario: error al restablecer horarios del alumno {$datos->pnoControl}");
             $resultado['estado'] = 'Error';
@@ -88,26 +88,27 @@ try {
     // 3) Insertar nuevos horarios 
     // ------------------------------------------------
     if ($resultado['estado'] !== 'Error') {
-        foreach ($datos->ofertas as $idOferta) {
-            // Llamar al DAO para agregar el nuevo horario individual
+        foreach ($datos->ofertas as $oferta) {
+            $claveOferta = $oferta->claveOferta;
+            $oportunidad = $oferta->oportunidad;
+
             $respAgregar = $objDaoHorario->ModificarHorarioIndividual(
                 $datos->pnoControl,
-                $idOferta,
-                $datos->psemestre
+                $claveOferta,
+                $datos->psemestre,
+                $oportunidad // <-- aquí le pasas la oportunidad
             );
 
-            // Verificar si ocurrió un error al agregar el horario
             if ($respAgregar['estado'] !== "OK") {
-                error_log("Intermediario: error al agregar horario con oferta $idOferta para alumno {$datos->pnoControl}");
+                error_log("Intermediario: error al agregar horario con oferta $claveOferta para alumno {$datos->pnoControl}");
                 $resultado['estado'] = 'Error';
-                break; // Detener si falla algún horario
+                break;
             } else {
                 $resultado['estado'] = "OK";
-                error_log("Intermediario: éxito agregar horario con oferta $idOferta para alumno {$datos->pnoControl}");
+                error_log("Intermediario: éxito agregar horario con oferta $claveOferta para alumno {$datos->pnoControl}");
             }
         }
     }
-
 } catch (PDOException $e) {
     // Registrar excepción en log y marcar error
     error_log("Intermediario: excepción PDO al modificar horarios: " . $e->getMessage());
