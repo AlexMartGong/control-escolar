@@ -239,8 +239,8 @@ function ejecutarBajaAutomatica() {
 
                 mostrarDatosGuardados('Baja automática ejecutada exitosamente.\n\nSe aplicó la baja a ' +
                     document.getElementById('totalAlumnos').textContent + ' alumnos del periodo ' + document.getElementById('periodoSeleccionado').textContent, function () {
-                        cancelarBajaAutomatica();
-                    });
+                    cancelarBajaAutomatica();
+                });
 
             } else {
                 mostrarErrorCaptura(respuesta.mensaje);
@@ -258,12 +258,6 @@ function ejecutarBajaAutomatica() {
 
 // Función para cancelar y regresar
 function cancelarBajaAutomatica() {
-    // Resetear botón
-    const btnEjecutar = document.getElementById('btnEjecutarBaja');
-    btnEjecutar.disabled = false;
-    btnEjecutar.innerHTML = '<i class="fas fa-check-circle me-2"></i>Ejecutar Baja Automática';
-
-    // Regresar a la vista principal de baja (si existe función option)
     if (typeof option === 'function') {
         option('baja', '');
     }

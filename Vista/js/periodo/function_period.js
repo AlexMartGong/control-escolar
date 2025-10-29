@@ -709,35 +709,40 @@ function setupFormChangeListeners() {
 function aplicarCierreAjustes() {
     // Crear el contenido del modal de confirmación
     let modalHTML = `
-    <div class="modal fade" id="confirmCierreAjustesModal" tabindex="-1" aria-labelledby="confirmCierreAjustesModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title" id="confirmCierreAjustesModalLabel">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Aplicación de Cierre de Ajustes
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal fade" id="confirmCierreAjustesModal" tabindex="-1" aria-labelledby="modalConfirmacionBajaLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalConfirmacionBajaLabel">
+                    <i class="fas fa-exclamation-circle me-2"></i>Confirmar Baja Automática
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">¿Está seguro de que desea ejecutar la baja automática?</p>
+                <div class="alert alert-info mb-3">
+                    <p class="mb-1"><strong>Periodo:</strong> <span id="modalPeriodo">AGO-DIC-2025</span></p>
+                    <p class="mb-1"><strong>Total de alumnos:</strong> <span id="modalTotal">4</span></p>
+                    <p class="mb-1"><strong>Bajas temporales:</strong> <span id="modalTemporal">3</span></p>
+                    <p class="mb-0"><strong>Bajas definitivas:</strong> <span id="modalDefinitiva">1</span></p>
                 </div>
-                <div class="modal-body">
-                    <div class="text-center mb-3">
-                        <i class="fas fa-calendar-check text-warning fa-4x"></i>
-                    </div>
-                    <p class="text-center">¿Está seguro de aplicar el cierre de ajustes?</p>
-                    <p class="text-center text-danger"><strong>Esta acción:</strong></p>
-                    <ul class="text-start">
-                        <li>Aplicará las bajas pertinentes del sistema</li>
-                        <li>Preparará las calificaciones para su captura</li>
-                        <li>Validará las fechas de término de ajustes y cierre de inscripciones</li>
-                    </ul>
-                    <p class="text-center text-muted"><small>Esta operación no se puede deshacer.</small></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-warning" id="btnConfirmarCierre">Confirmar</button>
-                </div>
+                <p class="text-danger mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Esta acción no se puede
+                    deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="btnConfirmarCierre">
+                    <i class="fas fa-check me-2"></i>Confirmar y Ejecutar
+                </button>
             </div>
         </div>
-    </div>`;
+    </div>
+</div>
+    `;
 
     // Remover modal anterior si existe
     let modalAnterior = document.getElementById("confirmCierreAjustesModal");
