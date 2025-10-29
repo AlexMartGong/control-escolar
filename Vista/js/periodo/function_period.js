@@ -715,21 +715,31 @@ function aplicarCierreAjustes() {
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="modalConfirmacionBajaLabel">
-                    <i class="fas fa-exclamation-circle me-2"></i>Confirmar Baja Automática
+                    <i class="fas fa-exclamation-circle me-2"></i>Confirmar Cierre de Ajustes
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-3">¿Está seguro de que desea ejecutar la baja automática?</p>
+                <p class="mb-3">¿Está seguro de que desea aplicar el cierre de ajustes?</p>
                 <div class="alert alert-info mb-3">
                     <p class="mb-1"><strong>Periodo:</strong> <span id="modalPeriodo">AGO-DIC-2025</span></p>
-                    <p class="mb-1"><strong>Total de alumnos:</strong> <span id="modalTotal">4</span></p>
+                    <p class="mb-1"><strong>Total de alumnos en baja:</strong> <span id="modalTotal">4</span></p>
                     <p class="mb-1"><strong>Bajas temporales:</strong> <span id="modalTemporal">3</span></p>
                     <p class="mb-0"><strong>Bajas definitivas:</strong> <span id="modalDefinitiva">1</span></p>
                 </div>
-                <p class="text-danger mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Esta acción no se puede
-                    deshacer.</p>
+                <div class="alert alert-warning mb-3">
+                    <p class="mb-2"><strong>Esta acción realizará lo siguiente:</strong></p>
+                    <ul class="mb-0 ps-3">
+                        <li>Se aplicarán las bajas correspondientes</li>
+                        <li>Se generarán las calificaciones para su captura</li>
+                        <li><strong>Se cerrarán las modificaciones y ya no se podrán realizar cambios</strong></li>
+                    </ul>
+                </div>
+                <p class="text-danger mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>ADVERTENCIA:</strong> Esta acción tendrá consecuencias una vez ejecutada, el periodo de ajustes habrá terminado.
+                </p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
