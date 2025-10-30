@@ -91,12 +91,6 @@
                     <div class="row" id="botonesAccion">
                         <div class="col-12 separarBotones gap-2">
                             <button type="button"
-                                    id="btnEjecutarBaja"
-                                    class="btn btn3 btn-danger"
-                                    onclick="confirmarBajaAutomatica();">
-                                <i class="fas fa-check-circle me-2"></i>Ejecutar Baja Automática
-                            </button>
-                            <button type="button"
                                     class="btn btn-outline-secondary"
                                     onclick="cancelarBajaAutomatica();">
                                 <i class="fas fa-times-circle me-2"></i>Cancelar
@@ -104,41 +98,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal de confirmación -->
-<div class="modal fade" id="modalConfirmacionBaja" tabindex="-1" aria-labelledby="modalConfirmacionBajaLabel"
-     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="modalConfirmacionBajaLabel">
-                    <i class="fas fa-exclamation-circle me-2"></i>Confirmar Baja Automática
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-3">¿Está seguro de que desea ejecutar la baja automática?</p>
-                <div class="alert alert-info mb-3">
-                    <p class="mb-1"><strong>Periodo:</strong> <span id="modalPeriodo">AGO-DIC-2025</span></p>
-                    <p class="mb-1"><strong>Total de alumnos:</strong> <span id="modalTotal">0</span></p>
-                    <p class="mb-1"><strong>Bajas temporales:</strong> <span id="modalTemporal">0</span></p>
-                    <p class="mb-0"><strong>Bajas definitivas:</strong> <span id="modalDefinitiva">0</span></p>
-                </div>
-                <p class="text-danger mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Esta acción no se puede
-                    deshacer.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <button type="button" class="btn btn-danger" onclick="ejecutarBajaAutomatica();">
-                    <i class="fas fa-check me-2"></i>Confirmar y Ejecutar
-                </button>
             </div>
         </div>
     </div>
