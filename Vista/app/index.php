@@ -80,7 +80,8 @@
                     <!-- Enlaces directos sin submenús -->
                     <a href="javascript:void(0);" onclick="option('oferta', '')" class="nav-link"><i
                                 class="fas fa-clipboard-list me-2"></i>Oferta</a>
-                    <a href="javascript:void(0);" class="nav-link"><i class="fas fa-edit me-2"></i>Captura</a>
+                    <a href="javascript:void(0);" onclick="option('captura', '')" class="nav-link"><i
+                                class="fas fa-edit me-2"></i>Captura</a>
                     <a href="javascript:void(0);" onclick="option('horario', '')" class="nav-link"><i
                                 class="fas fa-clock me-2"></i>Horario</a>
                     <a href="javascript:void(0);" onclick="option('baja', '')" class="nav-link"><i

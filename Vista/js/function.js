@@ -55,6 +55,9 @@ function option(opc, filter) {
             case "bajaTemporal":
                 url = "baja/bajaTemporal.html";
                 break;
+            case "captura":
+                mostrarNoDisponible("El módulo de Captura no está disponible por el momento.");
+                return;
             default:
                 mainContent.html(
                     '<div class="alert alert-warning">Opción no válida</div>'
@@ -679,3 +682,54 @@ $(document).on("click", ".btnEditar", function () {
     // Probar manualmente si se puede abrir el modal
     $("#modPeriodo").modal("show");
 });
+
+/**
+ * Función para mostrar ventana modal cuando un módulo no está disponible
+ * @param {string} mensaje - Mensaje a mostrar sobre el módulo no disponible
+ */
+function mostrarNoDisponible(mensaje) {
+    // Crear el contenido del modal
+    let modalHTML = `
+    <div class="modal fade" id="noDisponibleModal" tabindex="-1" aria-labelledby="noDisponibleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="noDisponibleModalLabel">
+                        <i class="fas fa-info-circle me-2"></i>Módulo No Disponible
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-tools text-info fa-4x"></i>
+                    </div>
+                    <p class="text-center">${mensaje || "Esta funcionalidad no está disponible por el momento."}</p>
+                    <p class="text-center text-muted"><small>Estamos trabajando para habilitarla pronto.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    // Remover modal anterior si existe
+    let modalAnterior = document.getElementById("noDisponibleModal");
+    if (modalAnterior) {
+        modalAnterior.remove();
+    }
+
+    // Agregar el modal al documento
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+    // Mostrar el modal
+    let modalElement = document.getElementById("noDisponibleModal");
+    let modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    // Eliminar el modal del DOM cuando se cierre
+    modalElement.addEventListener("hidden.bs.modal", function () {
+        modalElement.remove();
+    });
+}
+
