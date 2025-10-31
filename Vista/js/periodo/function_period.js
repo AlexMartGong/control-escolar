@@ -232,7 +232,7 @@ function AgregarPeriodo(mensaje) {
     const fechaInicioAjuste = document.getElementById("txtFechaInicioAjuste").value.trim();
     const fechaFinalAjuste = document.getElementById("txtFechaFinalAjuste").value.trim();
 
-    
+
     // Llamar a la función de validación de fechas
     const resultadoValidacion = validarFechasAgregar(
         fechaInicio,
@@ -606,7 +606,7 @@ function bloquearFormulario(bloquearTodo, soloIDyPeriodo) {
 
 function validarCaracteres(input) {
     // Patrón para permitir solo letras, números, espacios y guiones
-    const patron = /^[A-Za-z0-9\-]*$/;
+    const patron = /^[A-Za-z0-9\s\-]*$/;
 
     // Obtener el botón de guardar
     const btnGuardar = document.querySelector('button[onclick*="validafrmPeriodo"]');
