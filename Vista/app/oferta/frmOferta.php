@@ -463,7 +463,7 @@ $Docentes = $objOfDAO->BuscarDocentesActivos()
         $(document).ready(async function () {
             $('#TablaDatosOferta').DataTable({
                 language: {
-                    url: '../../dataTables/es-ES.json',
+                    url: '../dataTables/es-ES.json',
                     paginate: {
                         previous: "Anterior",
                         next: "Siguiente"

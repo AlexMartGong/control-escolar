@@ -290,7 +290,7 @@ class AlumnoDAO
         try {
             // PRIMERO: Obtener datos del alumno usando la función existente
             $datosAlumno = $this->BuscarAlumno($id);
-            
+
             if ($datosAlumno['estado'] === 'Error') {
                 $resultado = [
                     'estado' => 'ERROR',
@@ -308,13 +308,13 @@ class AlumnoDAO
 
             // Obtener el resultset (solo habrá uno si el alumno tiene bajas)
             $historial = $sp->fetchAll(PDO::FETCH_ASSOC);
-            
+
             // Cerrar cursor
             $sp->closeCursor();
 
             // Consultar mensaje de salida
             $m = $c->query("SELECT @mensaje AS mensaje")->fetch(PDO::FETCH_ASSOC);
-            
+
             // Estructurar la respuesta
             if (strpos($m['mensaje'], 'Error') !== false) {
                 $resultado = [
@@ -339,7 +339,6 @@ class AlumnoDAO
                     'historial' => $historial // Periodos de baja
                 ];
             }
-
         } catch (PDOException $e) {
             error_log("[BuscarAlumnoConHistorial] Error en BD: " . $e->getMessage());
             $resultado['mensaje'] = 'Error al buscar alumno con historial.';
@@ -724,7 +723,7 @@ class AlumnoDAO
         }
     }
 
-    
+
     function BuscarAlumnosPorEstado($pestado)
     {
 
@@ -740,7 +739,7 @@ class AlumnoDAO
             $resultado['mensaje'] = "Ocurrió un problema al cargar los alumnos. Por favor, intenta nuevamente.";
             return $resultado;
         }
-   
+
         // Validar que el estado sea un valor aceptado   
         if ($pestado !== "Activo" && $pestado !== "Baja Temporal" && $pestado !== "Baja" && $pestado !== "Baja Definitiva") {
             error_log("Error: Estado no válido recibido ('$pestado').");
@@ -774,7 +773,6 @@ class AlumnoDAO
                     error_log("[BuscarAlumnosPorEstado] SP BuscarAlumnosPorEstado devolvió estado inesperado: " . $resultado['respuestaSP']);
                     break;
             }
-
         } catch (PDOException $e) {
             $resultado['mensaje'] = "No se pudieron obtener los alumnos en este momento. Por favor, inténtalo de nuevo más tarde.";
             error_log("[BuscarAlumnosPorEstado] Error de base de datos: " . $e->getMessage());
@@ -783,4 +781,65 @@ class AlumnoDAO
         return $resultado;
     }
 
+    /**
+     * Función para mostrar únicamente los alumnos con estado 'Baja Temporal', 'Baja' o 'Baja Definitiva'.
+     * 
+     * Llama al procedimiento almacenado spMostrarAlumno y, posteriormente, filtra los resultados 
+     * en PHP para conservar solo los registros que cumplan con esos estados. 
+     * 
+     * @return array Retorna un array con el estado de la operación, mensaje, 
+     *               datos filtrados y cantidad de filas obtenidas.
+     */
+    public function ObtenerAlumnosFiltrados()
+    {
+        // Inicializar estado como OK por defecto
+        $resultado['estado'] = "OK";
+        $c = $this->conector;
+        $Filtrados = [];
+
+        try {
+            // Ejecutar el procedimiento almacenado
+            $sp = $c->prepare("CALL spMostrarAlumno(@mensaje)");
+            $sp->execute();
+
+            // Obtener todos los datos retornados
+            $datos = $sp->fetchAll(PDO::FETCH_ASSOC);
+            $sp->closeCursor();
+
+            // Obtener el mensaje de salida
+            $respuestaSP = $c->query("SELECT @mensaje");
+            $mensaje = $respuestaSP->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensaje['@mensaje'];
+
+            error_log("Mensaje spAlumno: " . $resultado['respuestaSP']);
+
+            if ($resultado['respuestaSP'] == 'Estado: Exito') {
+
+                foreach ($datos as $alumno) {
+
+                    if (
+                        $alumno['estado'] == 'Baja' ||
+                        $alumno['estado'] == 'Baja Temporal' ||
+                        $alumno['estado'] == 'Baja Definitiva'
+                    ) {
+
+                        $Filtrados[] = $alumno;
+                    }
+                }
+
+                $resultado['estado'] = "OK";
+                $resultado['datos'] = $Filtrados;
+                $resultado['filas'] = count($Filtrados);
+
+                if ($resultado['filas'] == 0) {
+            
+                    $resultado['mensaje'] = "No hay";
+                }
+            }
+        } catch (PDOException $e) {
+            $resultado['estado'] = "Error Mostrar alumnos Filtrados: " . $e->getMessage();
+        }
+
+        return $resultado;
+    }
 }

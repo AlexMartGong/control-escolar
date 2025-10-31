@@ -17,26 +17,13 @@ try {
     // Llamar al DAO para aplicar las bajas
     $resultado = $objDaoBaja->AplicarBajasPorNoInscripcion();
 
-    // Preparar respuesta según el resultado del DAO
-    if ($resultado['estado'] === "OK") {
-        $respuesta = [
-            'estado' => 'OK', 
-            'mensaje'=> $resultado['mensaje']
-        ];
-    } else {
-        $respuesta = [
-            'estado'  => 'Error',
-            'mensaje' => $resultado['mensaje']
-        ];
-    }
 } catch (PDOException $e) {
     // Manejo de errores de base de datos
-    $respuesta = [
-        'estado'  => 'Error',
+    $resultado = [
         'mensaje' => 'Ocurrió un error al aplicar las bajas. Inténtalo de nuevo más tarde.'
     ];
     error_log("[Intermediario AplicarBajasPorNoInscripcion] Error BD: " . $e->getMessage());
 }
 
 // Enviar respuesta al cliente
-echo json_encode($respuesta);
+echo json_encode($resultado);

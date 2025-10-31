@@ -33,8 +33,8 @@ class ConexionBD {
             $conector = new PDO($cadena, $this->user, $this->pass);
             $conector->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Habilitar el modo de error de excepción
         } catch (PDOException $e) {
-            // Si ocurre un error, se captura y muestra el mensaje
-            echo $e->getMessage();
+            error_log("Error de conexión a la base de datos: " . $e->getMessage());
+            die("Error al conectar con la base de datos. Por favor, verifica la configuración.");
         }
         return $conector;  // Retorna el objeto de conexión
     }
