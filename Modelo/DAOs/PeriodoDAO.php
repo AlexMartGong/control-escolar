@@ -147,7 +147,7 @@ class PeriodoDAO
 
         // Ejecución del procedimiento almacenado
         try {
-            $sp = $this->conector->prepare("CALL spAgregarPeriodo(:pidPeriodo, :pperiodo, :pfechaInicio, :pfechaTermino, :pfechaInicioAjuste, :pfechaTerminoAjuste)");
+            $sp = $this->conector->prepare("CALL spAgregarPeriodo(:pidPeriodo, :pperiodo, :pfechaInicio, :pfechaTermino, :pfechaInicioAjuste, :pfechaTerminoAjuste, :pfechaCierreInscripciones)");
 
             $sp->bindParam(':pidPeriodo', $datos->id, PDO::PARAM_INT);
             $sp->bindParam(':pperiodo', $datos->periodo, PDO::PARAM_STR);
@@ -155,6 +155,7 @@ class PeriodoDAO
             $sp->bindParam(':pfechaTermino', $datos->fechaTermino, PDO::PARAM_STR);
             $sp->bindParam(':pfechaInicioAjuste', $datos->fechaInicioAjuste, PDO::PARAM_STR);
             $sp->bindParam(':pfechaTerminoAjuste', $datos->fechaFinalAjuste, PDO::PARAM_STR);
+            $sp->bindParam(':pfechaCierreInscripciones', $datos->fechaFinalAjuste, PDO::PARAM_STR);
 
             $sp->execute();
 
@@ -220,13 +221,14 @@ class PeriodoDAO
         }
 
         try {
-            $stmt = $c->prepare("CALL spModificarPeriodo(:id, :periodo, :fecha_inicio, :fecha_termino, :fecha_inicio_ajuste, :fecha_fin_ajuste)");
+            $stmt = $c->prepare("CALL spModificarPeriodo(:id, :periodo, :fecha_inicio, :fecha_termino, :fecha_inicio_ajuste, :fecha_fin_ajuste, :pfechaCierreInscripciones)");
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
             $stmt->bindParam(':periodo', $periodo, PDO::PARAM_STR);
             $stmt->bindParam(':fecha_inicio', $fecha_inicio, PDO::PARAM_STR);
             $stmt->bindParam(':fecha_termino', $fecha_termino, PDO::PARAM_STR);
             $stmt->bindParam(':fecha_inicio_ajuste', $fecha_inicio_ajuste, PDO::PARAM_STR);
             $stmt->bindParam(':fecha_fin_ajuste', $fecha_fin_ajuste, PDO::PARAM_STR);
+            $stmt->bindParam(':pfechaCierreInscripciones', $fecha_fin_ajuste, PDO::PARAM_STR);
             $stmt->execute();
 
             if ($stmt->rowCount() > 0) {
