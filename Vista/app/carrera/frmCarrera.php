@@ -1,6 +1,4 @@
 <link rel="stylesheet" href="../css/styleInterno.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
 
 <div class="container" id="fmrcarrera">
     <div class="row justify-content-center">
