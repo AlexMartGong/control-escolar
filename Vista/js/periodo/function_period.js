@@ -606,7 +606,7 @@ function bloquearFormulario(bloquearTodo, soloIDyPeriodo) {
 
 function validarCaracteres(input) {
     // Patrón para permitir solo letras, números, espacios y guiones
-    const patron = /^[A-Za-záéíóúÁÉÍÓÚÑñ0-9\- ]*$/;
+    const patron = /^[A-Za-z0-9\-]*$/;
 
     // Obtener el botón de guardar
     const btnGuardar = document.querySelector('button[onclick*="validafrmPeriodo"]');
@@ -643,8 +643,11 @@ function storeOriginalValues() {
         fechaFinalAjuste: document.getElementById("txtFechaFinalAjuste").value
     };
 
-    // Inicialmente deshabilitamos el botón ya que no hay cambios
-    document.getElementById("btnActualizar").disabled = true;
+    // Inicialmente deshabilitamos el botón ya que no hay cambios (solo si existe)
+    const btnActualizar = document.getElementById("btnActualizar");
+    if (btnActualizar) {
+        btnActualizar.disabled = true;
+    }
 }
 
 // Función para verificar si el formulario ha sido modificado
@@ -665,8 +668,11 @@ function checkFormModified() {
         currentValues.fechaInicioAjuste !== originalValues.fechaInicioAjuste ||
         currentValues.fechaFinalAjuste !== originalValues.fechaFinalAjuste;
 
-    // Habilitar/deshabilitar botón según el estado de modificación
-    document.getElementById("btnActualizar").disabled = !isModified;
+    // Habilitar/deshabilitar botón según el estado de modificación (solo si existe)
+    const btnActualizar = document.getElementById("btnActualizar");
+    if (btnActualizar) {
+        btnActualizar.disabled = !isModified;
+    }
 }
 
 // Función para agregar oyentes de eventos a todos los campos del formulario
