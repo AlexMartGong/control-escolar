@@ -232,7 +232,7 @@ function AgregarPeriodo(mensaje) {
     const fechaInicioAjuste = document.getElementById("txtFechaInicioAjuste").value.trim();
     const fechaFinalAjuste = document.getElementById("txtFechaFinalAjuste").value.trim();
 
-    
+
     // Llamar a la función de validación de fechas
     const resultadoValidacion = validarFechasAgregar(
         fechaInicio,
@@ -606,7 +606,7 @@ function bloquearFormulario(bloquearTodo, soloIDyPeriodo) {
 
 function validarCaracteres(input) {
     // Patrón para permitir solo letras, números, espacios y guiones
-    const patron = /^[A-Za-záéíóúÁÉÍÓÚÑñ0-9\- ]*$/;
+    const patron = /^[A-Za-z0-9\s\-]*$/;
 
     // Obtener el botón de guardar
     const btnGuardar = document.querySelector('button[onclick*="validafrmPeriodo"]');
@@ -628,7 +628,12 @@ function validarCaracteres(input) {
         input.classList.remove("is-invalid");
         document.getElementById("periodoFeedback").style.display = "none";
 
-        // En lugar de activar directamente, verificar si el formulario ha sido modificado
+        // Reactivar el botón de guardar cuando el input es válido
+        if (btnGuardar) {
+            btnGuardar.disabled = false;
+        }
+
+        // Verificar si el formulario ha sido modificado (para formulario de edición)
         checkFormModified();
     }
 }
@@ -643,8 +648,11 @@ function storeOriginalValues() {
         fechaFinalAjuste: document.getElementById("txtFechaFinalAjuste").value
     };
 
-    // Inicialmente deshabilitamos el botón ya que no hay cambios
-    document.getElementById("btnActualizar").disabled = true;
+    // Inicialmente deshabilitamos el botón ya que no hay cambios (solo si existe)
+    const btnActualizar = document.getElementById("btnActualizar");
+    if (btnActualizar) {
+        btnActualizar.disabled = true;
+    }
 }
 
 // Función para verificar si el formulario ha sido modificado
@@ -665,8 +673,11 @@ function checkFormModified() {
         currentValues.fechaInicioAjuste !== originalValues.fechaInicioAjuste ||
         currentValues.fechaFinalAjuste !== originalValues.fechaFinalAjuste;
 
-    // Habilitar/deshabilitar botón según el estado de modificación
-    document.getElementById("btnActualizar").disabled = !isModified;
+    // Habilitar/deshabilitar botón según el estado de modificación (solo si existe)
+    const btnActualizar = document.getElementById("btnActualizar");
+    if (btnActualizar) {
+        btnActualizar.disabled = !isModified;
+    }
 }
 
 // Función para agregar oyentes de eventos a todos los campos del formulario
