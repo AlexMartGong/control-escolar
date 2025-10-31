@@ -1,6 +1,4 @@
 <link rel="stylesheet" href="../css/styleInterno.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
 
 <div class="container" id="fmrcarrera">
     <div class="row justify-content-center">
@@ -18,17 +16,17 @@
                             <label for="clavemateria" class="form-label">Clave de materia</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     maxlength="15"
                                     title="Solo letras, números y guion medio. Máximo 15 caracteres."
-                                    class="form-control" 
-                                    id="clavemateria" 
+                                    class="form-control"
+                                    id="clavemateria"
                                     oninput=""
                                      disabled>
-                            </div>  
+                            </div>
                         </div>
-                        
+
                         <div class="mb-3 mb-md-4">
                             <label for="nombremateria" class="form-label">Nombre de Materia</label>
                             <div class="input-group">
@@ -36,9 +34,9 @@
                                 <input type="text"
                                     maxlength="100"
                                     title='Maximo 100 caracteres'
-                                    class="form-control" 
+                                    class="form-control"
                                     oninput="verificarInputmateria('nombremateria', 'btnGuardarJ' , 'mb-3')"
-                                    id="nombremateria" 
+                                    id="nombremateria"
                                     placeholder="Ingrese el nombre de materia" required>
                             </div>
                         </div>
@@ -106,7 +104,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="mb-3 mb-md-4">
                             <label class="form-label">Carrera</label>
                             <div class="row g-2">
@@ -124,10 +122,10 @@
                                     <label for="claveCarrera" class="form-label">Clave</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-blue-light"><i class="fas fa-id-card"></i></span>
-                                        <input 
+                                        <input
                                             type="text"
-                                            id="claveCarrera" 
-                                            class="form-control" 
+                                            id="claveCarrera"
+                                            class="form-control"
                                             disabled>
                                     </div>
                                 </div>
@@ -139,7 +137,7 @@
                             <button type="button"
                                     id="btnGuardarJ"
                                     class="btn btn3 btn-primary"
-                                    onclick="validarCamposmateria('modificar');" 
+                                    onclick="validarCamposmateria('modificar');"
                                     disabled
                                     >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="me-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,11 +145,11 @@
                                     </svg>Modificar
                                 </button>
                                 <button type="button"
-                                class="btn btn-outline-secondary" 
+                                class="btn btn-outline-secondary"
                                     onclick="clearArea('fmrcarrera'); option('materia','')">
                                     <i class="fas fa-times-circle me-2"></i>Cancelar
                                 </button>
-                               
+
                             </div>
                         </div>
                     </form>

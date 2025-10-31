@@ -8,21 +8,19 @@
     <!-- CSS de Select2 -->
     <link rel="stylesheet" href="../select2/select2.min.css">
     <!-- DataTables + Bootstrap 5 CSS -->
-    <link rel="stylesheet" href="../DataTables/css/dataTables.bootstrap5.css">
+    <link rel="stylesheet" href="../dataTables/css/dataTables.bootstrap5.css">
     <!-- DataTables Responsive + Bootstrap 5 CSS -->
-    <link rel="stylesheet" href="../DataTables/css/responsive.bootstrap5.css">
+    <link rel="stylesheet" href="../dataTables/css/responsive.bootstrap5.css">
     <!-- para cambiar el icono de DataTables -->
     <link rel="stylesheet" href="../css/iconsDatatable.css">
     <!-- Bootstrap CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- DataTables CSS -->
-    <link href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/fontawesome-free-7.1.0-web/css/all.css">
     <!-- Custom CSS -->
-    <link href="../css/style.css" rel="stylesheet">
-    <!-- jQuery UI CSS - needed for datepicker -->
-    <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="../css/bootstrap-icons-1.11.3/font/bootstrap-icons.css">
 </head>
 <body>
 <!-- Botón de menú para móvil -->
@@ -82,7 +80,8 @@
                     <!-- Enlaces directos sin submenús -->
                     <a href="javascript:void(0);" onclick="option('oferta', '')" class="nav-link"><i
                                 class="fas fa-clipboard-list me-2"></i>Oferta</a>
-                    <a href="javascript:void(0);" class="nav-link"><i class="fas fa-edit me-2"></i>Captura</a>
+                    <a href="javascript:void(0);" onclick="option('captura', '')" class="nav-link"><i
+                                class="fas fa-edit me-2"></i>Captura</a>
                     <a href="javascript:void(0);" onclick="option('horario', '')" class="nav-link"><i
                                 class="fas fa-clock me-2"></i>Horario</a>
                     <a href="javascript:void(0);" onclick="option('baja', '')" class="nav-link"><i
@@ -104,26 +103,18 @@
 </div>
 
 <!-- jQuery  -->
-<script src="../DataTables/js/jquery-3.7.1.js"></script>
-
-<!-- jQuery UI  -->
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-
+<script src="../dataTables/js/jquery-3.7.1.js"></script>
 <!-- Bootstrap 5 JS Bundle -->
-<script src="../DataTables/js/bootstrap.bundle.min.js"></script>
-
+<script src="../dataTables/js/bootstrap.bundle.min.js"></script>
 <!-- DataTables núcleo -->
-<script src="../DataTables/js/dataTables.js"></script>
-
+<script src="../dataTables/js/dataTables.js"></script>
 <!-- DataTables integración con Bootstrap 5 -->
-<script src="../DataTables/js/dataTables.bootstrap5.js"></script>
-
+<script src="../dataTables/js/dataTables.bootstrap5.js"></script>
 <!-- DataTables extensión Responsive -->
-<script src="../DataTables/js/dataTables.responsive.js"></script>
-<script src="../DataTables/js/responsive.bootstrap5.js"></script>
+<script src="../dataTables/js/dataTables.responsive.js"></script>
+<script src="../dataTables/js/responsive.bootstrap5.js"></script>
 <!-- JS de Select2 -->
 <script src="../select2/select2.min.js"></script>
-
 <!-- Scripts personalizados (después de librerías) -->
 <script src="../js/function.js"></script>
 <script src="../js/periodo/function_period.js"></script>
