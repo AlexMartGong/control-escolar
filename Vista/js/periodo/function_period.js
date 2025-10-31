@@ -35,12 +35,14 @@ function loadFormPeriodo(id) {
                             300,
                             function () {
 
+                                /*
                                 // **Inicializar datepickers después de la animación**
                                 $(".datepicker").datepicker({
                                     format: "yyyy-mm-dd",
                                     autoclose: true,
                                     language: "es",
                                 });
+                                */
 
                                 // **Llamada al método para calcular el periodo**
                                 obtenerPeriodo();
@@ -230,20 +232,7 @@ function AgregarPeriodo(mensaje) {
     const fechaInicioAjuste = document.getElementById("txtFechaInicioAjuste").value.trim();
     const fechaFinalAjuste = document.getElementById("txtFechaFinalAjuste").value.trim();
 
-    // Validar campos obligatorios
-    if (
-        !periodo ||
-        !fechaInicio ||
-        !fechaTermino ||
-        !fechaInicioAjuste ||
-        !fechaFinalAjuste
-    ) {
-        mostrarFaltaDatos(
-            "Por favor, complete todos los campos obligatorios para continuar."
-        );
-        return false;
-    }
-
+    
     // Llamar a la función de validación de fechas
     const resultadoValidacion = validarFechasAgregar(
         fechaInicio,
