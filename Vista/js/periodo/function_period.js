@@ -628,7 +628,12 @@ function validarCaracteres(input) {
         input.classList.remove("is-invalid");
         document.getElementById("periodoFeedback").style.display = "none";
 
-        // En lugar de activar directamente, verificar si el formulario ha sido modificado
+        // Reactivar el botón de guardar cuando el input es válido
+        if (btnGuardar) {
+            btnGuardar.disabled = false;
+        }
+
+        // Verificar si el formulario ha sido modificado (para formulario de edición)
         checkFormModified();
     }
 }
