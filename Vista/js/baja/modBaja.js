@@ -38,7 +38,7 @@ const bajasEjemplo = {
 // Función para cargar los datos de la baja en el formulario
 function cargarDatosSelectPeriodosMod(callback) {
     $.ajax({
-        url: '../../Controlador/Intermediarios/Periodo/ObtenerPeriodos.php',
+        url: '../../Controlador/Intermediarios/Periodo/ObtenerAllPeriodos.php',
         method: 'POST',
         contentType: 'application/json',
         dataType: 'json',

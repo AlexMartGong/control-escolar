@@ -221,11 +221,7 @@ function confirmarBajaAutomatica() {
 
 // Función para ejecutar la baja automática (después de confirmar)
 function ejecutarBajaAutomatica() {
-    // Cerrar el modal
-    const modalElement = document.getElementById('modalConfirmacionBaja');
-    const modal = bootstrap.Modal.getInstance(modalElement);
-    modal.hide();
-
+ 
     $.ajax({
         url: '../../Controlador/Intermediarios/Baja/AplicarBajasPorNoInscripcion.php',
         method: 'POST',
@@ -233,12 +229,9 @@ function ejecutarBajaAutomatica() {
         dataType: 'json',
         success: function (respuesta) {
 
-            console.log("Respuesta del Intermediario Aplicar Bajas:", respuesta);
-
             if (respuesta.estado === 'OK') {
 
-                mostrarDatosGuardados('Baja automática ejecutada exitosamente.\n\nSe aplicó la baja a ' +
-                    document.getElementById('totalAlumnos').textContent + ' alumnos del periodo ' + document.getElementById('periodoSeleccionado').textContent, function () {
+                mostrarDatosGuardados('Se han aplicado correctamente las Bajas pertinentes y se han preparado las calificaciones para su captura', function () {
                     cancelarBajaAutomatica();
                 });
 
@@ -255,6 +248,112 @@ function ejecutarBajaAutomatica() {
     });
 
 }
+
+/**
+ * Función para aplicar el cierre de ajustes
+ * Valida la fecha de término de ajustes y la fecha de cierre de inscripciones
+ * antes de ejecutar el algoritmo
+ */
+function aplicarCierreAjustes() {
+    $.ajax({
+        url: '../../Controlador/Intermediarios/Baja/ObtenerDatosCierreAjus.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ estadoP: 'Abierto' }), 
+        dataType: 'json',
+        success: function(respuesta) {
+            console.log("Respuesta del Intermediario:", respuesta);
+
+            if (respuesta.estado === 'OK') {
+                let AlumnosEnBaja = 0;
+                let AlumnosEnTemp = 0;
+                let AlumnosEnDef = 0;
+
+                if (respuesta.filasAlumnos > 0) {
+                    respuesta.datosAlumnos.forEach(alumno => {
+                        if (alumno.estado === 'Baja') AlumnosEnBaja++;
+                        else if (alumno.estado === 'Baja Temporal') AlumnosEnTemp++;
+                        else if (alumno.estado === 'Baja Definitiva') AlumnosEnDef++;
+                    });
+                }
+
+                // Aquí construimos el modal con los datos reales
+                let modalHTML = `
+                <div class="modal fade" id="confirmCierreAjustesModal" tabindex="-1" aria-labelledby="modalConfirmacionBajaLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title" id="modalConfirmacionBajaLabel">
+                                    <i class="fas fa-exclamation-circle me-2"></i>Confirmar Cierre de Ajustes
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="mb-3">¿Está seguro de que desea aplicar el cierre de ajustes?</p>
+                                <div class="alert alert-info mb-3">
+                                    <p class="mb-1"><strong>Periodo:</strong> <span id="modalPeriodo">${respuesta.periodo}</span></p>
+                                    <p class="mb-1"><strong>Total de alumnos en baja:</strong> <span id="modalTotal">${AlumnosEnBaja}</span></p>
+                                    <p class="mb-1"><strong>Bajas temporales:</strong> <span id="modalTemporal">${AlumnosEnTemp}</span></p>
+                                    <p class="mb-0"><strong>Bajas definitivas:</strong> <span id="modalDefinitiva">${AlumnosEnDef}</span></p>
+                                </div>
+                                <div class="alert alert-warning mb-3">
+                                    <p class="mb-2"><strong>Esta acción realizará lo siguiente:</strong></p>
+                                    <ul class="mb-0 ps-3">
+                                        <li>Se aplicarán las bajas correspondientes</li>
+                                        <li>Se generarán las calificaciones para su captura</li>
+                                        <li><strong>Se cerrarán las modificaciones y ya no se podrán realizar cambios</strong></li>
+                                    </ul>
+                                </div>
+                                <p class="text-danger mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>ADVERTENCIA:</strong> Esta acción tendrá consecuencias una vez ejecutada, el periodo de ajustes habrá terminado.
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </button>
+                                <button type="button" class="btn btn-danger" id="btnConfirmarCierre">
+                                    <i class="fas fa-check me-2"></i>Confirmar y Ejecutar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+
+                // Remover modal anterior
+                document.getElementById("confirmCierreAjustesModal")?.remove();
+
+                // Insertar nuevo modal
+                document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+                // Mostrar modal
+                let modalElement = document.getElementById("confirmCierreAjustesModal");
+                let modal = new bootstrap.Modal(modalElement);
+                modal.show();
+
+                // Botón confirmar
+                document.getElementById("btnConfirmarCierre").addEventListener("click", function () {
+                    modal.hide();
+                    ejecutarBajaAutomatica();
+                });
+
+                // Eliminar del DOM al cerrar
+                modalElement.addEventListener("hidden.bs.modal", function () {
+                    modalElement.remove();
+                });
+
+            } else {
+                console.error("No se pudieron obtener los alumnos filtrados o periodo.");
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error AJAX:", status, error);
+        }
+    });
+}
+
 
 // Función para cancelar y regresar
 function cancelarBajaAutomatica() {
