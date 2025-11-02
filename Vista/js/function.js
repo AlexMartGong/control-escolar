@@ -319,13 +319,11 @@ function option(opc, filter) {
 function validafrmPeriodo(mensaje, tipoOp) {
     switch (tipoOp) {
         case "Agregar":
-            console.log("Voy a comenzar a Agregar");
-
+            
             return AgregarPeriodo(mensaje);
 
         case "Modificar":
-            console.log("Voy a comenzar a Modificar");
-
+    
             return ModificarPeriodo(mensaje);
 
         default:

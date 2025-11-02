@@ -6,7 +6,7 @@
 // Importar clases necesarias para conexión y manejo de la base de datos.
 require '../../../Modelo/BD/ConexionBD.php';
 require '../../../Modelo/BD/ModeloBD.php';
-require '../../../Modelo/DAOs/AlumnoDAO.php';
+require '../../../Modelo/DAOs/BajaDAO.php';
 require '../../../Modelo/DAOs/PeriodoDAO.php'; 
 
 header('Content-Type: application/json'); 
@@ -18,34 +18,38 @@ $c = new ConexionBD($DatosBD);
 $pdo = $c->Conectar();
 
 // DAO de alumnos y periodos
-$objDaoAlumno = new AlumnoDAO($pdo);
+$objDaoBaja= new BajaDAO($pdo);
 $objDaoPeriodo = new PeriodoDAO($pdo);
 
 try {
-    // Alumnos filtrados
-    $resultadoAlumnos = $objDaoAlumno->ObtenerAlumnosFiltrados();
 
-    // Periodo activo
+    $validacion = $objDaoBaja->ValidarCierreDeAjustes();
+
+    if ($validacion['estado'] === 'Error') {
+        // Si no es posible, devolvemos el error y detenemos
+        echo json_encode([
+            'estado' => 'Error',
+            'mensaje' => $validacion['mensaje']
+        ]);
+        exit;
+    }
+
+    $resultadoBajas = $objDaoBaja->ObtenerBajasPorEjecutar();
     $resultadoPeriodo = $objDaoPeriodo->BuscarPeriodoPorEstado($estadoP);
 
-    // Combinar resultados
     $resultado = [
-        'estado' => 'OK',
-        'datosAlumnos' => $resultadoAlumnos['datos'] ?? [],
-        'filasAlumnos' => $resultadoAlumnos['filas'] ?? 0,
-        'periodo' => $resultadoPeriodo['datos'][0]['periodo'] ?? 'N/D', // nombre del periodo
+        'estado' => $resultadoBajas['estado'],
+        'datosBajas' => $resultadoBajas['datos'] ?? [],
+        'periodo' => $resultadoPeriodo['datos'][0] ?? 'No hay un periodo en estado "Abierto".'
     ];
 
-    // Si no hay alumnos filtrados, todo es 0
-    if (!isset($resultadoAlumnos['datos']) || count($resultadoAlumnos['datos']) === 0) {
-        $resultado['filasAlumnos'] = 0;
-        $resultado['datosAlumnos'] = [];
+    if ($resultadoBajas['estado'] !== 'OK') {
+        $resultado['mensaje'] = $resultadoBajas['mensaje'] ?? 'No hay datos disponibles.';
     }
 
 } catch(PDOException $e) {
     $resultado = [
-        'estado' => 'Error',
-        'mensaje' => "No fue posible completar la operación. " . $e->getMessage()
+        'mensaje' => "Error al obtener los datos para el cierre de ajustes . " . $e->getMessage()
     ];
     error_log("Excepción PDO en intermediario Datos de Cierre: " . $e->getMessage());
 }

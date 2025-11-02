@@ -71,46 +71,60 @@ class PeriodoDAO
         $c = $this->conector;
 
         if (empty($datos->pid) || empty($datos->pestado)) {
-            $resultado['mensaje'] = "Error: No se permiten valores vacíos.";
+            error_log("[CambiarEstado] Error: Valores vacíos detectados. PID o estado faltante.");
+            $resultado['mensaje'] = "Ocurrió un error al procesar la solicitud. Por favor, inténtalo nuevamente.";
             return $resultado;
         }
 
-        $estadosValidos = ['Pendiente', 'Abierto', 'Cerrado', 'Cancelado'];
-
-        if (!in_array($datos->pestado, $estadosValidos)) {
-            $resultado['mensaje'] = "Error: Estado no válido.";
+        // Validar que el estado sea uno permitido
+        if (
+            $datos->pestado !== "Pendiente" &&
+            $datos->pestado !== "Abierto" &&
+            $datos->pestado !== "Cerrado" &&
+            $datos->pestado !== "Cancelado"
+        ) {
+            error_log("[CambiarEstado] Error: Estado no válido recibido ({$datos->pestado}).");
+            $resultado['mensaje'] = "Ocurrió un error al procesar el cambio de estado. Por favor, contacte al administrador.";
             return $resultado;
         }
 
         try {
-            $consulta = $c->prepare("SELECT estado FROM vstPeriodo WHERE clave_periodo = :pid");
-            $consulta->bindParam(':pid', $datos->pid, PDO::PARAM_INT);
-            $consulta->execute();
-            $estadoActual = $consulta->fetchColumn();
-
-            if ($estadoActual === false) {
-                $resultado['mensaje'] = "Error: El registro no existe.";
-                return $resultado;
-            }
-
-            if ($estadoActual === 'Cerrado' || $estadoActual === 'Cancelado') {
-                $resultado['mensaje'] = "Error: No se puede modificar un periodo que ya está Cerrado o Cancelado.";
-                return $resultado;
-            }
-
+            // Ejecutar el SP
             $sp = $c->prepare("CALL spModificarEstadoPeriodo(:pid, :pestado)");
             $sp->bindParam(':pid', $datos->pid, PDO::PARAM_INT);
             $sp->bindParam(':pestado', $datos->pestado, PDO::PARAM_STR);
             $sp->execute();
 
-            if ($sp->rowCount() > 0) {
-                $resultado['estado'] = "OK";
-                $resultado['mensaje'] = "Estado actualizado correctamente.";
-            } else {
-                $resultado['mensaje'] = "Error: No se realizó ninguna modificación.";
-            }
+            // Si no lanza excepción = éxito
+            $resultado['estado'] = "OK";
+            $resultado['mensaje'] = "El estado del periodo fue actualizado correctamente.";
         } catch (PDOException $e) {
-            $resultado['mensaje'] = "Error en la base de datos: " . $e->getMessage();
+            $mensajeSP = $e->getMessage();
+
+            switch (true) {
+                case str_contains($mensajeSP, "Error de modificación: El registro no existe"):
+                    error_log("[spModificarEstadoPeriodo] El registro no existe para el ID: {$datos->pid}");
+                    $resultado['mensaje'] = "No fue posible completar la operación. El registro no está disponible.";
+                    break;
+
+                case str_contains($mensajeSP, "Error de modificación: Estado no válido"):
+                    error_log("[spModificarEstadoPeriodo] Estado no válido detectado: {$datos->pestado}");
+                    $resultado['mensaje'] = "Ocurrió un problema al actualizar el estado. Contacte al administrador del sistema.";
+                    break;
+
+                case str_contains($mensajeSP, "Error de modificación: No puede haber 2 periodos abiertos"):
+                    $resultado['mensaje'] = "Ya existe un periodo en estado 'Abierto'. Debes cerrar el actual antes de abrir otro.";
+                    break;
+
+                case str_contains($mensajeSP, "Error de modificación: No se puede modificar un periodo cancelado"):
+                    $resultado['mensaje'] = "No es posible modificar un periodo que ya fue cancelado.";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al intentar actualizar el estado. Por favor, contacta al administrador.";
+                    error_log("[CambiarEstado] Error desconocido: " . $mensajeSP);
+                    break;
+            }
         }
 
         return $resultado;
@@ -125,23 +139,119 @@ class PeriodoDAO
     {
         $resultado = ['estado' => 'Error'];
 
-        // Validación de campos vacíos
-        $validacionVacios = $this->validarCamposVacios($datos);
-        if ($validacionVacios !== true) {
-            $resultado['mensaje'] = $validacionVacios;
+        //Validar que los campos no vengan vacios
+        if (
+            empty($datos->periodo) ||
+            empty($datos->fechaInicio) ||
+            empty($datos->fechaTermino) ||
+            empty($datos->fechaInicioAjuste) ||
+            empty($datos->fechaFinalAjuste) //||
+            //empty($datos->fechaCierreInscripciones)
+        ) {
+            $resultado['mensaje'] = "Algunos campos obligatorios están vacíos. Por favor revisa e ingrésalos antes de continuar.";
             return $resultado;
         }
 
-        // Validación del formato del campo periodo (solo letras, números, guion medio y espacio)
+        // Validar el formato del campo periodo (solo letras, números, guion medio y espacio)
         if (!preg_match('/^[A-Za-z0-9\- ]+$/', $datos->periodo)) {
-            $resultado['mensaje'] = "El nombre del periodo contiene caracteres no permitidos.";
+            $resultado['mensaje'] = "El nombre del periodo solo puede contener letras, números, guiones y espacios. Ejemplo válido: 'Febrero 2025 - Julio 2025'.";
             return $resultado;
         }
 
-        // Validación de las fechas
-        $validacion = $this->validarFechas($datos->fechaInicio, $datos->fechaTermino, $datos->fechaInicioAjuste, $datos->fechaFinalAjuste);
-        if ($validacion !== true) {
-            $resultado['mensaje'] = $validacion;
+        $hoy = strtotime(date("Y-m-d"));
+        $fecha_inicio = strtotime($datos->fechaInicio);
+        $fecha_fin = strtotime($datos->fechaTermino);
+
+        // Periodo Febrero - Julio
+        if (preg_match('/^Febrero \d{4} - Julio \d{4}$/', $datos->periodo)) {
+            $anio = (int)substr($datos->periodo, 8, 4);
+
+            // Rango permitido
+            $inicio_min = strtotime("$anio-01-01");
+            $inicio_max = strtotime("$anio-01-31");
+            $fin_min = strtotime("$anio-06-01");
+            $fin_max = strtotime("$anio-06-30");
+
+            // Validar fecha de inicio
+            if ($fecha_inicio < $hoy) {
+                $resultado['mensaje'] = "La fecha de inicio debe ser mayor a hoy.";
+                return $resultado;
+            }
+            if ($fecha_inicio < $inicio_min || $fecha_inicio > $inicio_max) {
+                $resultado['mensaje'] = "La fecha de inicio debe estar entre el 01 y el 31 de enero del $anio.";
+                return $resultado;
+            }
+            if ($fecha_inicio >= $fecha_fin) {
+                $resultado['mensaje'] = "La fecha de inicio debe ser anterior a la fecha de término.";
+                return $resultado;
+            }
+
+            // Validar fecha de término
+            if ($fecha_fin < $hoy) {
+                $resultado['mensaje'] = "La fecha de término debe ser mayor a hoy.";
+                return $resultado;
+            }
+            if ($fecha_fin < $fin_min || $fecha_fin > $fin_max) {
+                $resultado['mensaje'] = "La fecha de término debe estar entre el 01 y el 30 de junio del $anio.";
+                return $resultado;
+            }
+        }
+
+        // Periodo Agosto - Enero
+        if (preg_match('/^Agosto \d{4} - Enero \d{4}$/', $datos->periodo)) {
+            $anio_inicio = (int)substr($datos->periodo, 7, 4);
+            $anio_fin = (int)substr($datos->periodo, 14, 4);
+
+            $inicio_min = strtotime("$anio_inicio-08-01");
+            $inicio_max = strtotime("$anio_inicio-08-31");
+            $fin_min = strtotime("$anio_fin-12-01");
+            $fin_max = strtotime("$anio_fin-12-31");
+
+            // Validar fecha de inicio
+            if ($fecha_inicio < $hoy) {
+                $resultado['mensaje'] = "La fecha de inicio debe ser mayor a hoy.";
+                return $resultado;
+            }
+            if ($fecha_inicio < $inicio_min || $fecha_inicio > $inicio_max) {
+                $resultado['mensaje'] = "La fecha de inicio debe estar entre el 01 y el 31 de agosto del $anio.";
+                return $resultado;
+            }
+            if ($fecha_inicio >= $fecha_fin) {
+                $resultado['mensaje'] = "La fecha de inicio debe ser anterior a la fecha de término.";
+                return $resultado;
+            }
+
+            // Validar fecha de término
+            if ($fecha_fin < $hoy) {
+                $resultado['mensaje'] = "La fecha de término debe ser mayor a hoy.";
+                return $resultado;
+            }
+            if ($fecha_fin < $fin_min || $fecha_fin > $fin_max) {
+                $resultado['mensaje'] = "La fecha de término debe estar entre el 01 y el 31 de diciembre del $anio.";
+                return $resultado;
+            }
+        }
+
+        $fecha_inicio_ajuste = strtotime($datos->fechaInicioAjuste);
+        $fecha_final_ajuste = strtotime($datos->fechaFinalAjuste);
+
+        // Validar fecha de inicio de ajustes
+        if ($fecha_inicio_ajuste < $fecha_inicio) {
+            $resultado['mensaje'] = "La fecha de inicio de ajustes no puede ser anterior a la fecha de inicio del periodo.";
+            return $resultado;
+        }
+        if ($fecha_inicio_ajuste > strtotime("+7 days", $fecha_inicio)) {
+            $resultado['mensaje'] = "La fecha de inicio de ajustes no puede ser mayor a 7 días después del inicio del periodo.";
+            return $resultado;
+        }
+
+        // Validar fecha de término de ajustes
+        if ($fecha_final_ajuste <= $fecha_inicio_ajuste) {
+            $resultado['mensaje'] = "La fecha de término de ajustes debe ser posterior a la fecha de inicio de ajustes.";
+            return $resultado;
+        }
+        if ($fecha_final_ajuste > strtotime("+22 days", $fecha_inicio_ajuste)) {
+            $resultado['mensaje'] = "La fecha de término de ajustes no puede ser mayor a 22 días después de la fecha de inicio de ajustes.";
             return $resultado;
         }
 
@@ -242,113 +352,6 @@ class PeriodoDAO
         }
 
         return $resultado;
-    }
-
-    /**
-     * Función para validar las fechas de inicio y término del periodo, así como las fechas de ajuste.
-     * @param string $fechaInicio - Fecha de inicio del periodo.
-     * @param string $fechaTermino - Fecha de término del periodo.
-     * @param string $fechaInicioAjuste - Fecha de inicio del ajuste.
-     * @param string $fechaTerminoAjuste - Fecha de término del ajuste.
-     * @return mixed - Si las fechas son válidas, retorna true. Si alguna fecha no es válida, retorna un mensaje de error.
-     */
-    function validarFechas($fechaInicio, $fechaTermino, $fechaInicioAjuste, $fechaTerminoAjuste)
-    {
-        $hoy = date('Y-m-d');
-
-        // Validar fecha de inicio (debe ser mayor a hoy y estar en agosto o enero)
-        if (!$this->validarFechaSemestre($fechaInicio, $hoy, [8, 1])) {
-            return "La fecha de inicio debe ser mayor a hoy y estar en agosto o enero.";
-        }
-
-        // Validar fecha de término (debe ser mayor a hoy y estar en junio o diciembre)
-        if (!$this->validarFechaSemestre($fechaTermino, $hoy, [6, 12])) {
-            return "La fecha de término debe ser mayor a hoy y estar en junio o diciembre.";
-        }
-
-        // Validar que la fecha de inicio de ajustes sea igual a la fecha de inicio del semestre o esté dentro de 7 días
-        if (!$this->validarFechaAjustesInicio($fechaInicioAjuste, $fechaInicio, 7)) {
-            return "La fecha de inicio de ajustes debe ser igual a la fecha de inicio del semestre o no mayor a 7 días.";
-        }
-
-        // Validar que la fecha de término de ajustes no sea igual a la fecha de término del semestre y esté dentro del límite de 22 días
-        if ($fechaTerminoAjuste === $fechaTermino) {
-            return "La fecha de término de ajustes NO puede ser igual a la fecha de término del semestre.";
-        }
-
-        if (!$this->validarFechaAjustesFin($fechaTerminoAjuste, $fechaInicioAjuste, 22)) {
-            return "La fecha de término de ajustes debe ser mayor a la fecha de inicio de ajustes y no mayor a 22 días.";
-        }
-
-        return true; // Si todas las validaciones pasan
-    }
-
-    /**
-     * Función para validar si la fecha es un día válido en el semestre (agosto/enero o junio/diciembre).
-     * @param string $fecha - Fecha a validar.
-     * @param string $hoy - Fecha actual.
-     * @param array $mesesPermitidos - Array con los meses permitidos.
-     * @return bool - Retorna true si la fecha es válida, de lo contrario false.
-     */
-    function validarFechaSemestre($fecha, $hoy, $mesesPermitidos)
-    {
-        if ($fecha <= $hoy) {
-            return false;
-        }
-
-        $mes = (int)date('m', strtotime($fecha));
-        return in_array($mes, $mesesPermitidos);
-    }
-
-    /**
-     * Función para validar la fecha de inicio de ajustes (puede ser igual a la de inicio o no mayor a 7 días).
-     * @param string $fechaAjuste - Fecha de ajuste a validar.
-     * @param string $fechaReferencia - Fecha de referencia para el ajuste.
-     * @param int $diasMax - Número máximo de días permitidos para el ajuste.
-     * @return bool - Retorna true si la fecha es válida, de lo contrario false.
-     */
-    function validarFechaAjustesInicio($fechaAjuste, $fechaReferencia, $diasMax)
-    {
-        if ($fechaAjuste < $fechaReferencia) {
-            return false;
-        }
-
-        $diferencia = (strtotime($fechaAjuste) - strtotime($fechaReferencia)) / (60 * 60 * 24); // Diferencia en días
-        return $diferencia <= $diasMax;
-    }
-
-    /**
-     * Función para validar la fecha de término de ajustes (debe ser mayor a la de inicio y no mayor a 22 días).
-     * @param string $fechaAjuste - Fecha de ajuste a validar.
-     * @param string $fechaReferencia - Fecha de referencia para el ajuste.
-     * @param int $diasMax - Número máximo de días permitidos para el ajuste.
-     * @return bool - Retorna true si la fecha es válida, de lo contrario false.
-     */
-    function validarFechaAjustesFin($fechaAjuste, $fechaReferencia, $diasMax)
-    {
-        if ($fechaAjuste <= $fechaReferencia) {
-            return false;
-        }
-
-        $diferencia = (strtotime($fechaAjuste) - strtotime($fechaReferencia)) / (60 * 60 * 24); // Diferencia en días
-        return $diferencia <= $diasMax;
-    }
-
-    /**
-     * Función para validar que los campos no estén vacíos.
-     * @param object $datos - Objeto con los datos a validar.
-     * @return mixed - Retorna un mensaje de error si algún campo está vacío, o true si todos los campos están llenos.
-     */
-    function validarCamposVacios($datos)
-    {
-        $camposRequeridos = ['periodo', 'fechaInicio', 'fechaTermino', 'fechaInicioAjuste', 'fechaFinalAjuste'];
-
-        foreach ($camposRequeridos as $campo) {
-            if (empty($datos->$campo)) {
-                return "El campo '$campo' no puede estar vacío.";
-            }
-        }
-        return true; // Si todos los campos están llenos
     }
 
     function BuscarPeriodoPorEstado($pestado)
