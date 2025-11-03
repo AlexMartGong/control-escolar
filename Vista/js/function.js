@@ -104,7 +104,7 @@ function option(opc, filter) {
                                         [25, 50, 100, "Todos"],
                                     ],
                                     language: {
-                                        url: "../dataTables/es-Es.json",
+                                        url: "../dataTables/es-ES.json",
                                         paginate: {
                                             previous: "Anterior",
                                             next: "Siguiente",
@@ -124,7 +124,7 @@ function option(opc, filter) {
                                     $("#tableDocente").DataTable({
                                         ...commonConfig,
                                         language: {
-                                            url: "../dataTables/es-Es.json",
+                                            url: "../dataTables/es-ES.json",
                                             emptyTable: "No hay registros por el momento de Docentes para Mostrar",
                                         },
                                         columnDefs: [
@@ -140,7 +140,7 @@ function option(opc, filter) {
                                     $("#tableCareerManager").DataTable({
                                         ...commonConfig,
                                         language: {
-                                            url: "../dataTables/es-Es.json",
+                                            url: "../dataTables/es-ES.json",
                                             emptyTable: "No hay registros por el momento de Jefe de Carrera para Mostrar",
                                         },
                                         columnDefs: [
@@ -153,7 +153,7 @@ function option(opc, filter) {
                                     $("#tablePeriod").DataTable({
                                         ...commonConfig,
                                         language: {
-                                            url: "../dataTables/es-Es.json",
+                                            url: "../dataTables/es-ES.json",
                                             emptyTable: "No hay registros por el momento de Periodos para Mostrar",
                                         },
                                         columnDefs: [
@@ -167,7 +167,7 @@ function option(opc, filter) {
                                     $("#tableCarrera").DataTable({
                                         ...commonConfig,
                                         language: {
-                                            url: "../dataTables/es-Es.json",
+                                            url: "../dataTables/es-ES.json",
                                             emptyTable: "No hay registros por el momento de Carreras para Mostrar",
                                         },
                                         columnDefs: [
@@ -181,7 +181,7 @@ function option(opc, filter) {
                                     $("#tableMateria").DataTable({
                                         ...commonConfig,
                                         language: {
-                                            url: "../dataTables/es-Es.json",
+                                            url: "../dataTables/es-ES.json",
                                             emptyTable: "No hay registros por el momento de Materias para Mostrar",
                                         },
                                         columnDefs: [
@@ -195,7 +195,7 @@ function option(opc, filter) {
                                     $("#tableOferta").DataTable({
                                         ...commonConfig,
                                         language: {
-                                            url: "../dataTables/es-Es.json",
+                                            url: "../dataTables/es-ES.json",
                                             emptyTable: "No hay registros por el momento de ofertas para mostrar",
                                         },
                                         columnDefs: [
@@ -208,7 +208,7 @@ function option(opc, filter) {
                                     $("#tableHorario").DataTable({
                                         ...commonConfig,
                                         language: {
-                                            url: "../dataTables/es-Es.json",
+                                            url: "../dataTables/es-ES.json",
                                             emptyTable: "No hay registros por el momento de Horarios para Mostrar",
                                         },
                                         columnDefs: [
@@ -236,7 +236,7 @@ function option(opc, filter) {
                                     $("#tableParcial").DataTable({
                                         ...commonConfig,
                                         language: {
-                                            url: "../dataTables/es-Es.json",
+                                            url: "../dataTables/es-ES.json",
                                             emptyTable: "No hay registros por el momento de Parciales para Mostrar",
                                         },
                                         columnDefs: [
@@ -255,7 +255,7 @@ function option(opc, filter) {
                                     $("#bajaTemporal").DataTable({
                                         ...commonConfig,
                                         language: {
-                                            url: "../dataTables/es-Es.json",
+                                            url: "../dataTables/es-ES.json",
                                             emptyTable: "No hay registros por el momento de Baja Temporal para Mostrar",
                                         }
                                     })
@@ -264,7 +264,7 @@ function option(opc, filter) {
                                     $("#tablaBajas").DataTable({
                                         ...commonConfig,
                                         language: {
-                                            url: "../dataTables/es-Es.json",
+                                            url: "../dataTables/es-ES.json",
                                             emptyTable:
                                                 "No hay registros por el momento de Bajas para Mostrar",
                                         },

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Escolar - TecJalisco</title>
+    <title>SICIA - TSJ TEQUILA</title>
     <!-- CSS de Select2 -->
     <link rel="stylesheet" href="../select2/select2.min.css">
     <!-- DataTables + Bootstrap 5 CSS -->
