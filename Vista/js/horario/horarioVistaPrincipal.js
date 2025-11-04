@@ -200,7 +200,7 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
                 pagingType: "simple_numbers",
                 lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "Todos"]],
                 language: {
-                    url: "../dataTables/es-Es.json",
+                    url: "../dataTables/es-ES.json",
                     paginate: {
                         previous: "Anterior",
                         next: "Siguiente",
@@ -237,7 +237,7 @@ if (typeof window.HorarioCarreraManager === 'undefined') {
                 pagingType: "simple_numbers",
                 lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "Todos"]],
                 language: {
-                    url: "../dataTables/es-Es.json",
+                    url: "../dataTables/es-ES.json",
                     paginate: {
                         previous: "Anterior",
                         next: "Siguiente",

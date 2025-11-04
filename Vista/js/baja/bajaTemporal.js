@@ -221,7 +221,7 @@ function confirmarBajaAutomatica() {
 
 // Función para ejecutar la baja automática (después de confirmar)
 function ejecutarBajaAutomatica() {
- 
+
     $.ajax({
         url: '../../Controlador/Intermediarios/Baja/AplicarBajasPorNoInscripcion.php',
         method: 'POST',
@@ -259,26 +259,32 @@ function aplicarCierreAjustes() {
         url: '../../Controlador/Intermediarios/Baja/ObtenerDatosCierreAjus.php',
         method: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({ estadoP: 'Abierto' }), 
+        data: JSON.stringify({ estadoP: 'Abierto' }),
         dataType: 'json',
-        success: function(respuesta) {
+        success: function (respuesta) {
             console.log("Respuesta del Intermediario:", respuesta);
 
-            if (respuesta.estado === 'OK') {
-                let AlumnosEnBaja = 0;
-                let AlumnosEnTemp = 0;
-                let AlumnosEnDef = 0;
+            if (respuesta.estado === "Error") {
+                mostrarErrorCaptura(respuesta.mensaje);
+                return; // detener el flujo
+            }
 
-                if (respuesta.filasAlumnos > 0) {
-                    respuesta.datosAlumnos.forEach(alumno => {
-                        if (alumno.estado === 'Baja') AlumnosEnBaja++;
-                        else if (alumno.estado === 'Baja Temporal') AlumnosEnTemp++;
-                        else if (alumno.estado === 'Baja Definitiva') AlumnosEnDef++;
-                    });
-                }
+            let textoPeriodo = "";
 
-                // Aquí construimos el modal con los datos reales
-                let modalHTML = `
+            if (typeof respuesta.periodo === "object" && respuesta.periodo !== null) {
+                // llegan los datos como objeto
+                textoPeriodo = `${respuesta.periodo.periodo} (${respuesta.periodo.estado})`;
+            } else {
+                // llegan los datos como texto
+                textoPeriodo = respuesta.periodo ?? "No hay información disponible.";
+            }
+
+            let AlumnosEnBaja = respuesta.datosBajas?.total_bajas ?? 0;
+            let AlumnosEnTemp = respuesta.datosBajas?.bajas_temporales ?? 0;
+            let AlumnosEnDef = respuesta.datosBajas?.bajas_definitivas ?? 0;
+
+            // Aquí construimos el modal con los datos reales
+            let modalHTML = `
                 <div class="modal fade" id="confirmCierreAjustesModal" tabindex="-1" aria-labelledby="modalConfirmacionBajaLabel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
@@ -291,7 +297,7 @@ function aplicarCierreAjustes() {
                             <div class="modal-body">
                                 <p class="mb-3">¿Está seguro de que desea aplicar el cierre de ajustes?</p>
                                 <div class="alert alert-info mb-3">
-                                    <p class="mb-1"><strong>Periodo:</strong> <span id="modalPeriodo">${respuesta.periodo}</span></p>
+                                    <p class="mb-1"><strong>Periodo:</strong> <span id="modalPeriodo">${textoPeriodo}</span></p>
                                     <p class="mb-1"><strong>Total de alumnos en baja:</strong> <span id="modalTotal">${AlumnosEnBaja}</span></p>
                                     <p class="mb-1"><strong>Bajas temporales:</strong> <span id="modalTemporal">${AlumnosEnTemp}</span></p>
                                     <p class="mb-0"><strong>Bajas definitivas:</strong> <span id="modalDefinitiva">${AlumnosEnDef}</span></p>
@@ -322,33 +328,31 @@ function aplicarCierreAjustes() {
                 </div>
                 `;
 
-                // Remover modal anterior
-                document.getElementById("confirmCierreAjustesModal")?.remove();
+            // Remover modal anterior
+            document.getElementById("confirmCierreAjustesModal")?.remove();
 
-                // Insertar nuevo modal
-                document.body.insertAdjacentHTML("beforeend", modalHTML);
+            // Insertar nuevo modal
+            document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-                // Mostrar modal
-                let modalElement = document.getElementById("confirmCierreAjustesModal");
-                let modal = new bootstrap.Modal(modalElement);
-                modal.show();
+            // Mostrar modal
+            let modalElement = document.getElementById("confirmCierreAjustesModal");
+            let modal = new bootstrap.Modal(modalElement);
+            modal.show();
 
-                // Botón confirmar
-                document.getElementById("btnConfirmarCierre").addEventListener("click", function () {
-                    modal.hide();
-                    ejecutarBajaAutomatica();
-                });
+            // Botón confirmar
+            document.getElementById("btnConfirmarCierre").addEventListener("click", function () {
+                modal.hide();
+                ejecutarBajaAutomatica();
+            });
 
-                // Eliminar del DOM al cerrar
-                modalElement.addEventListener("hidden.bs.modal", function () {
-                    modalElement.remove();
-                });
+            // Eliminar del DOM al cerrar
+            modalElement.addEventListener("hidden.bs.modal", function () {
+                modalElement.remove();
+            });
 
-            } else {
-                console.error("No se pudieron obtener los alumnos filtrados o periodo.");
-            }
+
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error("Error AJAX:", status, error);
         }
     });

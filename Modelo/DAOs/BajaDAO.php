@@ -543,4 +543,105 @@ class BajaDAO
         return $resultado;
     }
 
+    public function ObtenerBajasPorEjecutar()
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        try {
+            // -----------------------------------------
+            // Ejecutar el SP 
+            // -----------------------------------------
+            $sp = $c->prepare("CALL spContarBajasPorEjecutar(@mensaje)");
+            $sp->execute();
+
+            // Recuperar el parcial (si existe)
+            $datos = $sp->fetch(PDO::FETCH_ASSOC);
+            $sp->closeCursor();
+
+            // Obtener el mensaje de salida
+            $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+            // -----------------------------------------
+            // Validar mensaje del sp
+            // -----------------------------------------
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Exito':
+                    $resultado['estado'] = "OK";
+                    $resultado['datos'] = [
+                        'total_bajas' => $datos['total_bajas'] ?? 0,
+                        'bajas_temporales' => $datos['bajas_temporales'] ?? 0,
+                        'bajas_definitivas' => $datos['bajas_definitivas'] ?? 0
+                    ];
+                    break;
+
+                case 'Estado: No se encontraron registros':
+                    $resultado['estado'] = "OK";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al obtener los datos. Inténtalo nuevamente más tarde.";
+                    error_log("[BuscarBajasPorEjecutar] Estado inesperado devuelto por SP: " . $resultado['respuestaSP']);
+                    break;
+            }
+        } catch (PDOException $e) {
+            // -----------------------------------------
+            // Manejo de errores en la base de datos
+            // -----------------------------------------
+            error_log("[BuscarBajasPorEjecutar] Error en BD: " . $e->getMessage());
+            $resultado['mensaje'] = "No fue posible acceder a la información de la bajas por ejecutar. Por favor, inténtalo de nuevo más tarde.";
+        }
+
+        return $resultado;
+    }
+
+    public function ValidarCierreDeAjustes()
+    {
+        $resultado = ['estado' => 'Error'];
+        $c = $this->conector;
+
+        try {
+            // -----------------------------------------
+            // Ejecutar el SP 
+            // -----------------------------------------
+            $sp = $c->prepare("CALL spValidaCierre_ModificacionPeriodo(@mensaje)");
+            $sp->execute();
+            $sp->closeCursor();
+
+            // Obtener el mensaje de salida
+            $mensajeSP = $c->query("SELECT @mensaje")->fetch(PDO::FETCH_ASSOC);
+            $resultado['respuestaSP'] = $mensajeSP['@mensaje'] ?? null;
+
+            // -----------------------------------------
+            // Validar mensaje del SP
+            // -----------------------------------------
+            switch ($resultado['respuestaSP']) {
+                case 'Estado: Cierre ya aplicado':
+                    $resultado['mensaje'] = "El cierre de ajustes ya fue aplicado para el periodo vigente.";
+                    break;
+
+                case 'Estado: Cierre no aplicado':
+                    $resultado['estado'] = "OK";
+                    break;
+
+                case 'Estado: No hay un periodo abierto':
+                    $resultado['mensaje'] = "No existe un periodo en estado 'Abierto'. No se puede validar el cierre.";
+                    break;
+
+                default:
+                    $resultado['mensaje'] = "Ocurrió un error inesperado al verificar el cierre de ajustes. Inténtalo nuevamente más tarde.";
+                    error_log("[ValidarCierreDeAjustes] Estado inesperado devuelto por SP: " . $resultado['respuestaSP']);
+                    break;
+            }
+        } catch (PDOException $e) {
+            // -----------------------------------------
+            // Manejo de errores en la base de datos
+            // -----------------------------------------
+            error_log("[ValidarCierreDeAjustes] Error en BD: " . $e->getMessage());
+            $resultado['mensaje'] = "No fue posible realizar la validación del cierre de ajustes. Por favor, inténtalo de nuevo más tarde.";
+        }
+
+        return $resultado;
+    }
 }

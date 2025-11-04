@@ -16,8 +16,8 @@ function loadFormPeriodo(id) {
 
         fetch(url, {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({id: id}),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: id }),
         })
             .then((response) => response.text())
             .then((responseText) => {
@@ -175,20 +175,14 @@ function changeStatus(pid, pestado, currentStatus) {
             // Convertir a JSON
             let json = JSON.stringify(data);
 
-            console.log(`Cambiando estado de período ${pid} a ${pestado}`);
-
             let url = "../../Controlador/Intermediarios/Periodo/CambiarEstado.php";
 
             // Enviar datos por json al script CambiarEsatdo.php
             $.post(url, json, function (responseText, status) {
-                console.log("Respuesta recibida:");
-                console.log("Estado de la petición:", status);
-                console.log("Texto de respuesta:", responseText);
 
                 try {
                     // Verificar si la respuesta es JSON válido
                     let respuesta = JSON.parse(responseText.trim()); // Trim para eliminar cualquier espacio extra
-                    console.log("Respuesta parseada:", respuesta);
 
                     if (respuesta.estado === "OK") {
                         mostrarDatosGuardados(
@@ -200,7 +194,7 @@ function changeStatus(pid, pestado, currentStatus) {
                         );
                     } else {
                         mostrarErrorCaptura(
-                            `Error: ${respuesta.mensaje || "No se pudo cambiar el estado."}`
+                            respuesta.mensaje || "No se pudo cambiar el estado."
                         );
                     }
                 } catch (error) {
@@ -232,7 +226,7 @@ function AgregarPeriodo(mensaje) {
     const fechaInicioAjuste = document.getElementById("txtFechaInicioAjuste").value.trim();
     const fechaFinalAjuste = document.getElementById("txtFechaFinalAjuste").value.trim();
 
-
+    /*
     // Llamar a la función de validación de fechas
     const resultadoValidacion = validarFechasAgregar(
         fechaInicio,
@@ -240,12 +234,13 @@ function AgregarPeriodo(mensaje) {
         fechaInicioAjuste,
         fechaFinalAjuste
     );
-
+    
     // Si la validación de fechas falla, mostrar mensaje de error y detener el proceso
     if (resultadoValidacion !== true) {
         mostrarFaltaDatos(resultadoValidacion); // Mostrar mensaje de error
         return false; // Detener el proceso de guardado
     }
+    */
 
     //Guardar los datos del fomulario en la bd
     try {
@@ -262,7 +257,6 @@ function AgregarPeriodo(mensaje) {
 
         $.post(url, json, function (responseText, status) {
             console.log("Datos a enviar:", JSON.stringify(datos));
-            console.log("Estado de la petición:", status);
             console.log("Texto de respuesta:", responseText);
 
             try {
@@ -276,6 +270,8 @@ function AgregarPeriodo(mensaje) {
                         });
 
                         console.log("Datos guardados correctamente en la BD.");
+                    } else {
+                        mostrarErrorCaptura(respuesta.mensaje);
                     }
                 }
             } catch (error) {
@@ -312,7 +308,7 @@ function buscarPeriodo() {
     let nombre = document.getElementById("txtPeriodo").value.trim();
     let url = "../../Controlador/Intermediarios/Periodo/ModificarPeriodo.php";
 
-    let datos = id ? {id: id, buscar: true} : {nombre: nombre, buscar: true};
+    let datos = id ? { id: id, buscar: true } : { nombre: nombre, buscar: true };
     let json = JSON.stringify(datos);
 
     $.post(
@@ -449,16 +445,17 @@ function ModificarPeriodo(mensaje) {
  */
 function obtenerPeriodo() {
     let fechaActual = new Date();
-    let mes = fechaActual.getMonth() + 1; // Enero es 0, por eso sumamos 1
+    let mes = fechaActual.getMonth() + 1; // Enero = 0, por eso +1
     let anio = fechaActual.getFullYear();
     let periodo = "";
 
     if (mes >= 2 && mes <= 7) {
-        // Si estamos entre Febrero (2) y Julio (7), el periodo es Febrero - Julio del mismo año
+        // Próximo periodo después de Febrero-Julio -> Agosto-Enero
         periodo = `Agosto ${anio} - Enero ${anio + 1}`;
     } else {
-        // Si estamos entre Agosto (8) y Enero (1), el periodo es Agosto del año actual - Enero del siguiente año
-        periodo = `Febrero ${anio} - Julio ${anio}`;
+        // Próximo periodo después de Agosto-Enero -> Febrero-Julio
+        let anioPeriodo = (mes >= 8) ? anio + 1 : anio;
+        periodo = `Febrero ${anioPeriodo} - Julio ${anioPeriodo}`;
     }
 
     // Asignar el nombre del periodo al campo de texto

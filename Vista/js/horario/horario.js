@@ -194,7 +194,7 @@ function cargarPeriodoActivo() {
                 const texto = `${periodo.periodo} (Estado: ${periodo.estado}, Ajustes hasta: ${periodo.fecha_de_termino_ajustes})`;
                 spanPeriodo.textContent = texto;
             } else {
-                spanPeriodo.textContent = 'No hay periodo activo disponible.';
+                spanPeriodo.textContent = 'No hay periodos validos disponibles (Abierto o Pendiente).';
             }
         })
         .catch(error => {
